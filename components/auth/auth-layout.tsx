@@ -1,4 +1,8 @@
 // components/auth/auth-layout.tsx
+// ─ FULL SCREEN adaptive layout ─
+// Mobile  : < 768px  → stack vertikal penuh layar
+// Tablet  : 768-1023px → split side-by-side penuh layar
+// Desktop : ≥ 1024px  → split side-by-side penuh layar, lebih luas
 "use client";
 
 import Image from "next/image";
@@ -8,6 +12,7 @@ import { Sun, Moon } from "lucide-react";
 import { useTheme } from "next-themes";
 import { cn } from "@/lib/utils";
 import { useEffect, useState, type ReactNode } from "react";
+import { BrandLogo } from "@/components/auth/brand-logo";
 
 interface AuthLayoutProps {
   children: ReactNode;
@@ -20,166 +25,327 @@ export function AuthLayout({ children }: AuthLayoutProps) {
   const isLogin = pathname === "/login";
 
   useEffect(() => setMounted(true), []);
-
   const isDark = mounted ? resolvedTheme === "dark" : true;
+  const toggle = () => setTheme(isDark ? "light" : "dark");
 
-  // Warna background utama — panda PNG harus duduk di atas warna ini supaya bg-nya menyatu
-  const pageBg = isDark ? "#0d1526" : "#edf0f7";
+  return (
+    <>
+      <MobileLayout
+        isDark={isDark}
+        isLogin={isLogin}
+        mounted={mounted}
+        onToggle={toggle}
+      >
+        {children}
+      </MobileLayout>
+      <TabletLayout
+        isDark={isDark}
+        isLogin={isLogin}
+        mounted={mounted}
+        onToggle={toggle}
+      >
+        {children}
+      </TabletLayout>
+      <DesktopLayout
+        isDark={isDark}
+        isLogin={isLogin}
+        mounted={mounted}
+        onToggle={toggle}
+      >
+        {children}
+      </DesktopLayout>
+    </>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   SHARED TYPES
+═══════════════════════════════════════════════════════════════ */
+interface LayoutProps {
+  isDark: boolean;
+  isLogin: boolean;
+  mounted: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE  (< 768px)
+   Struktur:
+     ┌──────────────────────┐
+     │ Logo       Toggle ☀️ │  ← top bar
+     ├──────────────────────┤
+     │                      │
+     │      🐼 Panda        │  ← flex-1, panda di bawah overlap card
+     │                      │
+     ├──────────────────────┤
+     │  [Login] [Register]  │  ← bottom card, rounded-t-3xl
+     │  Form fields         │
+     └──────────────────────┘
+═══════════════════════════════════════════════════════════════ */
+function MobileLayout({
+  isDark,
+  isLogin,
+  mounted,
+  onToggle,
+  children,
+}: LayoutProps) {
+  const pageBg = isDark ? "#0d1526" : "#dde3f0";
   const cardBg = isDark ? "#111d35" : "#ffffff";
-  const panelLeftBg = isDark ? "#0d1526" : "#edf0f7"; // sama dengan pageBg supaya panda nyatu
 
   return (
     <div
-      className="min-h-screen w-full transition-colors duration-300"
+      className="md:hidden flex flex-col min-h-svh"
       style={{ backgroundColor: pageBg }}
     >
-      {/* ═══════════════════════════════════
-          MOBILE  (< 768px)
-      ═══════════════════════════════════ */}
-      <div className="flex flex-col min-h-screen md:hidden">
-        {/* Top bar */}
-        <div className="flex items-center justify-between px-5 pt-6 pb-2">
-          <BrandLogo size="sm" isDark={isDark} />
-          {mounted && (
-            <button
-              onClick={() => setTheme(isDark ? "light" : "dark")}
-              aria-label="Toggle theme"
-              className={cn(
-                "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
-                isDark
-                  ? "text-yellow-400 bg-white/10"
-                  : "text-gray-500 bg-black/8",
-              )}
-            >
-              {isDark ? (
-                <Sun className="w-5 h-5" />
-              ) : (
-                <Moon className="w-5 h-5" />
-              )}
-            </button>
-          )}
-        </div>
-
-        {/* Panda — besar, center, overlap ke card */}
-        <div className="flex-1 flex flex-col items-center justify-end pb-0">
-          <div
-            className="relative w-[75vw] max-w-[300px]"
-            style={{
-              aspectRatio: "3/4",
-              marginBottom: "-80px", // overlap ke card
-              zIndex: 10,
-            }}
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-5 pt-6 pb-0 shrink-0">
+        <BrandLogo size="sm" />
+        {mounted && (
+          <button
+            onClick={onToggle}
+            aria-label="Toggle tema"
+            className={cn(
+              "w-9 h-9 rounded-full flex items-center justify-center transition-colors",
+              isDark
+                ? "bg-white/10 text-yellow-400"
+                : "bg-black/10 text-gray-600",
+            )}
           >
-            <Image
-              src="/images/panda-mascot.png"
-              alt="Maskot Uangku"
-              fill
-              sizes="(max-width: 768px) 75vw"
-              className="object-contain object-bottom"
-              priority
-            />
-          </div>
-        </div>
+            {isDark ? (
+              <Sun className="w-5 h-5" />
+            ) : (
+              <Moon className="w-5 h-5" />
+            )}
+          </button>
+        )}
+      </div>
 
-        {/* Card bottom */}
+      {/* Panda — mengisi sisa ruang, kaki panda overlap ke card */}
+      <div className="flex-1 flex items-end justify-center overflow-hidden">
         <div
-          className="relative z-20 rounded-t-3xl px-6 pt-24 pb-8 mx-0 shadow-2xl"
-          style={{ backgroundColor: cardBg }}
+          className="relative w-[65vw] max-w-65"
+          style={{ aspectRatio: "1/1.15", marginBottom: "-28%" }}
         >
-          {/* Tab */}
-          <TabSwitcher isLogin={isLogin} isDark={isDark} />
-          {children}
+          <Image
+            src="/images/panda-mascot.png"
+            alt="Maskot Uangku"
+            fill
+            sizes="65vw"
+            className="object-contain object-bottom drop-shadow-2xl"
+            priority
+          />
         </div>
       </div>
 
-      {/* ═══════════════════════════════════
-          TABLET + DESKTOP  (≥ 768px)
-      ═══════════════════════════════════ */}
-      <div className="hidden md:flex min-h-screen items-center justify-center p-6 lg:p-10">
-        <div
-          className="w-full max-w-4xl xl:max-w-5xl rounded-3xl overflow-hidden shadow-2xl flex"
-          style={{
-            minHeight: "580px",
-            border: isDark
-              ? "1px solid rgba(255,255,255,0.06)"
-              : "1px solid rgba(0,0,0,0.08)",
-          }}
-        >
-          {/* ── Panel Kiri: Logo + Panda ── */}
-          <div
-            className="relative flex flex-col items-center justify-between pt-10 pb-0 flex-1"
-            style={{ backgroundColor: panelLeftBg }}
-          >
-            {/* Logo + tagline */}
-            <div className="flex flex-col items-center gap-3">
-              <BrandLogo size="md" isDark={isDark} />
-              <p
-                className={cn(
-                  "text-sm",
-                  isDark ? "text-gray-400" : "text-gray-500",
-                )}
-              >
-                Kelola semua keuanganmu dalam satu tempat
-              </p>
-            </div>
-
-            {/* Panda — mepet ke bawah, kaki di batas card */}
-            <div
-              className="relative w-full flex justify-center"
-              style={{ height: "340px" }}
-            >
-              <Image
-                src="/images/panda-mascot.png"
-                alt="Maskot Uangku"
-                fill
-                sizes="(min-width: 768px) 40vw"
-                className="object-contain object-bottom"
-                priority
-              />
-            </div>
-          </div>
-
-          {/* Divider */}
-          <div
-            className="w-px self-stretch"
-            style={{
-              backgroundColor: isDark
-                ? "rgba(255,255,255,0.06)"
-                : "rgba(0,0,0,0.08)",
-            }}
-          />
-
-          {/* ── Panel Kanan: Form ── */}
-          <div
-            className="flex flex-col justify-center px-8 lg:px-12 py-10"
-            style={{
-              width: "min(400px, 45%)",
-              backgroundColor: cardBg,
-            }}
-          >
-            {/* Theme toggle */}
-            <div className="flex justify-end mb-6">
-              {mounted && (
-                <ThemeToggle
-                  isDark={isDark}
-                  onToggle={() => setTheme(isDark ? "light" : "dark")}
-                />
-              )}
-            </div>
-
-            {/* Tab */}
-            <TabSwitcher isLogin={isLogin} isDark={isDark} />
-
-            {children}
-          </div>
+      {/* Bottom card — rounded top, form di dalamnya */}
+      <div
+        className="relative rounded-t-[2.5rem] shadow-2xl shrink-0"
+        style={{ backgroundColor: cardBg }}
+      >
+        {/* Ruang untuk panda yang overlap (28% dari max 260px ≈ 73px, pakai 80px biar longgar) */}
+        <div className="pt-20 px-6 pb-8">
+          <TabSwitcher isLogin={isLogin} isDark={isDark} />
+          {/* min-height supaya Login dan Register selalu sama tinggi */}
+          <div className="min-h-75">{children}</div>
         </div>
       </div>
     </div>
   );
 }
 
-/* ─── Sub-components ─── */
+/* ═══════════════════════════════════════════════════════════════
+   TABLET  (768px – 1023px)
+   Struktur FULL SCREEN split:
+     ┌────────────────────┬──────────────────────┐
+     │ Logo               │              Toggle  │
+     │                    │  [Login] [Register]  │
+     │   🐼 Panda         │  Email               │
+     │   (full height,    │  Password            │
+     │   bottom-pinned)   │  [Button]            │
+     └────────────────────┴──────────────────────┘
+═══════════════════════════════════════════════════════════════ */
+function TabletLayout({
+  isDark,
+  isLogin,
+  mounted,
+  onToggle,
+  children,
+}: LayoutProps) {
+  const leftBg = isDark ? "#0d1526" : "#dde3f0";
+  const rightBg = isDark ? "#111d35" : "#ffffff";
+  const divider = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)";
 
+  return (
+    <div
+      className="hidden md:flex lg:hidden min-h-svh"
+      style={{ backgroundColor: leftBg }}
+    >
+      {/* Panel kiri — Logo atas, panda pinned ke bawah */}
+      <div
+        className="flex flex-col flex-1 overflow-hidden"
+        style={{ backgroundColor: leftBg }}
+      >
+        {/* Logo di pojok kiri atas */}
+        <div className="p-7 shrink-0">
+          <BrandLogo size="sm" />
+        </div>
+
+        {/* Panda — flex-1 supaya isi sisa, object-bottom pinned ke dasar */}
+        <div className="flex-1 relative min-h-0">
+          <Image
+            src="/images/panda-mascot.png"
+            alt="Maskot Uangku"
+            fill
+            sizes="50vw"
+            className="object-contain object-bottom drop-shadow-xl"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Divider vertikal */}
+      <div
+        className="w-px self-stretch shrink-0"
+        style={{ backgroundColor: divider }}
+      />
+
+      {/* Panel kanan — toggle atas, form tengah */}
+      <div
+        className="flex flex-col shrink-0 overflow-y-auto"
+        style={{ width: "320px", backgroundColor: rightBg }}
+      >
+        {/* Theme toggle di pojok kanan atas */}
+        <div className="flex justify-end p-5 shrink-0">
+          {mounted && <ThemeToggle isDark={isDark} onToggle={onToggle} />}
+        </div>
+
+        {/* Form — flex-1 supaya selalu center vertikal → tidak ada lompat tinggi */}
+        <div className="flex-1 flex flex-col justify-center px-8 pb-10">
+          <TabSwitcher isLogin={isLogin} isDark={isDark} />
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   DESKTOP  (≥ 1024px)
+   Sama dengan tablet tapi lebih luas dan panda lebih besar
+═══════════════════════════════════════════════════════════════ */
+function DesktopLayout({
+  isDark,
+  isLogin,
+  mounted,
+  onToggle,
+  children,
+}: LayoutProps) {
+  const leftBg = isDark ? "#0d1526" : "#dde3f0";
+  const rightBg = isDark ? "#111d35" : "#ffffff";
+  const divider = isDark ? "rgba(255,255,255,0.06)" : "rgba(0,0,0,0.08)";
+
+  return (
+    <div
+      className="hidden lg:flex min-h-svh"
+      style={{ backgroundColor: leftBg }}
+    >
+      {/* Panel kiri */}
+      <div
+        className="flex flex-col flex-1 overflow-hidden"
+        style={{ backgroundColor: leftBg }}
+      >
+        {/* Logo + tagline */}
+        <div className="p-10 shrink-0">
+          <BrandLogo size="md" />
+          <p
+            className="mt-3 text-sm pl-1"
+            style={{ color: isDark ? "#6b7280" : "#7c8fa6" }}
+          >
+            Kelola semua keuanganmu dalam satu tempat
+          </p>
+        </div>
+
+        {/* Panda pinned ke bawah */}
+        <div className="flex-1 relative min-h-0">
+          <Image
+            src="/images/panda-mascot.png"
+            alt="Maskot Uangku"
+            fill
+            sizes="55vw"
+            className="object-contain object-bottom drop-shadow-2xl"
+            priority
+          />
+        </div>
+      </div>
+
+      {/* Divider */}
+      <div
+        className="w-px self-stretch shrink-0"
+        style={{ backgroundColor: divider }}
+      />
+
+      {/* Panel kanan */}
+      <div
+        className="flex flex-col shrink-0 overflow-y-auto"
+        style={{ width: "420px", backgroundColor: rightBg }}
+      >
+        {/* Theme toggle */}
+        <div className="flex justify-end p-7 shrink-0">
+          {mounted && <ThemeToggle isDark={isDark} onToggle={onToggle} />}
+        </div>
+
+        {/* Form — selalu center vertikal, tidak naik-turun walau field beda */}
+        <div className="flex-1 flex flex-col justify-center px-12 pb-12">
+          <TabSwitcher isLogin={isLogin} isDark={isDark} />
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   TAB SWITCHER
+═══════════════════════════════════════════════════════════════ */
+function TabSwitcher({
+  isLogin,
+  isDark,
+}: {
+  isLogin: boolean;
+  isDark: boolean;
+}) {
+  const wrapBg = isDark ? "#0a1020" : "#e4e9f2";
+
+  return (
+    <div
+      className="flex rounded-full p-1 mb-6"
+      style={{ backgroundColor: wrapBg }}
+    >
+      {(["login", "register"] as const).map((tab) => {
+        const active = tab === "login" ? isLogin : !isLogin;
+        return (
+          <Link
+            key={tab}
+            href={`/${tab}`}
+            className="flex-1 text-center py-2 rounded-full text-sm font-semibold transition-all duration-200 capitalize"
+            style={{
+              backgroundColor: active ? "#ffffff" : "transparent",
+              color: active ? "#111827" : isDark ? "#6b7280" : "#9ca3af",
+              boxShadow: active ? "0 1px 4px rgba(0,0,0,0.18)" : "none",
+            }}
+          >
+            {tab === "login" ? "Login" : "Register"}
+          </Link>
+        );
+      })}
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   THEME TOGGLE  (Sun ─ toggle ─ Moon)
+═══════════════════════════════════════════════════════════════ */
 function ThemeToggle({
   isDark,
   onToggle,
@@ -190,17 +356,21 @@ function ThemeToggle({
   return (
     <button
       onClick={onToggle}
-      aria-label="Toggle theme"
+      aria-label="Toggle tema"
       className={cn(
         "flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-medium transition-all",
-        isDark ? "bg-white/10 text-white/80" : "bg-black/6 text-gray-600",
+        isDark
+          ? "bg-white/10 text-white/70 hover:bg-white/15"
+          : "bg-black/8 text-gray-600 hover:bg-black/12",
       )}
     >
       <Sun className="w-3.5 h-3.5" />
+      {/* Track */}
       <div
-        className="w-9 h-5 rounded-full relative transition-colors duration-300"
+        className="w-9 h-5 rounded-full relative transition-colors duration-300 shrink-0"
         style={{ backgroundColor: isDark ? "#3b5bdb" : "#d1d5db" }}
       >
+        {/* Thumb */}
         <div
           className="absolute top-0.5 w-4 h-4 bg-white rounded-full shadow transition-all duration-300"
           style={{ left: isDark ? "18px" : "2px" }}
@@ -208,89 +378,5 @@ function ThemeToggle({
       </div>
       <Moon className="w-3.5 h-3.5" />
     </button>
-  );
-}
-
-function BrandLogo({
-  size,
-  isDark,
-}: {
-  size: "sm" | "md" | "lg";
-  isDark: boolean;
-}) {
-  const px = size === "sm" ? 40 : size === "md" ? 48 : 56;
-  const textCls =
-    size === "lg" ? "text-2xl" : size === "md" ? "text-xl" : "text-lg";
-
-  return (
-    <div className="flex items-center gap-2.5">
-      <div
-        className="rounded-full border-2 border-yellow-500/60 overflow-hidden flex-shrink-0"
-        style={{
-          width: px,
-          height: px,
-          backgroundColor: isDark ? "#1a2030" : "#fff",
-        }}
-      >
-        <Image
-          src="/images/logo.png"
-          alt="Logo Uangku"
-          width={px}
-          height={px}
-          className="object-contain w-full h-full"
-        />
-      </div>
-      <div
-        className="px-4 py-1.5 rounded"
-        style={{ backgroundColor: isDark ? "#2a1f0a" : "#1c1400" }}
-      >
-        <span className={cn("font-bold tracking-wide text-white", textCls)}>
-          Uangku
-        </span>
-      </div>
-    </div>
-  );
-}
-
-function TabSwitcher({
-  isLogin,
-  isDark,
-}: {
-  isLogin: boolean;
-  isDark: boolean;
-}) {
-  const tabWrapBg = isDark ? "#0a1020" : "#f0f0f0";
-  const activeTabBg = isDark ? "#ffffff" : "#ffffff";
-  const activeTabColor = "#111827";
-  const inactiveColor = isDark ? "#6b7280" : "#9ca3af";
-
-  return (
-    <div
-      className="flex rounded-full p-1 mb-6"
-      style={{ backgroundColor: tabWrapBg }}
-    >
-      <Link
-        href="/login"
-        className="flex-1 text-center py-2 rounded-full text-sm font-semibold transition-all duration-200"
-        style={{
-          backgroundColor: isLogin ? activeTabBg : "transparent",
-          color: isLogin ? activeTabColor : inactiveColor,
-          boxShadow: isLogin ? "0 1px 4px rgba(0,0,0,0.15)" : "none",
-        }}
-      >
-        Login
-      </Link>
-      <Link
-        href="/register"
-        className="flex-1 text-center py-2 rounded-full text-sm font-semibold transition-all duration-200"
-        style={{
-          backgroundColor: !isLogin ? activeTabBg : "transparent",
-          color: !isLogin ? activeTabColor : inactiveColor,
-          boxShadow: !isLogin ? "0 1px 4px rgba(0,0,0,0.15)" : "none",
-        }}
-      >
-        Register
-      </Link>
-    </div>
   );
 }

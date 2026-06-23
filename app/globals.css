@@ -1,3 +1,4 @@
+/* app/globals.css */
 @import "tailwindcss";
 @import "tw-animate-css";
 
@@ -54,11 +55,8 @@
   --card-foreground: oklch(0.98 0 0);
   --popover: oklch(0.12 0.02 264);
   --popover-foreground: oklch(0.98 0 0);
-
-  /* Indigo sebagai primary */
   --primary: oklch(0.6 0.2 264);
   --primary-foreground: oklch(0.98 0 0);
-
   --secondary: oklch(0.18 0.02 264);
   --secondary-foreground: oklch(0.98 0 0);
   --muted: oklch(0.18 0.02 264);
@@ -69,7 +67,6 @@
   --border: oklch(0.22 0.02 264);
   --input: oklch(0.18 0.02 264);
   --ring: oklch(0.6 0.2 264);
-
   --radius: 0.75rem;
 
   /* Charts */
@@ -94,9 +91,18 @@
   --expense: oklch(0.577 0.245 27.325);
   --warning: oklch(0.75 0.18 84);
   --gold: oklch(0.8 0.18 84);
+
+  /* ── Auth Input Variables (DARK default) ── */
+  --auth-input-bg: #192340;
+  --auth-input-border: rgba(255, 255, 255, 0.1);
+  --auth-input-color: #e5e7eb;
+  --auth-input-icon-color: #6b7280;
+  --auth-label-color: #d1d5db;
 }
 
-/* Light mode override (opsional, bisa diaktifkan user) */
+/* ============================================
+   LIGHT MODE
+   ============================================ */
 .light {
   --background: oklch(0.98 0 0);
   --foreground: oklch(0.1 0.02 264);
@@ -124,6 +130,13 @@
   --sidebar-accent-foreground: oklch(0.1 0.02 264);
   --sidebar-border: oklch(0.88 0 0);
   --sidebar-ring: oklch(0.55 0.22 264);
+
+  /* ── Auth Input Variables (LIGHT override) ── */
+  --auth-input-bg: #f1f3f9;
+  --auth-input-border: rgba(0, 0, 0, 0.1);
+  --auth-input-color: #111827;
+  --auth-input-icon-color: #9ca3af;
+  --auth-label-color: #374151;
 }
 
 @layer base {
@@ -136,6 +149,18 @@
   html {
     @apply font-sans;
   }
+}
+
+/* ── Auth Input placeholder color ── */
+/* Karena placeholder tidak bisa diset lewat CSS variable di React style={},
+   kita handle di sini supaya ikut tema */
+:root input::placeholder {
+  color: #4b5563;
+  opacity: 1;
+}
+.light input::placeholder {
+  color: #9ca3af;
+  opacity: 1;
 }
 
 /* Scrollbar custom */
