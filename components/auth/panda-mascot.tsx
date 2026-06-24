@@ -33,7 +33,7 @@ export function PandaMascot({
     <div
       className={cn(
         "relative shrink-0 bg-transparent transition-all duration-300",
-        isResponsive && "w-[150px] h-[150px] sm:w-[180px] sm:h-[180px] md:w-[220px] md:h-[220px] lg:w-[280px] lg:h-[280px] xl:w-[340px] xl:h-[340px]"
+        isResponsive && "w-37.5 h-37.5 sm:w-45 sm:h-45 md:w-55 md:h-55 lg:w-70 lg:h-70 xl:w-85 xl:h-85"
       )}
       style={!isResponsive ? { width: size, height: size } : undefined}
     >
