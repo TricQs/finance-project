@@ -20,7 +20,7 @@ export function ThemeToggle({
       >
         {/* Sliding Indicator (Pill latar belakang aktif) */}
         <span
-          className="absolute top-1 left-1 w-8 h-8 rounded-full bg-white dark:bg-gradient-to-br dark:from-blue-500 dark:to-indigo-600 shadow-md transition-all duration-500 ease-in-out"
+          className="absolute top-1 left-1 w-8 h-8 rounded-full bg-white dark:bg-linear-to-br dark:from-blue-500 dark:to-indigo-600 shadow-md transition-all duration-500 ease-in-out"
           style={{
             transform: isDark ? "translateX(40px)" : "translateX(0px)",
           }}
@@ -32,7 +32,7 @@ export function ThemeToggle({
             className={`w-4 h-4 transition-all duration-500 ${
               isDark
                 ? "text-gray-500 scale-90 opacity-70"
-                : "text-amber-500 scale-110 rotate-[360deg] drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
+                : "text-amber-500 scale-110 rotate-360 drop-shadow-[0_0_8px_rgba(245,158,11,0.5)]"
             }`}
           />
         </span>

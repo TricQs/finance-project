@@ -52,7 +52,7 @@ export function AuthLayout() {
                       w-full md:w-1/2 lg:w-[55%]
                       pt-14 pb-0 md:pt-0 md:pb-0
                       px-8 md:px-12 lg:px-20
-                      min-h-[360px] md:min-h-svh">
+                      min-h-90 md:min-h-svh">
 
         {/* Logo dan Tagline — ditampilkan di atas mascot */}
         <div className="flex flex-col items-center mb-6 md:mb-10">
@@ -70,10 +70,10 @@ export function AuthLayout() {
 
         {/* Mascot Panda — berdiri bebas, tidak dibungkus card */}
         <div className="relative animate-float select-none pointer-events-none
-                        w-[240px] h-[260px] sm:w-[280px] sm:h-[300px]
-                        md:w-[340px] md:h-[370px]
-                        lg:w-[400px] lg:h-[440px]
-                        xl:w-[440px] xl:h-[480px]
+                        w-60 h-65 sm:w-70 sm:h-75
+                        md:w-85 md:h-92.5
+                        lg:w-100 lg:h-110
+                        xl:w-110 xl:h-120
                         -mb-6 md:mb-0">
           <Image
             src="/images/panda-mascot.png"
@@ -89,7 +89,7 @@ export function AuthLayout() {
       {/* ── KOLOM KANAN: Form Card Glassmorphism ── */}
       <div className="relative z-10 flex flex-col items-center justify-center
                       w-full md:w-1/2 lg:w-[45%]
-                      min-h-[500px] md:min-h-svh
+                      min-h-125 md:min-h-svh
                       p-4 sm:p-6 md:p-8 lg:p-12">
 
         {/* Overlay gelap/terang di belakang card untuk kontras */}
