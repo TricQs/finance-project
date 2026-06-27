@@ -1,18 +1,23 @@
-// components/auth/auth-form.tsx
-// Login dan Register digabung jadi SATU komponen, dikontrol oleh prop `mode`.
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Mail } from "lucide-react";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
+import { signIn, signUp } from "@/lib/auth/actions";
 import { AuthInput } from "@/components/auth/auth-input";
-import { TabSwitcher } from "@/components/auth/tab-switcher";
+import { TabSwitcher, type AuthMode } from "@/components/auth/tab-switcher";
+import type { CelenganExpression } from "@/components/auth/mascot-celengan";
 
+/**
+ * Skema validasi di sisi client. Tujuannya memberi feedback instan ke
+ * user (sebelum request ke server), BUKAN sebagai satu-satunya lapisan
+ * keamanan — validasi yang mengikat tetap ada di lib/auth/actions.ts.
+ */
 const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
-  password: z.string().min(6, "Password minimal 6 karakter"),
+  password: z.string().min(1, "Password harus diisi"),
 });
 
 const registerSchema = z
@@ -22,7 +27,7 @@ const registerSchema = z
     password: z.string().min(8, "Password minimal 8 karakter"),
     confirmPassword: z.string(),
   })
-  .refine((d) => d.password === d.confirmPassword, {
+  .refine((data) => data.password === data.confirmPassword, {
     message: "Password tidak cocok",
     path: ["confirmPassword"],
   });
@@ -31,59 +36,78 @@ type FieldErrors = Partial<
   Record<"fullName" | "email" | "password" | "confirmPassword", string>
 >;
 
-export function AuthForm({ isDark }: { isDark: boolean }) {
+interface AuthFormProps {
+  onExpressionChange?: (expression: CelenganExpression) => void;
+  /** Pesan error dari callback OAuth/email confirmation (?error= di URL) */
+  initialError?: string;
+}
+
+export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const router = useRouter();
-  const [mode, setMode] = useState<"login" | "register">("login");
+  const [isPending, startTransition] = useTransition();
+  const [mode, setMode] = useState<AuthMode>("login");
 
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [errors, setErrors] = useState<FieldErrors>({});
-  const [serverError, setServerError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [serverError, setServerError] = useState(initialError ?? "");
   const [submitted, setSubmitted] = useState(false);
 
-  function switchMode(next: "login" | "register") {
+  // Bersihkan ?error= dari URL setelah ditampilkan, supaya kalau user
+  // refresh halaman pesan error lama tidak muncul lagi tanpa alasan.
+  useEffect(() => {
+    if (initialError) {
+      setExpression("error");
+      router.replace("/auth");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  function setExpression(expression: CelenganExpression) {
+    onExpressionChange?.(expression);
+  }
+
+  function switchMode(next: AuthMode) {
     setMode(next);
     setErrors({});
     setServerError("");
+    setExpression("idle");
   }
 
-  async function handleLogin() {
+  function handleLogin() {
     setErrors({});
     setServerError("");
+
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
-      const fe: FieldErrors = {};
-      result.error.issues.forEach((e) => {
-        fe[e.path[0] as keyof FieldErrors] = e.message;
+      const fieldErrors: FieldErrors = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as keyof FieldErrors] = issue.message;
       });
-      setErrors(fe);
+      setErrors(fieldErrors);
+      setExpression("error");
       return;
     }
 
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-      if (error) {
-        setServerError("Email atau password salah.");
+    setExpression("loading");
+    startTransition(async () => {
+      const res = await signIn(result.data.email, result.data.password);
+      if (res && "error" in res) {
+        setServerError(res.error);
+        setExpression("error");
         return;
       }
-      router.push("/dashboard");
+      setExpression("success");
       router.refresh();
-    } finally {
-      setLoading(false);
-    }
+    });
   }
 
-  async function handleRegister() {
+  function handleRegister() {
     setErrors({});
     setServerError("");
+
     const result = registerSchema.safeParse({
       fullName,
       email,
@@ -91,33 +115,30 @@ export function AuthForm({ isDark }: { isDark: boolean }) {
       confirmPassword,
     });
     if (!result.success) {
-      const fe: FieldErrors = {};
-      result.error.issues.forEach((e) => {
-        fe[e.path[0] as keyof FieldErrors] = e.message;
+      const fieldErrors: FieldErrors = {};
+      result.error.issues.forEach((issue) => {
+        fieldErrors[issue.path[0] as keyof FieldErrors] = issue.message;
       });
-      setErrors(fe);
+      setErrors(fieldErrors);
+      setExpression("error");
       return;
     }
 
-    setLoading(true);
-    try {
-      const supabase = createClient();
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          data: { full_name: fullName },
-          emailRedirectTo: `${window.location.origin}/auth/callback`,
-        },
-      });
-      if (error) {
-        setServerError(error.message);
+    setExpression("loading");
+    startTransition(async () => {
+      const res = await signUp(
+        result.data.email,
+        result.data.password,
+        result.data.fullName,
+      );
+      if (res && "error" in res) {
+        setServerError(res.error);
+        setExpression("error");
         return;
       }
+      setExpression("success");
       setSubmitted(true);
-    } finally {
-      setLoading(false);
-    }
+    });
   }
 
   async function handleGoogleLogin() {
@@ -131,35 +152,48 @@ export function AuthForm({ isDark }: { isDark: boolean }) {
   if (submitted) {
     return (
       <div className="flex h-full flex-col items-center justify-center text-center px-2">
-        <div className="w-14 h-14 rounded-full bg-[#3b5bdb]/20 flex items-center justify-center mx-auto mb-5">
-          <Mail className="w-7 h-7 text-[#6b8cff]" />
+        <div
+          className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-5"
+          style={{ backgroundColor: "var(--auth-primary-glow)" }}
+        >
+          <Mail className="w-7 h-7" style={{ color: "var(--auth-primary)" }} />
         </div>
         <h3
           className="text-lg font-bold mb-2"
-          style={{ color: "var(--auth-label-color)" }}
+          style={{ color: "var(--auth-text-primary)" }}
         >
           Cek Email Kamu
         </h3>
-        <p className="text-sm text-gray-400 mb-1">Link konfirmasi dikirim ke</p>
+        <p className="text-sm mb-1" style={{ color: "var(--auth-text-muted)" }}>
+          Link konfirmasi dikirim ke
+        </p>
         <p
           className="text-sm font-semibold mb-5"
-          style={{ color: "var(--auth-label-color)" }}
+          style={{ color: "var(--auth-text-primary)" }}
         >
           {email}
         </p>
-        <div className="bg-white/5 rounded-xl p-4 text-xs text-gray-400 text-left space-y-2 mb-5 w-full">
+        <div
+          className="rounded-xl p-4 text-xs text-left space-y-2 mb-5 w-full"
+          style={{
+            backgroundColor: "var(--auth-floating-bg)",
+            color: "var(--auth-text-muted)",
+          }}
+        >
           <p>
             Klik tombol <strong>&quot;Konfirmasi Email&quot;</strong> di email
             kamu
           </p>
-          <p>Setelah konfirmasi, kamu akan otomatis masuk</p>
+          <p>Setelah konfirmasi, kamu bisa masuk dengan akun barumu</p>
           <p>
             Cek folder <strong>Spam</strong> jika tidak muncul
           </p>
         </div>
         <button
+          type="button"
           onClick={() => setSubmitted(false)}
-          className="text-sm text-[#6b8cff] hover:underline"
+          className="text-sm font-medium hover:underline cursor-pointer"
+          style={{ color: "var(--auth-primary)" }}
         >
           ← Kembali
         </button>
@@ -169,136 +203,184 @@ export function AuthForm({ isDark }: { isDark: boolean }) {
 
   return (
     <div className="flex h-full flex-col">
-      <TabSwitcher mode={mode} onChange={switchMode} isDark={isDark} />
+      <TabSwitcher mode={mode} onChange={switchMode} />
 
-      <div className="flex-1 flex flex-col justify-center">
+      <div className="flex-1 flex flex-col justify-center mt-6">
         {mode === "login" ? (
           <div className="space-y-4">
             <AuthInput
-              id="email"
+              id="login-email"
               label="Email"
               type="email"
               placeholder="nama@email.com"
               value={email}
               onChange={setEmail}
               error={errors.email}
-              disabled={loading}
+              disabled={isPending}
               autoComplete="email"
+              onFocusChange={(focused) =>
+                setExpression(focused ? "typing" : "idle")
+              }
             />
             <AuthInput
-              id="password"
+              id="login-password"
               label="Password"
               type="password"
               placeholder="Masukkan password"
               value={password}
               onChange={setPassword}
               error={errors.password}
-              disabled={loading}
+              disabled={isPending}
               autoComplete="current-password"
+              onFocusChange={(focused) =>
+                setExpression(focused ? "password" : "idle")
+              }
             />
 
             <div className="flex items-center justify-end">
               <button
                 type="button"
                 onClick={() => router.push("/forgot-password")}
-                className="text-sm text-[#6b8cff] hover:underline"
+                className="text-sm font-medium hover:underline cursor-pointer"
+                style={{ color: "var(--auth-primary)" }}
               >
                 Lupa password?
               </button>
             </div>
 
             {serverError && (
-              <p className="text-xs text-red-400 text-center bg-red-500/10 rounded-lg py-2 px-3">
+              <p
+                role="alert"
+                className="text-xs text-center rounded-lg py-2 px-3"
+                style={{
+                  backgroundColor: "var(--auth-error-bg)",
+                  color: "var(--auth-error-text)",
+                  border: "1px solid var(--auth-error-border)",
+                }}
+              >
                 {serverError}
               </p>
             )}
 
             <button
+              type="button"
               onClick={handleLogin}
-              disabled={loading}
-              className="w-full h-11 rounded-lg bg-[#3b5bdb] hover:bg-[#3451c7] active:bg-[#2d45b0] text-white font-semibold text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-900/30"
+              disabled={isPending}
+              className="w-full h-11 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              style={{ backgroundColor: "var(--auth-primary)" }}
             >
-              {loading ? "Memproses..." : "Login"}
+              {isPending ? "Memproses..." : "Masuk"}
             </button>
 
             <Divider />
 
             <button
+              type="button"
               onClick={handleGoogleLogin}
-              className="w-full h-11 rounded-lg border border-white/10 text-gray-300 text-sm font-medium flex items-center justify-center gap-2.5 hover:bg-white/5 transition-all duration-200"
+              disabled={isPending}
+              className="w-full h-11 rounded-lg border text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-60"
+              style={{
+                borderColor: "var(--auth-floating-border)",
+                color: "var(--auth-text-muted)",
+              }}
             >
               <GoogleIcon />
-              Login dengan Google
+              Masuk dengan Google
             </button>
           </div>
         ) : (
           <div className="space-y-4">
             <AuthInput
-              id="email"
+              id="register-fullname"
+              label="Nama"
+              placeholder="Nama lengkap"
+              value={fullName}
+              onChange={setFullName}
+              error={errors.fullName}
+              disabled={isPending}
+              autoComplete="name"
+            />
+            <AuthInput
+              id="register-email"
               label="Email"
               type="email"
               placeholder="nama@email.com"
               value={email}
               onChange={setEmail}
               error={errors.email}
-              disabled={loading}
+              disabled={isPending}
               autoComplete="email"
+              onFocusChange={(focused) =>
+                setExpression(focused ? "typing" : "idle")
+              }
             />
             <AuthInput
-              id="fullName"
-              label="Nama"
-              placeholder="Nama lengkap"
-              value={fullName}
-              onChange={setFullName}
-              error={errors.fullName}
-              disabled={loading}
-              autoComplete="name"
-            />
-            <AuthInput
-              id="password"
+              id="register-password"
               label="Password"
               type="password"
               placeholder="Minimal 8 karakter"
               value={password}
               onChange={setPassword}
               error={errors.password}
-              disabled={loading}
+              disabled={isPending}
               autoComplete="new-password"
+              onFocusChange={(focused) =>
+                setExpression(focused ? "password" : "idle")
+              }
             />
             <AuthInput
-              id="confirmPassword"
-              label="Confirm Password"
+              id="register-confirm-password"
+              label="Konfirmasi Password"
               type="password"
               placeholder="Ulangi password"
               value={confirmPassword}
               onChange={setConfirmPassword}
               error={errors.confirmPassword}
-              disabled={loading}
+              disabled={isPending}
               autoComplete="new-password"
+              onFocusChange={(focused) =>
+                setExpression(focused ? "password" : "idle")
+              }
             />
 
             {serverError && (
-              <p className="text-xs text-red-400 text-center bg-red-500/10 rounded-lg py-2 px-3">
+              <p
+                role="alert"
+                className="text-xs text-center rounded-lg py-2 px-3"
+                style={{
+                  backgroundColor: "var(--auth-error-bg)",
+                  color: "var(--auth-error-text)",
+                  border: "1px solid var(--auth-error-border)",
+                }}
+              >
                 {serverError}
               </p>
             )}
 
             <button
+              type="button"
               onClick={handleRegister}
-              disabled={loading}
-              className="w-full h-11 rounded-lg bg-[#3b5bdb] hover:bg-[#3451c7] active:bg-[#2d45b0] text-white font-semibold text-sm transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed shadow-lg shadow-blue-900/30"
+              disabled={isPending}
+              className="w-full h-11 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+              style={{ backgroundColor: "var(--auth-primary)" }}
             >
-              {loading ? "Memproses..." : "Register"}
+              {isPending ? "Memproses..." : "Buat Akun"}
             </button>
 
             <Divider />
 
             <button
+              type="button"
               onClick={handleGoogleLogin}
-              className="w-full h-11 rounded-lg border border-white/10 text-gray-300 text-sm font-medium flex items-center justify-center gap-2.5 hover:bg-white/5 transition-all duration-200"
+              disabled={isPending}
+              className="w-full h-11 rounded-lg border text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-60"
+              style={{
+                borderColor: "var(--auth-floating-border)",
+                color: "var(--auth-text-muted)",
+              }}
             >
               <GoogleIcon />
-              Register dengan Google
+              Daftar dengan Google
             </button>
           </div>
         )}
@@ -311,10 +393,15 @@ function Divider() {
   return (
     <div className="relative my-1">
       <div className="absolute inset-0 flex items-center">
-        <div className="w-full border-t border-white/10" />
+        <div
+          className="w-full border-t"
+          style={{ borderColor: "var(--auth-floating-border)" }}
+        />
       </div>
       <div className="relative flex justify-center text-xs">
-        <span className="px-2 text-gray-500 bg-transparent">atau</span>
+        <span className="px-2" style={{ color: "var(--auth-text-muted)" }}>
+          atau
+        </span>
       </div>
     </div>
   );
@@ -322,7 +409,7 @@ function Divider() {
 
 function GoogleIcon() {
   return (
-    <svg className="w-4 h-4" viewBox="0 0 24 24">
+    <svg className="w-4 h-4" viewBox="0 0 24 24" aria-hidden="true">
       <path
         d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
         fill="#4285F4"

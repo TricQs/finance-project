@@ -1,7 +1,26 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-export async function proxy(request: NextRequest) {
+const PROTECTED_PATHS = [
+  "/dashboard",
+  "/pemasukan",
+  "/pengeluaran",
+  "/transfer",
+  "/tabungan",
+  "/investasi",
+  "/utang",
+  "/budget",
+  "/tujuan-keuangan",
+  "/laporan",
+  "/kalkulator",
+  "/ai-assistant",
+  "/pengingat",
+  "/pengaturan",
+];
+
+const AUTH_PATHS = ["/auth", "/login", "/register"];
+
+export async function proxy (request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -28,34 +47,18 @@ export async function proxy(request: NextRequest) {
   const {
     data: { user },
   } = await supabase.auth.getUser();
+
   const { pathname } = request.nextUrl;
-
-  const protectedPaths = [
-    "/dashboard",
-    "/pemasukan",
-    "/pengeluaran",
-    "/transfer",
-    "/tabungan",
-    "/investasi",
-    "/utang",
-    "/budget",
-    "/tujuan-keuangan",
-    "/laporan",
-    "/kalkulator",
-    "/ai-assistant",
-    "/pengingat",
-    "/pengaturan",
-  ];
-
-  const isProtected = protectedPaths.some((path) => pathname.startsWith(path));
+  const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
+  const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
-    url.pathname = "/login";
+    url.pathname = "/auth";
     return NextResponse.redirect(url);
   }
 
-  if (user && (pathname === "/login" || pathname === "/register")) {
+  if (user && isAuthPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);

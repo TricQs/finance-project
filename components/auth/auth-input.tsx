@@ -1,7 +1,6 @@
-// components/auth/auth-input.tsx
 "use client";
 
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -16,6 +15,8 @@ interface AuthInputProps {
   disabled?: boolean;
   required?: boolean;
   autoComplete?: string;
+  /** Dipanggil saat field fokus/blur — dipakai AuthForm untuk mengganti ekspresi mascot */
+  onFocusChange?: (focused: boolean) => void;
 }
 
 export function AuthInput({
@@ -29,10 +30,25 @@ export function AuthInput({
   disabled,
   required,
   autoComplete,
+  onFocusChange,
 }: AuthInputProps) {
   const [showPassword, setShowPassword] = useState(false);
+  const [focused, setFocused] = useState(false);
+  const errorId = useId();
+
   const isPassword = type === "password";
   const inputType = isPassword && showPassword ? "text" : type;
+  const hasError = Boolean(error);
+
+  function handleFocus() {
+    setFocused(true);
+    onFocusChange?.(true);
+  }
+
+  function handleBlur() {
+    setFocused(false);
+    onFocusChange?.(false);
+  }
 
   return (
     <div className="space-y-1.5">
@@ -45,36 +61,48 @@ export function AuthInput({
           {label}
         </label>
       )}
-      <div className="relative">
+
+      <div
+        className={cn(
+          "relative rounded-xl transition-all duration-200",
+          hasError
+            ? "ring-2 ring-red-500/50"
+            : focused
+              ? "ring-2 ring-(--auth-primary)/50"
+              : "",
+        )}
+        style={{
+          backgroundColor: "var(--auth-input-bg)",
+          border: `1px solid ${hasError ? "transparent" : "var(--auth-input-border)"}`,
+        }}
+      >
         <input
           id={id}
           type={inputType}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           disabled={disabled}
           required={required}
           autoComplete={autoComplete}
-          className={cn(
-            "w-full h-11 px-4 rounded-xl text-sm transition-all duration-200 outline-none",
-            "disabled:opacity-50 disabled:cursor-not-allowed",
-            error
-              ? "ring-2 ring-red-500/50"
-              : "focus:ring-2 focus:ring-[#3b5bdb]/50",
-          )}
-          style={{
-            backgroundColor: "var(--auth-input-bg)",
-            border: "1px solid var(--auth-input-border)",
-            color: "var(--auth-input-color)",
-          }}
+          aria-invalid={hasError}
+          aria-describedby={hasError ? errorId : undefined}
+          className="w-full h-11 px-4 rounded-xl text-sm bg-transparent outline-none transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          style={{ color: "var(--auth-input-color)" }}
         />
-        {/* Placeholder color via global CSS — lihat globals.css */}
+
         {isPassword && (
           <button
             type="button"
-            onClick={() => setShowPassword(!showPassword)}
+            onClick={() => setShowPassword((prev) => !prev)}
+            disabled={disabled}
             tabIndex={-1}
-            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors"
+            aria-label={
+              showPassword ? "Sembunyikan password" : "Tampilkan password"
+            }
+            className="absolute right-3 top-1/2 -translate-y-1/2 transition-colors cursor-pointer"
             style={{ color: "var(--auth-input-icon-color)" }}
           >
             {showPassword ? (
@@ -85,7 +113,12 @@ export function AuthInput({
           </button>
         )}
       </div>
-      {error && <p className="text-xs text-red-400">{error}</p>}
+
+      {hasError && (
+        <p id={errorId} role="alert" className="text-xs text-red-400">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

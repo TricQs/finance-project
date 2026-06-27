@@ -1,18 +1,47 @@
 "use server";
 
-import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
 
-export async function signIn(email: string, password: string) {
+/**
+ * Validasi server-side. WAJIB ada terpisah dari validasi di form (client),
+ * karena Server Action bisa dipanggil langsung tanpa lewat UI form
+ * (lewat network request manual), sehingga validasi client saja tidak cukup.
+ */
+const signInSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Email tidak valid"),
+  password: z.string().min(1, "Password harus diisi"),
+});
+
+const signUpSchema = z.object({
+  email: z.string().trim().toLowerCase().email("Email tidak valid"),
+  password: z.string().min(8, "Password minimal 8 karakter"),
+  fullName: z.string().trim().min(2, "Nama minimal 2 karakter").max(100),
+});
+
+type ActionResult = { error: string } | { success: string } | never;
+
+/**
+ * TODO (security, sebelum production): pasang rate limiting di sini
+ * berbasis IP/email memakai @upstash/ratelimit, supaya signIn tidak
+ * bisa di-brute-force. Lihat catatan di lib/auth/rate-limit.ts (belum dibuat).
+ */
+export async function signIn(
+  email: string,
+  password: string,
+): Promise<ActionResult> {
+  const parsed = signInSchema.safeParse({ email, password });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid" };
+  }
+
   const supabase = await createClient();
-
-  const { error } = await supabase.auth.signInWithPassword({
-    email,
-    password,
-  });
+  const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
-    return { error: error.message };
+    // Pesan digeneralisasi — jangan expose detail internal Supabase ke user.
+    return { error: "Email atau password salah." };
   }
 
   redirect("/dashboard");
@@ -22,21 +51,30 @@ export async function signUp(
   email: string,
   password: string,
   fullName: string,
-) {
-  const supabase = await createClient();
+): Promise<ActionResult> {
+  const parsed = signUpSchema.safeParse({ email, password, fullName });
+  if (!parsed.success) {
+    return { error: parsed.error.issues[0]?.message ?? "Input tidak valid" };
+  }
 
+  const supabase = await createClient();
   const { error } = await supabase.auth.signUp({
-    email,
-    password,
+    email: parsed.data.email,
+    password: parsed.data.password,
     options: {
-      data: {
-        full_name: fullName,
-      },
+      data: { full_name: parsed.data.fullName },
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
     },
   });
 
   if (error) {
-    return { error: error.message };
+    // Supabase mengembalikan pesan yang berbeda-beda; untuk kasus email
+    // sudah terdaftar, kita generalisasi supaya tidak membantu enumerasi
+    // akun (mengetahui email mana yang sudah/belum terdaftar di sistem).
+    if (error.message.toLowerCase().includes("already registered")) {
+      return { error: "Email ini sudah terdaftar. Coba masuk." };
+    }
+    return { error: "Gagal mendaftar. Silakan coba lagi." };
   }
 
   return { success: "Cek email kamu untuk konfirmasi akun." };
@@ -45,7 +83,7 @@ export async function signUp(
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut({ scope: "local" });
-  redirect("/login");
+  redirect("/auth");
 }
 
 export async function getUser() {

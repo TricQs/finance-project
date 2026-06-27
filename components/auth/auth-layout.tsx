@@ -1,127 +1,168 @@
-// components/auth/auth-layout.tsx
-//
-// Layout SaaS 3D Premium — komposisi ala split-screen fintech modern:
-// • Latar belakang: gambar ilustrasi finansial (gelap/terang) yang mengisi penuh layar
-// • Kiri: Mascot panda berdiri bebas tanpa card/kotak (ikut referensi gambar)
-//   + Logo Uangku + tagline di bawah mascot
-// • Kanan: Card kaca glassmorphism untuk form login/register
-// • ThemeToggle: Tombol pil kaca melayang di pojok kanan atas
 "use client";
 
-import Image from "next/image";
-import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
+import { useTheme } from "next-themes";
+import { motion } from "framer-motion";
 import { BrandLogo } from "@/components/auth/brand-logo";
-import { PandaMascot } from "@/components/auth/panda-mascot";
 import { ThemeToggle } from "@/components/auth/theme-toggle";
 import { AuthForm } from "@/components/auth/auth-form";
+import {
+  MascotCelengan,
+  type CelenganExpression,
+} from "@/components/auth/mascot-celengan";
+import { easeOutExpo } from "@/lib/motion";
 
-export function AuthLayout() {
+const FEATURES = [
+  { icon: "💰", text: "Catat pemasukan & pengeluaran" },
+  { icon: "📊", text: "Analisis keuangan real-time" },
+  { icon: "🔒", text: "Data aman & terenkripsi" },
+];
+
+interface AuthLayoutProps {
+  /** Pesan error dari callback OAuth/email confirmation, dibaca dari query param ?error= */
+  initialError?: string;
+}
+
+/**
+ * Layout halaman auth: kartu kaca tunggal dengan dua panel —
+ * kiri (brand + mascot + value props), kanan (form login/register).
+ * Latar belakang berupa gradient ambient + grid halus (tanpa image asset).
+ */
+export function AuthLayout({ initialError }: AuthLayoutProps) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
+  const [expression, setExpression] = useState<CelenganExpression>("idle");
 
   useEffect(() => setMounted(true), []);
   const isDark = mounted ? resolvedTheme === "dark" : true;
-  const toggle = () => setTheme(isDark ? "light" : "dark");
+
+  function toggleTheme() {
+    setTheme(isDark ? "light" : "dark");
+  }
 
   return (
-    <div className="min-h-svh w-full relative overflow-hidden flex flex-col md:flex-row">
+    <div
+      className="relative min-h-screen flex items-center justify-center overflow-hidden auth-bg-gradient auth-noise"
+      style={{ backgroundColor: "var(--auth-bg)" }}
+    >
+      {mounted && <ThemeToggle isDark={isDark} onToggle={toggleTheme} />}
 
-      {/* ── GAMBAR LATAR BELAKANG (full bleed, beda per tema) ── */}
-      {mounted && (
-        <Image
-          src={isDark ? "/images/auth-bg-dark.png" : "/images/auth-bg-light.png"}
-          alt="Background"
-          fill
-          className="object-cover object-center z-0 transition-opacity duration-700"
-          priority
-          quality={90}
-        />
-      )}
-      {/* Fallback background saat belum mounted (SSR) */}
-      {!mounted && (
-        <div className="absolute inset-0 bg-[#060d1f] z-0" />
-      )}
+      <div className="relative z-20 w-full max-w-255 px-4 md:px-8">
+        <div className="relative">
+          {/* Outer glow halo */}
+          <div
+            className="absolute -inset-1 rounded-[2.75rem] pointer-events-none blur-2xl opacity-45"
+            style={{ backgroundColor: "var(--auth-card-glow)" }}
+          />
 
-      {/* ── THEME TOGGLE ── */}
-      {mounted && <ThemeToggle isDark={isDark} onToggle={toggle} />}
+          {/* Glass card */}
+          <div
+            className="relative rounded-[2.5rem] overflow-hidden border"
+            style={{
+              backgroundColor: "var(--auth-card-bg)",
+              borderColor: "var(--auth-card-border)",
+              backdropFilter: "blur(40px) saturate(180%)",
+            }}
+          >
+            <div className="flex flex-col md:flex-row min-h-145">
+              {/* ── Panel kiri: brand + mascot + value props ── */}
+              <div className="relative md:w-[44%] flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden">
+                <motion.div
+                  initial={{ y: -24, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, ease: easeOutExpo }}
+                  className="relative z-10 mb-8 self-start"
+                >
+                  <BrandLogo size="sm" />
+                </motion.div>
 
-      {/* ── KOLOM KIRI: Mascot + Logo + Tagline ── */}
-      {/* Di HP: urutan di atas form; Di Desktop: grid kiri */}
-      <div className="relative z-10 flex flex-col items-center justify-end md:justify-center
-                      w-full md:w-1/2 lg:w-[55%]
-                      pt-14 pb-0 md:pt-0 md:pb-0
-                      px-8 md:px-12 lg:px-20
-                      min-h-90 md:min-h-svh">
+                <motion.div
+                  className="relative z-10 w-full flex justify-center mt-4"
+                  initial={{ y: 32, opacity: 0, scale: 0.92 }}
+                  animate={{ y: 0, opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.7, ease: easeOutExpo, delay: 0.08 }}
+                >
+                  <div className="relative w-44 h-48 md:w-52 md:h-56">
+                    <MascotCelengan
+                      expression={expression}
+                      className="w-full h-full"
+                    />
+                  </div>
+                </motion.div>
 
-        {/* Logo dan Tagline — ditampilkan di atas mascot */}
-        <div className="flex flex-col items-center mb-6 md:mb-10">
-          <BrandLogo size="lg" />
-          <div className="mt-5 text-center hidden md:block">
-            <h1 className="text-3xl lg:text-4xl font-extrabold tracking-tight leading-tight text-white drop-shadow-[0_2px_16px_rgba(0,0,0,0.5)]">
-              Kelola Keuanganmu<br />
-              <span className="text-emerald-300">Lebih Cerdas</span>
-            </h1>
-            <p className="mt-3 text-sm lg:text-base text-white/70 font-medium max-w-xs">
-              Catat pemasukan, pengeluaran, tabungan,<br className="hidden lg:block" /> dan investasimu dalam satu aplikasi.
-            </p>
+                <motion.div
+                  className="relative z-10 mt-8 w-full space-y-2"
+                  initial={{ y: 24, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  transition={{ duration: 0.6, delay: 0.3, ease: easeOutExpo }}
+                >
+                  {FEATURES.map((item, i) => (
+                    <motion.div
+                      key={item.text}
+                      initial={{ x: -18, opacity: 0 }}
+                      animate={{ x: 0, opacity: 1 }}
+                      transition={{
+                        duration: 0.4,
+                        delay: 0.42 + i * 0.07,
+                        ease: easeOutExpo,
+                      }}
+                      className="flex items-center gap-2.5 px-3.5 py-2.5 rounded-xl border"
+                      style={{
+                        backgroundColor: "var(--auth-floating-bg)",
+                        borderColor: "var(--auth-floating-border)",
+                      }}
+                    >
+                      <span className="text-sm">{item.icon}</span>
+                      <span
+                        className="text-[11px] font-medium"
+                        style={{ color: "var(--auth-text-muted)" }}
+                      >
+                        {item.text}
+                      </span>
+                    </motion.div>
+                  ))}
+                </motion.div>
+              </div>
+
+              {/* Divider */}
+              <div
+                className="hidden md:block w-px self-stretch my-12"
+                style={{
+                  background:
+                    "linear-gradient(to bottom, transparent, var(--auth-card-border), transparent)",
+                }}
+              />
+
+              {/* ── Panel kanan: form ── */}
+              <div className="relative md:w-[56%] flex flex-col justify-center p-8 md:p-12 md:pl-10">
+                <motion.div
+                  initial={{ opacity: 0, y: 22 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{
+                    duration: 0.68,
+                    delay: 0.18,
+                    ease: easeOutExpo,
+                  }}
+                >
+                  <AuthForm
+                    onExpressionChange={setExpression}
+                    initialError={initialError}
+                  />
+                </motion.div>
+              </div>
+            </div>
           </div>
         </div>
 
-        {/* Mascot Panda — berdiri bebas, tidak dibungkus card */}
-        <div className="relative animate-float select-none pointer-events-none
-                        w-60 h-65 sm:w-70 sm:h-75
-                        md:w-85 md:h-92.5
-                        lg:w-100 lg:h-110
-                        xl:w-110 xl:h-120
-                        -mb-6 md:mb-0">
-          <Image
-            src="/images/panda-mascot.png"
-            alt="Maskot Panda Uangku"
-            fill
-            className="object-contain object-bottom drop-shadow-[0_20px_40px_rgba(0,0,0,0.4)]"
-            priority
-            sizes="(max-width: 640px) 240px, (max-width: 768px) 280px, (max-width: 1024px) 340px, (max-width: 1280px) 400px, 440px"
-          />
-        </div>
-      </div>
-
-      {/* ── KOLOM KANAN: Form Card Glassmorphism ── */}
-      <div className="relative z-10 flex flex-col items-center justify-center
-                      w-full md:w-1/2 lg:w-[45%]
-                      min-h-125 md:min-h-svh
-                      p-4 sm:p-6 md:p-8 lg:p-12">
-
-        {/* Overlay gelap/terang di belakang card untuk kontras */}
-        <div className={`absolute inset-0 transition-colors duration-500 ${
-          isDark
-            ? "bg-black/25 backdrop-blur-[2px]"
-            : "bg-white/20 backdrop-blur-[2px]"
-        }`} />
-
-        {/* Form Card */}
-        <div
-          className="relative z-10 w-full flex flex-col rounded-3xl overflow-hidden
-                     transition-all duration-500"
-          style={{
-            maxWidth: "440px",
-            background: isDark
-              ? "rgba(8, 14, 36, 0.75)"
-              : "rgba(255, 255, 255, 0.85)",
-            backdropFilter: "blur(20px) saturate(180%)",
-            WebkitBackdropFilter: "blur(20px) saturate(180%)",
-            border: isDark
-              ? "1px solid rgba(255,255,255,0.07)"
-              : "1px solid rgba(255,255,255,0.9)",
-            boxShadow: isDark
-              ? "0 24px 64px rgba(0,0,0,0.55), 0 1px 0 rgba(255,255,255,0.05) inset"
-              : "0 24px 64px rgba(59,130,246,0.10), 0 1px 0 rgba(255,255,255,1) inset",
-            padding: "36px 40px",
-            minHeight: "480px",
-          }}
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.9 }}
+          className="mt-5 text-center text-[10px] tracking-widest uppercase"
+          style={{ color: "var(--auth-text-muted)", opacity: 0.5 }}
         >
-          <AuthForm isDark={isDark} />
-        </div>
+          🔐 Data terenkripsi end-to-end · Uangku
+        </motion.p>
       </div>
     </div>
   );

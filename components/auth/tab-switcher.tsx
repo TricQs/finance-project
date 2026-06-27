@@ -1,35 +1,68 @@
-// components/auth/tab-switcher.tsx
-// Login/Register sebagai STATE (onClick callback), bukan navigasi route.
 "use client";
 
-export function TabSwitcher({
-  mode,
-  onChange,
-  isDark,
-}: {
-  mode: "login" | "register";
-  onChange: (mode: "login" | "register") => void;
-  isDark: boolean;
-}) {
-  const wrapBg = isDark ? "#0a1020" : "#e4e9f2";
+import { motion } from "framer-motion";
 
+export type AuthMode = "login" | "register";
+
+interface TabSwitcherProps {
+  mode: AuthMode;
+  onChange: (mode: AuthMode) => void;
+}
+
+const TABS: { value: AuthMode; label: string }[] = [
+  { value: "login", label: "Masuk" },
+  { value: "register", label: "Daftar" },
+];
+
+/**
+ * Switcher mode login/register berbasis STATE (bukan navigasi route).
+ * Indikator latar belakang pill bergeser smooth memakai shared layoutId,
+ * sehingga transisi antar tab terasa menyatu (bukan loncat warna instan).
+ */
+export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
   return (
-    <div className="flex rounded-full p-1 mb-6" style={{ backgroundColor: wrapBg }}>
-      {(["login", "register"] as const).map((tab) => {
-        const active = tab === mode;
+    <div
+      role="tablist"
+      aria-label="Pilih mode masuk atau daftar"
+      className="relative flex items-center rounded-2xl p-1 border"
+      style={{
+        backgroundColor: "var(--auth-floating-bg)",
+        borderColor: "var(--auth-floating-border)",
+      }}
+    >
+      {TABS.map((tab) => {
+        const isActive = tab.value === mode;
         return (
           <button
-            key={tab}
+            key={tab.value}
             type="button"
-            onClick={() => onChange(tab)}
-            className="flex-1 text-center py-2 rounded-full text-sm font-semibold transition-all duration-200 capitalize"
-            style={{
-              backgroundColor: active ? "#ffffff" : "transparent",
-              color: active ? "#111827" : isDark ? "#6b7280" : "#9ca3af",
-              boxShadow: active ? "0 1px 4px rgba(0,0,0,0.18)" : "none",
-            }}
+            role="tab"
+            aria-selected={isActive}
+            onClick={() => onChange(tab.value)}
+            className="relative flex-1 py-2.5 text-center text-sm font-semibold rounded-xl transition-colors cursor-pointer"
           >
-            {tab === "login" ? "Login" : "Register"}
+            {isActive && (
+              <motion.div
+                layoutId="auth-tab-indicator"
+                className="absolute inset-0 rounded-xl border"
+                style={{
+                  backgroundColor: "var(--auth-primary)",
+                  opacity: 0.1,
+                  borderColor: "var(--auth-primary)",
+                }}
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
+              />
+            )}
+            <span
+              className="relative z-10 transition-colors duration-200"
+              style={{
+                color: isActive
+                  ? "var(--auth-primary)"
+                  : "var(--auth-text-muted)",
+              }}
+            >
+              {tab.label}
+            </span>
           </button>
         );
       })}
