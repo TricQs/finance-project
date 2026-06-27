@@ -3,8 +3,8 @@
 import { useEffect, useState } from "react";
 import { useTheme } from "next-themes";
 import { motion } from "framer-motion";
-import { BrandLogo } from "@/components/auth/brand-logo";
-import { ThemeToggle } from "@/components/auth/theme-toggle";
+import { Logo } from "@/components/shared/logo";
+import { ThemeToggle } from "@/components/shared/theme-toggle";
 import { AuthForm } from "@/components/auth/auth-form";
 import {
   MascotCelengan,
@@ -64,7 +64,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                   transition={{ duration: 0.6, ease: easeOutExpo }}
                   className="relative z-10 mb-8 self-start"
                 >
-                  <BrandLogo size="sm" />
+                  <Logo size="sm" />
                 </motion.div>
 
                 <motion.div

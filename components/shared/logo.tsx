@@ -2,7 +2,7 @@ import Image from "next/image";
 
 type LogoSize = "sm" | "md" | "lg";
 
-interface BrandLogoProps {
+interface LogoProps {
   size?: LogoSize;
 }
 
@@ -27,7 +27,7 @@ const SIZE_CONFIG: Record<
   },
 };
 
-export function BrandLogo({ size = "md" }: BrandLogoProps) {
+export function Logo({ size = "md" }: LogoProps) {
   const config = SIZE_CONFIG[size];
   const ribbonClip = `polygon(0 0, calc(100% - ${config.notch}px) 0, 100% 50%, calc(100% - ${config.notch}px) 100%, 0 100%)`;
 

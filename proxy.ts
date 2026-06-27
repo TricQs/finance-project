@@ -18,7 +18,16 @@ const PROTECTED_PATHS = [
   "/pengaturan",
 ];
 
-const AUTH_PATHS = ["/auth", "/login", "/register"];
+const AUTH_PATH = "/auth";
+const DEVICE_COOKIE_NAME = "device-type";
+
+type DeviceType = "mobile" | "desktop";
+
+function detectDeviceType(userAgent: string | null): DeviceType {
+  if (!userAgent) return "desktop";
+  const mobilePattern = /Android|iPhone|iPod|Mobile(?!.*iPad)/i;
+  return mobilePattern.test(userAgent) ? "mobile" : "desktop";
+}
 
 export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
@@ -50,7 +59,7 @@ export async function proxy(request: NextRequest) {
 
   const { pathname } = request.nextUrl;
   const isProtected = PROTECTED_PATHS.some((path) => pathname.startsWith(path));
-  const isAuthPath = AUTH_PATHS.some((path) => pathname.startsWith(path));
+  const isAuthPath = pathname.startsWith(AUTH_PATH);
 
   if (!user && isProtected) {
     const url = request.nextUrl.clone();
@@ -62,6 +71,16 @@ export async function proxy(request: NextRequest) {
     const url = request.nextUrl.clone();
     url.pathname = "/dashboard";
     return NextResponse.redirect(url);
+  }
+
+  if (!request.cookies.has(DEVICE_COOKIE_NAME)) {
+    const deviceType = detectDeviceType(request.headers.get("user-agent"));
+    supabaseResponse.cookies.set(DEVICE_COOKIE_NAME, deviceType, {
+      httpOnly: false,
+      sameSite: "lax",
+      maxAge: 60 * 60 * 24 * 30,
+      path: "/",
+    });
   }
 
   return supabaseResponse;
