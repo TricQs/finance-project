@@ -20,7 +20,7 @@ const PROTECTED_PATHS = [
 
 const AUTH_PATHS = ["/auth", "/login", "/register"];
 
-export async function proxy (request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(

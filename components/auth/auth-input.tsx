@@ -15,7 +15,6 @@ interface AuthInputProps {
   disabled?: boolean;
   required?: boolean;
   autoComplete?: string;
-  /** Dipanggil saat field fokus/blur — dipakai AuthForm untuk mengganti ekspresi mascot */
   onFocusChange?: (focused: boolean) => void;
 }
 

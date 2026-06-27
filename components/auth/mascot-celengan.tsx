@@ -95,16 +95,6 @@ function SparkleStar({
   );
 }
 
-/**
- * Mascot "Celengan" (piggy bank) — SVG vector, bereaksi terhadap
- * pergerakan cursor (mata) dan state form yang sedang aktif (ekspresi).
- *
- * Catatan migrasi: ini adalah implementasi sementara berbasis SVG path.
- * Sesuai rencana, mascot akan dipindah ke Rive (state machine animasi)
- * pada fase UI touch-up. Prop `expression` sengaja dipertahankan sebagai
- * string union supaya kompatibel dipetakan langsung ke Rive state input
- * nanti tanpa mengubah pemanggil (AuthForm).
- */
 export function MascotCelengan({
   expression = "idle",
   className,
@@ -116,7 +106,6 @@ export function MascotCelengan({
   const smoothY = useSpring(mouseY, { stiffness: 180, damping: 22 });
   const [blink, setBlink] = useState(false);
 
-  // Blink berkala otomatis
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -133,24 +122,22 @@ export function MascotCelengan({
     return () => clearTimeout(timeoutId);
   }, []);
 
-  // Parallax pupil mengikuti cursor relatif terhadap elemen mascot
   useEffect(() => {
     const el = svgRef.current;
     if (!el) return;
 
-    function handlePointerMove(e: PointerEvent) {
-      if (!el) return; // ← add this
+    const handlePointerMove = (e: PointerEvent) => {
       const rect = el.getBoundingClientRect();
       const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
       const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
       mouseX.set(Math.max(-1, Math.min(1, dx)));
       mouseY.set(Math.max(-1, Math.min(1, dy)));
-    }
+    };
 
-    function handlePointerLeave() {
+    const handlePointerLeave = () => {
       mouseX.set(0);
       mouseY.set(0);
-    }
+    };
 
     el.addEventListener("pointermove", handlePointerMove);
     el.addEventListener("pointerleave", handlePointerLeave);
@@ -194,7 +181,6 @@ export function MascotCelengan({
       className={cn("select-none overflow-visible", className)}
       preserveAspectRatio="xMidYMid meet"
     >
-      {/* Shadow */}
       <ellipse
         cx={100}
         cy={210}
@@ -204,13 +190,11 @@ export function MascotCelengan({
         fillOpacity="0.15"
       />
 
-      {/* Legs */}
       <rect x="60" y="180" width="16" height="15" rx="6" fill="#3730a3" />
       <rect x="82" y="182" width="14" height="13" rx="5" fill="#3730a3" />
       <rect x="104" y="182" width="14" height="13" rx="5" fill="#3730a3" />
       <rect x="124" y="180" width="16" height="15" rx="6" fill="#3730a3" />
 
-      {/* Tail */}
       <path
         d="M 158,135 Q 172,130 170,118 Q 168,108 174,110"
         fill="none"
@@ -219,7 +203,6 @@ export function MascotCelengan({
         strokeLinecap="round"
       />
 
-      {/* Arms */}
       <motion.path
         d={LEFT_ARM[expression]}
         fill="none"
@@ -237,7 +220,6 @@ export function MascotCelengan({
         transition={{ duration: 0.35, ease: "easeInOut" }}
       />
 
-      {/* Body */}
       <defs>
         <radialGradient id="celengan-body-gradient" cx="40%" cy="40%" r="60%">
           <stop offset="0%" stopColor="#818cf8" />
@@ -252,11 +234,9 @@ export function MascotCelengan({
         fill="url(#celengan-body-gradient)"
       />
 
-      {/* Coin slot */}
       <rect x="86" y="82" width="28" height="5" rx="2.5" fill="#fbbf24" />
       <rect x="88" y="83" width="24" height="2" rx="1" fill="#fcd34d" />
 
-      {/* Ears */}
       <motion.path
         d={LEFT_EAR[expression]}
         fill="none"
@@ -274,7 +254,6 @@ export function MascotCelengan({
         transition={{ duration: 0.25 }}
       />
 
-      {/* Snout */}
       <ellipse
         cx={100}
         cy={158}
@@ -286,10 +265,10 @@ export function MascotCelengan({
       <circle cx="93" cy="156" r="2.5" fill="#1e1b4b" fillOpacity="0.5" />
       <circle cx="107" cy="156" r="2.5" fill="#1e1b4b" fillOpacity="0.5" />
 
-      {/* Eyes */}
       <motion.ellipse
         cx={EYES.left.x}
         cy={EYES.left.y}
+        initial={{ rx: eyeShape.rx, ry: eyeShape.ry }}
         animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }}
         transition={{ duration: 0.08 }}
         fill="#ffffff"
@@ -297,13 +276,14 @@ export function MascotCelengan({
       <motion.ellipse
         cx={EYES.right.x}
         cy={EYES.right.y}
+        initial={{ rx: eyeShape.rx, ry: eyeShape.ry }}
         animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }}
         transition={{ duration: 0.08 }}
         fill="#ffffff"
       />
 
-      {/* Pupils */}
       <motion.g
+        initial={{ opacity: 1 }}
         animate={{ opacity: blink ? 0 : 1 }}
         transition={{ duration: 0.06 }}
       >
@@ -321,7 +301,6 @@ export function MascotCelengan({
         />
       </motion.g>
 
-      {/* Blush */}
       <ellipse
         cx={64}
         cy={134}
@@ -339,7 +318,6 @@ export function MascotCelengan({
         fillOpacity="0.3"
       />
 
-      {/* Mouth */}
       <motion.path
         d={MOUTH[expression]}
         fill="none"
@@ -349,7 +327,6 @@ export function MascotCelengan({
         transition={{ duration: 0.3, ease: "easeInOut" }}
       />
 
-      {/* Error tear */}
       {expression === "error" && (
         <motion.path
           d="M 58,108 Q 54,114 58,116 Q 62,114 58,108 Z"
@@ -360,7 +337,6 @@ export function MascotCelengan({
         />
       )}
 
-      {/* Success sparkles */}
       {expression === "success" && (
         <>
           <SparkleStar cx={48} cy={100} delay={0.1} />

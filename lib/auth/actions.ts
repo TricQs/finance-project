@@ -4,11 +4,6 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-/**
- * Validasi server-side. WAJIB ada terpisah dari validasi di form (client),
- * karena Server Action bisa dipanggil langsung tanpa lewat UI form
- * (lewat network request manual), sehingga validasi client saja tidak cukup.
- */
 const signInSchema = z.object({
   email: z.string().trim().toLowerCase().email("Email tidak valid"),
   password: z.string().min(1, "Password harus diisi"),
@@ -22,11 +17,7 @@ const signUpSchema = z.object({
 
 type ActionResult = { error: string } | { success: string } | never;
 
-/**
- * TODO (security, sebelum production): pasang rate limiting di sini
- * berbasis IP/email memakai @upstash/ratelimit, supaya signIn tidak
- * bisa di-brute-force. Lihat catatan di lib/auth/rate-limit.ts (belum dibuat).
- */
+// TODO: pasang rate limiting (@upstash/ratelimit) sebelum production.
 export async function signIn(
   email: string,
   password: string,
@@ -40,7 +31,6 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
-    // Pesan digeneralisasi — jangan expose detail internal Supabase ke user.
     return { error: "Email atau password salah." };
   }
 
@@ -68,9 +58,6 @@ export async function signUp(
   });
 
   if (error) {
-    // Supabase mengembalikan pesan yang berbeda-beda; untuk kasus email
-    // sudah terdaftar, kita generalisasi supaya tidak membantu enumerasi
-    // akun (mengetahui email mana yang sudah/belum terdaftar di sistem).
     if (error.message.toLowerCase().includes("already registered")) {
       return { error: "Email ini sudah terdaftar. Coba masuk." };
     }

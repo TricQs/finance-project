@@ -19,15 +19,9 @@ const FEATURES = [
 ];
 
 interface AuthLayoutProps {
-  /** Pesan error dari callback OAuth/email confirmation, dibaca dari query param ?error= */
   initialError?: string;
 }
 
-/**
- * Layout halaman auth: kartu kaca tunggal dengan dua panel —
- * kiri (brand + mascot + value props), kanan (form login/register).
- * Latar belakang berupa gradient ambient + grid halus (tanpa image asset).
- */
 export function AuthLayout({ initialError }: AuthLayoutProps) {
   const { setTheme, resolvedTheme } = useTheme();
   const [mounted, setMounted] = useState(false);
@@ -49,13 +43,11 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
 
       <div className="relative z-20 w-full max-w-255 px-4 md:px-8">
         <div className="relative">
-          {/* Outer glow halo */}
           <div
             className="absolute -inset-1 rounded-[2.75rem] pointer-events-none blur-2xl opacity-45"
             style={{ backgroundColor: "var(--auth-card-glow)" }}
           />
 
-          {/* Glass card */}
           <div
             className="relative rounded-[2.5rem] overflow-hidden border"
             style={{
@@ -65,7 +57,6 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
             }}
           >
             <div className="flex flex-col md:flex-row min-h-145">
-              {/* ── Panel kiri: brand + mascot + value props ── */}
               <div className="relative md:w-[44%] flex flex-col items-center justify-center p-8 md:p-12 overflow-hidden">
                 <motion.div
                   initial={{ y: -24, opacity: 0 }}
@@ -124,7 +115,6 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                 </motion.div>
               </div>
 
-              {/* Divider */}
               <div
                 className="hidden md:block w-px self-stretch my-12"
                 style={{
@@ -133,7 +123,6 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                 }}
               />
 
-              {/* ── Panel kanan: form ── */}
               <div className="relative md:w-[56%] flex flex-col justify-center p-8 md:p-12 md:pl-10">
                 <motion.div
                   initial={{ opacity: 0, y: 22 }}

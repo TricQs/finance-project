@@ -14,11 +14,6 @@ const TABS: { value: AuthMode; label: string }[] = [
   { value: "register", label: "Daftar" },
 ];
 
-/**
- * Switcher mode login/register berbasis STATE (bukan navigasi route).
- * Indikator latar belakang pill bergeser smooth memakai shared layoutId,
- * sehingga transisi antar tab terasa menyatu (bukan loncat warna instan).
- */
 export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
   return (
     <div
@@ -44,10 +39,10 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
             {isActive && (
               <motion.div
                 layoutId="auth-tab-indicator"
-                className="absolute inset-0 rounded-xl border"
+                className="absolute inset-0 rounded-xl border opacity-10"
+                initial={false}
                 style={{
                   backgroundColor: "var(--auth-primary)",
-                  opacity: 0.1,
                   borderColor: "var(--auth-primary)",
                 }}
                 transition={{ type: "spring", stiffness: 450, damping: 30 }}

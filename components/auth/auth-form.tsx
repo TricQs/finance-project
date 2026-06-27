@@ -10,11 +10,6 @@ import { AuthInput } from "@/components/auth/auth-input";
 import { TabSwitcher, type AuthMode } from "@/components/auth/tab-switcher";
 import type { CelenganExpression } from "@/components/auth/mascot-celengan";
 
-/**
- * Skema validasi di sisi client. Tujuannya memberi feedback instan ke
- * user (sebelum request ke server), BUKAN sebagai satu-satunya lapisan
- * keamanan — validasi yang mengikat tetap ada di lib/auth/actions.ts.
- */
 const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
   password: z.string().min(1, "Password harus diisi"),
@@ -38,7 +33,6 @@ type FieldErrors = Partial<
 
 interface AuthFormProps {
   onExpressionChange?: (expression: CelenganExpression) => void;
-  /** Pesan error dari callback OAuth/email confirmation (?error= di URL) */
   initialError?: string;
 }
 
@@ -55,8 +49,6 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const [serverError, setServerError] = useState(initialError ?? "");
   const [submitted, setSubmitted] = useState(false);
 
-  // Bersihkan ?error= dari URL setelah ditampilkan, supaya kalau user
-  // refresh halaman pesan error lama tidak muncul lagi tanpa alasan.
   useEffect(() => {
     if (initialError) {
       setExpression("error");

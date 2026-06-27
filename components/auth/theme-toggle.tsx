@@ -7,7 +7,6 @@ interface ThemeToggleProps {
   onToggle: () => void;
 }
 
-/** Tombol sakelar pil kaca melayang (glassmorphic sliding switch). */
 export function ThemeToggle({ isDark, onToggle }: ThemeToggleProps) {
   return (
     <div className="fixed top-6 right-6 z-50">
