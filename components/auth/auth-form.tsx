@@ -4,11 +4,13 @@ import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { Mail } from "lucide-react";
 import { z } from "zod";
+import { AnimatePresence, motion } from "framer-motion";
 import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "@/lib/auth/actions";
 import { AuthInput } from "@/components/auth/auth-input";
 import { TabSwitcher, type AuthMode } from "@/components/auth/tab-switcher";
 import type { CelenganExpression } from "@/components/auth/mascot-celengan";
+import { easeOutExpo } from "@/lib/motion";
 
 const loginSchema = z.object({
   email: z.string().email("Email tidak valid"),
@@ -71,18 +73,16 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   function handleLogin() {
     setErrors({});
     setServerError("");
-
     const result = loginSchema.safeParse({ email, password });
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
-      result.error.issues.forEach((issue) => {
-        fieldErrors[issue.path[0] as keyof FieldErrors] = issue.message;
+      result.error.issues.forEach((i) => {
+        fieldErrors[i.path[0] as keyof FieldErrors] = i.message;
       });
       setErrors(fieldErrors);
       setExpression("error");
       return;
     }
-
     setExpression("loading");
     startTransition(async () => {
       const res = await signIn(result.data.email, result.data.password);
@@ -99,7 +99,6 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   function handleRegister() {
     setErrors({});
     setServerError("");
-
     const result = registerSchema.safeParse({
       fullName,
       email,
@@ -108,14 +107,13 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
     });
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
-      result.error.issues.forEach((issue) => {
-        fieldErrors[issue.path[0] as keyof FieldErrors] = issue.message;
+      result.error.issues.forEach((i) => {
+        fieldErrors[i.path[0] as keyof FieldErrors] = i.message;
       });
       setErrors(fieldErrors);
       setExpression("error");
       return;
     }
-
     setExpression("loading");
     startTransition(async () => {
       const res = await signUp(
@@ -194,196 +192,337 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   }
 
   return (
-    <div className="flex h-full flex-col">
+    // Wrapper ini full height, tidak punya flex-grow sendiri
+    // Tab switcher di atas, form content di bawah dengan height fixed
+    <div className="flex flex-col h-full">
+      {/* Tab switcher — posisinya tidak bergerak */}
       <TabSwitcher mode={mode} onChange={switchMode} />
 
-      <div className="flex-1 flex flex-col justify-center mt-6">
-        {mode === "login" ? (
-          <div className="space-y-4">
-            <AuthInput
-              id="login-email"
-              label="Email"
-              type="email"
-              placeholder="nama@email.com"
-              value={email}
-              onChange={setEmail}
-              error={errors.email}
-              disabled={isPending}
-              autoComplete="email"
-              onFocusChange={(focused) =>
-                setExpression(focused ? "typing" : "idle")
-              }
-            />
-            <AuthInput
-              id="login-password"
-              label="Password"
-              type="password"
-              placeholder="Masukkan password"
-              value={password}
-              onChange={setPassword}
-              error={errors.password}
-              disabled={isPending}
-              autoComplete="current-password"
-              onFocusChange={(focused) =>
-                setExpression(focused ? "password" : "idle")
-              }
-            />
-
-            <div className="flex items-center justify-end">
-              <button
-                type="button"
-                onClick={() => router.push("/forgot-password")}
-                className="text-sm font-medium hover:underline cursor-pointer"
-                style={{ color: "var(--auth-primary)" }}
-              >
-                Lupa password?
-              </button>
-            </div>
-
-            {serverError && (
-              <p
-                role="alert"
-                className="text-xs text-center rounded-lg py-2 px-3"
-                style={{
-                  backgroundColor: "var(--auth-error-bg)",
-                  color: "var(--auth-error-text)",
-                  border: "1px solid var(--auth-error-border)",
-                }}
-              >
-                {serverError}
-              </p>
+      {/* Form area — fixed height = tinggi register, login pakai justify-center */}
+      {/* 
+        Kenapa 380px: 4 field register @ ~72px + button ~44px + divider + google ~44px + gap = ~380px
+        Login hanya 2 field tapi container tetap 380px, konten di-center vertikal
+      */}
+      <div className="relative mt-6" style={{ height: 380 }}>
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={mode}
+            initial={{ opacity: 0, x: mode === "register" ? 12 : -12 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: mode === "register" ? -12 : 12 }}
+            transition={{ duration: 0.2, ease: easeOutExpo }}
+            className="absolute inset-0 flex flex-col"
+            style={{
+              justifyContent: mode === "login" ? "center" : "flex-start",
+            }}
+          >
+            {mode === "login" ? (
+              <LoginFields
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                errors={errors}
+                serverError={serverError}
+                isPending={isPending}
+                onExpression={setExpression}
+                onSubmit={handleLogin}
+                onGoogle={handleGoogleLogin}
+                onForgot={() => router.push("/forgot-password")}
+              />
+            ) : (
+              <RegisterFields
+                fullName={fullName}
+                setFullName={setFullName}
+                email={email}
+                setEmail={setEmail}
+                password={password}
+                setPassword={setPassword}
+                confirmPassword={confirmPassword}
+                setConfirmPassword={setConfirmPassword}
+                errors={errors}
+                serverError={serverError}
+                isPending={isPending}
+                onExpression={setExpression}
+                onSubmit={handleRegister}
+                onGoogle={handleGoogleLogin}
+              />
             )}
-
-            <button
-              type="button"
-              onClick={handleLogin}
-              disabled={isPending}
-              className="w-full h-11 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-              style={{ backgroundColor: "var(--auth-primary)" }}
-            >
-              {isPending ? "Memproses..." : "Masuk"}
-            </button>
-
-            <Divider />
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isPending}
-              className="w-full h-11 rounded-lg border text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-60"
-              style={{
-                borderColor: "var(--auth-floating-border)",
-                color: "var(--auth-text-muted)",
-              }}
-            >
-              <GoogleIcon />
-              Masuk dengan Google
-            </button>
-          </div>
-        ) : (
-          <div className="space-y-4">
-            <AuthInput
-              id="register-fullname"
-              label="Nama"
-              placeholder="Nama lengkap"
-              value={fullName}
-              onChange={setFullName}
-              error={errors.fullName}
-              disabled={isPending}
-              autoComplete="name"
-            />
-            <AuthInput
-              id="register-email"
-              label="Email"
-              type="email"
-              placeholder="nama@email.com"
-              value={email}
-              onChange={setEmail}
-              error={errors.email}
-              disabled={isPending}
-              autoComplete="email"
-              onFocusChange={(focused) =>
-                setExpression(focused ? "typing" : "idle")
-              }
-            />
-            <AuthInput
-              id="register-password"
-              label="Password"
-              type="password"
-              placeholder="Minimal 8 karakter"
-              value={password}
-              onChange={setPassword}
-              error={errors.password}
-              disabled={isPending}
-              autoComplete="new-password"
-              onFocusChange={(focused) =>
-                setExpression(focused ? "password" : "idle")
-              }
-            />
-            <AuthInput
-              id="register-confirm-password"
-              label="Konfirmasi Password"
-              type="password"
-              placeholder="Ulangi password"
-              value={confirmPassword}
-              onChange={setConfirmPassword}
-              error={errors.confirmPassword}
-              disabled={isPending}
-              autoComplete="new-password"
-              onFocusChange={(focused) =>
-                setExpression(focused ? "password" : "idle")
-              }
-            />
-
-            {serverError && (
-              <p
-                role="alert"
-                className="text-xs text-center rounded-lg py-2 px-3"
-                style={{
-                  backgroundColor: "var(--auth-error-bg)",
-                  color: "var(--auth-error-text)",
-                  border: "1px solid var(--auth-error-border)",
-                }}
-              >
-                {serverError}
-              </p>
-            )}
-
-            <button
-              type="button"
-              onClick={handleRegister}
-              disabled={isPending}
-              className="w-full h-11 rounded-lg font-semibold text-sm text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
-              style={{ backgroundColor: "var(--auth-primary)" }}
-            >
-              {isPending ? "Memproses..." : "Buat Akun"}
-            </button>
-
-            <Divider />
-
-            <button
-              type="button"
-              onClick={handleGoogleLogin}
-              disabled={isPending}
-              className="w-full h-11 rounded-lg border text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-60"
-              style={{
-                borderColor: "var(--auth-floating-border)",
-                color: "var(--auth-text-muted)",
-              }}
-            >
-              <GoogleIcon />
-              Daftar dengan Google
-            </button>
-          </div>
-        )}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </div>
   );
 }
 
+/* ─────────────────────────────────────────
+   Login Fields
+───────────────────────────────────────── */
+interface LoginFieldsProps {
+  email: string;
+  setEmail: (v: string) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  errors: FieldErrors;
+  serverError: string;
+  isPending: boolean;
+  onExpression: (e: CelenganExpression) => void;
+  onSubmit: () => void;
+  onGoogle: () => void;
+  onForgot: () => void;
+}
+
+function LoginFields({
+  email,
+  setEmail,
+  password,
+  setPassword,
+  errors,
+  serverError,
+  isPending,
+  onExpression,
+  onSubmit,
+  onGoogle,
+  onForgot,
+}: LoginFieldsProps) {
+  return (
+    <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-4">
+        <AuthInput
+          id="login-email"
+          label="Email"
+          type="email"
+          placeholder="nama@email.com"
+          value={email}
+          onChange={setEmail}
+          error={errors.email}
+          disabled={isPending}
+          autoComplete="email"
+          onFocusChange={(focused) => onExpression(focused ? "typing" : "idle")}
+        />
+        <div className="flex flex-col gap-1">
+          <AuthInput
+            id="login-password"
+            label="Password"
+            type="password"
+            placeholder="Masukkan password"
+            value={password}
+            onChange={setPassword}
+            error={errors.password}
+            disabled={isPending}
+            autoComplete="current-password"
+            onFocusChange={(focused) =>
+              onExpression(focused ? "password" : "idle")
+            }
+          />
+          <div className="flex justify-end">
+            <button
+              type="button"
+              onClick={onForgot}
+              className="text-xs font-medium hover:underline cursor-pointer pt-1"
+              style={{ color: "var(--auth-primary)" }}
+            >
+              Lupa password?
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {serverError && <ErrorAlert message={serverError} />}
+
+      <div className="flex flex-col gap-3">
+        <PrimaryButton onClick={onSubmit} disabled={isPending}>
+          {isPending ? "Memproses..." : "Masuk"}
+        </PrimaryButton>
+        <Divider />
+        <GoogleButton
+          onClick={onGoogle}
+          disabled={isPending}
+          label="Masuk dengan Google"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Register Fields
+───────────────────────────────────────── */
+interface RegisterFieldsProps {
+  fullName: string;
+  setFullName: (v: string) => void;
+  email: string;
+  setEmail: (v: string) => void;
+  password: string;
+  setPassword: (v: string) => void;
+  confirmPassword: string;
+  setConfirmPassword: (v: string) => void;
+  errors: FieldErrors;
+  serverError: string;
+  isPending: boolean;
+  onExpression: (e: CelenganExpression) => void;
+  onSubmit: () => void;
+  onGoogle: () => void;
+}
+
+function RegisterFields({
+  fullName,
+  setFullName,
+  email,
+  setEmail,
+  password,
+  setPassword,
+  confirmPassword,
+  setConfirmPassword,
+  errors,
+  serverError,
+  isPending,
+  onExpression,
+  onSubmit,
+  onGoogle,
+}: RegisterFieldsProps) {
+  return (
+    <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-3">
+        <AuthInput
+          id="register-fullname"
+          label="Nama"
+          placeholder="Nama lengkap"
+          value={fullName}
+          onChange={setFullName}
+          error={errors.fullName}
+          disabled={isPending}
+          autoComplete="name"
+        />
+        <AuthInput
+          id="register-email"
+          label="Email"
+          type="email"
+          placeholder="nama@email.com"
+          value={email}
+          onChange={setEmail}
+          error={errors.email}
+          disabled={isPending}
+          autoComplete="email"
+          onFocusChange={(focused) => onExpression(focused ? "typing" : "idle")}
+        />
+        <AuthInput
+          id="register-password"
+          label="Password"
+          type="password"
+          placeholder="Minimal 8 karakter"
+          value={password}
+          onChange={setPassword}
+          error={errors.password}
+          disabled={isPending}
+          autoComplete="new-password"
+          onFocusChange={(focused) =>
+            onExpression(focused ? "password" : "idle")
+          }
+        />
+        <AuthInput
+          id="register-confirm-password"
+          label="Konfirmasi Password"
+          type="password"
+          placeholder="Ulangi password"
+          value={confirmPassword}
+          onChange={setConfirmPassword}
+          error={errors.confirmPassword}
+          disabled={isPending}
+          autoComplete="new-password"
+          onFocusChange={(focused) =>
+            onExpression(focused ? "password" : "idle")
+          }
+        />
+      </div>
+
+      {serverError && <ErrorAlert message={serverError} />}
+
+      <div className="flex flex-col gap-3">
+        <PrimaryButton onClick={onSubmit} disabled={isPending}>
+          {isPending ? "Memproses..." : "Buat Akun"}
+        </PrimaryButton>
+        <Divider />
+        <GoogleButton
+          onClick={onGoogle}
+          disabled={isPending}
+          label="Daftar dengan Google"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────────────────────────────────
+   Shared atoms
+───────────────────────────────────────── */
+function PrimaryButton({
+  children,
+  onClick,
+  disabled,
+}: {
+  children: React.ReactNode;
+  onClick: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full h-11 rounded-xl font-semibold text-sm text-white transition-all duration-200 disabled:opacity-60 disabled:cursor-not-allowed cursor-pointer"
+      style={{ backgroundColor: "var(--auth-primary)" }}
+    >
+      {children}
+    </button>
+  );
+}
+
+function GoogleButton({
+  onClick,
+  disabled,
+  label,
+}: {
+  onClick: () => void;
+  disabled: boolean;
+  label: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      className="w-full h-11 rounded-xl border text-sm font-medium flex items-center justify-center gap-2.5 transition-all duration-200 cursor-pointer disabled:opacity-60"
+      style={{
+        borderColor: "var(--auth-floating-border)",
+        color: "var(--auth-text-muted)",
+      }}
+    >
+      <GoogleIcon />
+      {label}
+    </button>
+  );
+}
+
+function ErrorAlert({ message }: { message: string }) {
+  return (
+    <p
+      role="alert"
+      className="text-xs text-center rounded-lg py-2 px-3"
+      style={{
+        backgroundColor: "var(--auth-error-bg)",
+        color: "var(--auth-error-text)",
+        border: "1px solid var(--auth-error-border)",
+      }}
+    >
+      {message}
+    </p>
+  );
+}
+
 function Divider() {
   return (
-    <div className="relative my-1">
+    <div className="relative">
       <div className="absolute inset-0 flex items-center">
         <div
           className="w-full border-t"
@@ -391,7 +530,13 @@ function Divider() {
         />
       </div>
       <div className="relative flex justify-center text-xs">
-        <span className="px-2" style={{ color: "var(--auth-text-muted)" }}>
+        <span
+          className="px-2"
+          style={{
+            color: "var(--auth-text-muted)",
+            backgroundColor: "transparent",
+          }}
+        >
           atau
         </span>
       </div>
