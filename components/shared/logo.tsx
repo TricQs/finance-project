@@ -1,5 +1,3 @@
-import Image from "next/image";
-
 type LogoSize = "sm" | "md" | "lg";
 
 interface LogoProps {
@@ -27,6 +25,26 @@ const SIZE_CONFIG: Record<
   },
 };
 
+function CoinIcon({ size }: { size: number }) {
+  return (
+    <svg viewBox="0 0 48 48" width={size} height={size}>
+      <circle cx="24" cy="24" r="22" fill="#f5ecd0" stroke="#c9901a" strokeWidth="2.5" />
+      <circle cx="24" cy="24" r="18" fill="none" stroke="#c9901a" strokeWidth="0.8" opacity="0.4" />
+      <text
+        x="24" y="24"
+        textAnchor="middle"
+        dominantBaseline="central"
+        fill="#b8860b"
+        fontSize="20"
+        fontFamily="serif"
+        fontWeight="bold"
+      >
+        U
+      </text>
+    </svg>
+  );
+}
+
 export function Logo({ size = "md" }: LogoProps) {
   const config = SIZE_CONFIG[size];
   const ribbonClip = `polygon(0 0, calc(100% - ${config.notch}px) 0, 100% 50%, calc(100% - ${config.notch}px) 100%, 0 100%)`;
@@ -34,7 +52,7 @@ export function Logo({ size = "md" }: LogoProps) {
   return (
     <div className="flex items-center">
       <div
-        className="relative rounded-full shrink-0 z-10 shadow-lg"
+        className="relative rounded-full shrink-0 z-10 shadow-lg flex items-center justify-center"
         style={{
           width: config.img,
           height: config.img,
@@ -43,14 +61,7 @@ export function Logo({ size = "md" }: LogoProps) {
           boxShadow: "0 2px 8px rgba(0,0,0,0.35)",
         }}
       >
-        <Image
-          src="/images/logo.png"
-          alt="Logo Uangku"
-          fill
-          sizes={`${config.img}px`}
-          className="object-contain p-1"
-          priority
-        />
+        <CoinIcon size={config.img - 8} />
       </div>
 
       <div

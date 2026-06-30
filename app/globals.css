@@ -338,17 +338,7 @@
   z-index: 0;
 }
 
-.auth-noise::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  opacity: 0.03;
-  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-  background-repeat: repeat;
-  background-size: 256px 256px;
-  pointer-events: none;
-  z-index: 1;
-}
+
 
 /* Placeholder color ikut tema (Diperterang untuk Dark Mode) */
 :root input::placeholder {
@@ -481,24 +471,7 @@
   border-radius: 9999px; 
   background-color: oklch(0.09 0.012 260); /* Warna default tema gelap */
   transform-origin: center center;
-  transform: scale(0) translateZ(0);
-  transition: transform 1200ms ease-in-out;
-  /* GPU composite layer permanen — animasi scale besar ini sangat mahal di CPU */
+  /* KINI DIKENDALIKAN FULL OLEH FRAMER MOTION - HAPUS CSS TRANSITION */
   will-change: transform;
   backface-visibility: hidden;
-}
-
-/* MEMBESAR: Kecepatan membesar telah diatur agar selaras 
-   dengan kurva animasi Framer Motion di form.
-   Scale 100 mengalikan wujud pill 80x36 px -> 8000x3600 px (Cukup membungkus layar ultra-wide)
-*/
-.dark-theme-active .dark-mode-pill {
-  transform: scale(100) translateZ(0);
-  transition: transform 1350ms cubic-bezier(0.65, 0, 0.35, 1);
-}
-
-/* MENYUSUT: Kembali ke wujud scale(0) bersembunyi rapi di tengah toggle */
-.light-theme-active .dark-mode-pill {
-  transform: scale(0) translateZ(0);
-  transition: transform 1200ms cubic-bezier(0.25, 1, 0.5, 1);
 }

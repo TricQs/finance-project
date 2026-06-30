@@ -152,18 +152,18 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   }
 
   const formVariants: Variants = {
-    initial: (direction: any) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
+    initial: (direction: number) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
     animate: { x: 0, opacity: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-    exit: (direction: any) => ({ x: direction > 0 ? -20 : 20, opacity: 0, transition: { duration: 0.3 } }),
+    exit: (direction: number) => ({ x: direction > 0 ? -20 : 20, opacity: 0, transition: { duration: 0.3 } }),
   };
 
   return (
-    <div className="flex flex-col w-full max-w-[440px] mx-auto relative font-sans">
+    <div className="flex flex-col w-full max-w-[440px] mx-auto relative font-sans transition-colors duration-1000 delay-150">
       {/* NEON TAB SWITCHER */}
-      <div className="flex items-center p-1 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] rounded-[14px] mb-8 shadow-sm dark:shadow-none">
+      <div className="flex items-center p-1 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] rounded-[14px] mb-8 shadow-sm dark:shadow-none transition-colors duration-1000 delay-150">
         <button
           onClick={() => { setMode("login"); setErrors({}); setServerError(""); }}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-300 ${
+          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-500 delay-75 ${
             mode === "login" ? "bg-[#00E5FF] text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           }`}
         >
@@ -171,7 +171,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
         </button>
         <button
           onClick={() => { setMode("register"); setErrors({}); setServerError(""); }}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-300 ${
+          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-500 delay-75 ${
             mode === "register" ? "bg-[#00E5FF] text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           }`}
         >
@@ -281,7 +281,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                       type="checkbox"
                       checked={agreed}
                       onChange={(e) => setAgreed(e.target.checked)}
-                      className="w-4 h-4 appearance-none border border-gray-300 dark:border-[#2A2D36] rounded bg-white dark:bg-[#1A1C23] checked:bg-[#00E5FF] checked:border-[#00E5FF] transition-colors cursor-pointer"
+                      className="w-4 h-4 appearance-none border border-gray-300 dark:border-[#2A2D36] rounded bg-white dark:bg-[#1A1C23] checked:bg-[#00E5FF] checked:border-[#00E5FF] transition-colors duration-700 delay-150 cursor-pointer"
                     />
                     {agreed && (
                       <svg className="absolute w-3 h-3 text-black pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -289,8 +289,8 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                       </svg>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium">
-                    Saya menyetujui Syarat & Ketentuan serta <span className="text-[#00bad4] dark:text-[#00E5FF] cursor-pointer hover:underline">Kebijakan Privasi Uangku Financial</span>.
+                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium transition-colors duration-700 delay-150">
+                    Saya menyetujui Syarat & Ketentuan serta <span className="text-[#00bad4] dark:text-[#00E5FF] cursor-pointer hover:underline transition-colors duration-700 delay-150">Kebijakan Privasi Uangku Financial</span>.
                   </p>
                 </div>
 
@@ -311,19 +311,19 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
             
             {/* DIVIDER & GOOGLE OAUTH */}
             <div className="mt-8">
-              <div className="relative mb-6">
+              <div className="relative mb-6 transition-colors duration-700 delay-150">
                 <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-[#2A2D36]" />
+                  <div className="w-full border-t border-gray-200 dark:border-[#2A2D36] transition-colors duration-700 delay-150" />
                 </div>
                 <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
-                  <span className="px-4 bg-white dark:bg-transparent text-gray-500" style={{ backgroundColor: "var(--auth-card-bg)" }}>ATAU</span>
+                  <span className="px-4 bg-white dark:bg-transparent text-gray-500 transition-colors duration-700 delay-150" style={{ backgroundColor: "var(--auth-card-bg)" }}>ATAU</span>
                 </div>
               </div>
 
               <button
                 onClick={handleGoogleLogin}
                 disabled={isPending}
-                className="w-full flex items-center justify-center gap-3 py-3.5 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] text-gray-900 dark:text-white text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-[#20232B] transition-colors active:scale-[0.98] shadow-sm dark:shadow-none"
+                className="w-full flex items-center justify-center gap-3 py-3.5 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] text-gray-900 dark:text-white text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-[#20232B] transition-colors duration-1000 delay-150 active:scale-[0.98] shadow-sm dark:shadow-none"
               >
                 <GoogleIcon />
                 Lanjutkan dengan Google
@@ -355,11 +355,11 @@ interface NeonInputProps {
 function NeonInput({ label, icon, type, placeholder, value, onChange, error, disabled, rightIcon, onRightIconClick, onFocusChange, autoComplete }: NeonInputProps) {
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label className="text-[10px] font-bold tracking-[0.15em] text-gray-500 dark:text-gray-300 uppercase">
+      <label className="text-[10px] font-bold tracking-[0.15em] text-gray-500 dark:text-gray-300 uppercase transition-colors duration-700 delay-150">
         {label}
       </label>
-      <div className={`relative flex items-center bg-gray-50 dark:bg-[#1A1C23] border ${error ? 'border-red-500' : 'border-gray-200 dark:border-[#2A2D36]'} rounded-xl overflow-hidden focus-within:border-[#00E5FF] focus-within:ring-1 focus-within:ring-[#00E5FF]/30 transition-all duration-300`}>
-        <span className="pl-3.5 text-gray-400 dark:text-gray-500">{icon}</span>
+      <div className={`relative flex items-center bg-gray-50 dark:bg-[#1A1C23] border ${error ? 'border-red-500' : 'border-gray-200 dark:border-[#2A2D36]'} rounded-xl overflow-hidden focus-within:border-[#00E5FF] focus-within:ring-1 focus-within:ring-[#00E5FF]/30 transition-all duration-500 delay-75`}>
+        <span className="pl-3.5 text-gray-400 dark:text-gray-500 transition-colors duration-700 delay-150">{icon}</span>
         <input
           type={type}
           placeholder={placeholder}
@@ -369,13 +369,13 @@ function NeonInput({ label, icon, type, placeholder, value, onChange, error, dis
           onFocus={() => onFocusChange?.(true)}
           onBlur={() => onFocusChange?.(false)}
           autoComplete={autoComplete}
-          className="w-full bg-transparent p-3.5 text-[13px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none disabled:opacity-50"
+          className="w-full bg-transparent p-3.5 text-[13px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none disabled:opacity-50 transition-colors duration-700 delay-150"
         />
         {rightIcon && (
           <button 
             type="button" 
             onClick={onRightIconClick} 
-            className="pr-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors outline-none cursor-pointer"
+            className="pr-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors duration-500 delay-75 outline-none cursor-pointer"
             tabIndex={-1}
           >
             {rightIcon}

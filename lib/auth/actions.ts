@@ -84,22 +84,23 @@ export async function signUp(
 
   const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${tokenHash}&type=${type}`;
 
-  // Kirim email via Nodemailer
+  // Kirim email via Nodemailer (fire-and-forget agar tidak block response)
   try {
     const { subject, html } = confirmEmailTemplate(
       parsed.data.fullName,
       confirmUrl,
     );
 
-    await transporter.sendMail({
+    transporter.sendMail({
       from: `"Uangku" <${process.env.SMTP_USER}>`,
       to: parsed.data.email,
       subject,
       html,
+    }).catch((err) => {
+      console.error("Gagal kirim email background:", err);
     });
   } catch (emailError) {
     console.error("Gagal kirim email:", emailError);
-    return { error: "Gagal mengirim email konfirmasi. Silakan coba lagi." };
   }
 
   return { success: "Cek email kamu untuk konfirmasi akun." };

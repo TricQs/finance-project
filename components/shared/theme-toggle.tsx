@@ -9,6 +9,7 @@ export function ThemeToggle() {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
@@ -19,7 +20,6 @@ export function ThemeToggle() {
   return (
     <>
       <div
-        /* Efek hover zoom telah dihapus sesuai permintaan */
         className="mode-tog drop-shadow-md"
         onClick={() => setTheme(isDark ? "light" : "dark")}
       >
@@ -30,7 +30,7 @@ export function ThemeToggle() {
           className="w-full h-full overflow-visible"
         >
           <defs>
-            {/* Filter Night */}
+            {/* Filter & Gradients (Diringkas agar tetap sama) */}
             <filter id="filter0_i_1_1015" x="0" y="0" width="200" height="96" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
               <feFlood floodOpacity="0" result="BackgroundImageFix" />
               <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
@@ -43,7 +43,6 @@ export function ThemeToggle() {
               <feBlend mode="normal" in2="shape" result="effect1_innerShadow_1_1015" />
             </filter>
             
-            {/* Filter Day */}
             <filter id="filter0_i_1_1078" x="0" y="0" width="200" height="96" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
               <feFlood floodOpacity="0" result="BackgroundImageFix" />
               <feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape" />
@@ -56,7 +55,6 @@ export function ThemeToggle() {
               <feBlend mode="normal" in2="shape" result="effect1_innerShadow_1_1078" />
             </filter>
 
-            {/* Filter Knob Drop Shadow */}
             <filter id="filter0_d_1_839" x="0" y="0" width="82" height="82" filterUnits="userSpaceOnUse" colorInterpolationFilters="sRGB">
               <feFlood floodOpacity="0" result="BackgroundImageFix" />
               <feColorMatrix in="SourceAlpha" type="matrix" values="0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 127 0" result="hardAlpha" />
@@ -67,14 +65,12 @@ export function ThemeToggle() {
               <feBlend mode="normal" in="SourceGraphic" in2="effect1_dropShadow_1_839" result="shape" />
             </filter>
 
-            {/* Gradients Night */}
             <linearGradient id="paint0_linear_1_1015" x1="100" y1="0" x2="100" y2="90" gradientUnits="userSpaceOnUse"><stop stopColor="#364BBA" /><stop offset="1" stopColor="#A979D9" /></linearGradient>
             <linearGradient id="paint1_linear_1_1015" x1="100" y1="0" x2="100" y2="90" gradientUnits="userSpaceOnUse"><stop stopColor="#ABFAFF" /><stop offset="1" stopColor="#D5FFAB" /></linearGradient>
             <linearGradient id="paint2_linear_1_1015" x1="138" y1="15.5" x2="138" y2="62" gradientUnits="userSpaceOnUse"><stop offset="0.261829" stopColor="#A5C5EB" /><stop offset="0.699362" stopColor="#51EAFF" stopOpacity="0" /></linearGradient>
             <linearGradient id="paint3_linear_1_1015" x1="106.25" y1="41" x2="106.25" y2="137.519" gradientUnits="userSpaceOnUse"><stop stopColor="#6A86EB" /><stop offset="0.553516" stopColor="#010203" /></linearGradient>
             <linearGradient id="paint8_linear_1_1015" x1="40.5" y1="68" x2="40.5" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor="#111F51" /><stop offset="1" stopColor="#83459F" stopOpacity="0" /></linearGradient>
             
-            {/* Gradients Day */}
             <linearGradient id="paint0_linear_1_1078" x1="100" y1="0" x2="100" y2="90" gradientUnits="userSpaceOnUse"><stop stopColor="#ABFAFF" /><stop offset="1" stopColor="#D5FFAB" /></linearGradient>
             <linearGradient id="paint1_linear_1_1078" x1="100" y1="0" x2="100" y2="90" gradientUnits="userSpaceOnUse"><stop stopColor="#ABFAFF" /><stop offset="1" stopColor="#D5FFAB" /></linearGradient>
             <linearGradient id="paint2_linear_1_1078" x1="58" y1="13.5" x2="58" y2="60" gradientUnits="userSpaceOnUse"><stop offset="0.370713" stopColor="#F6F061" /><stop offset="0.699362" stopColor="#61EDF6" stopOpacity="0" /></linearGradient>
@@ -82,12 +78,12 @@ export function ThemeToggle() {
             <linearGradient id="paint8_linear_1_1078" x1="40.5" y1="68" x2="40.5" y2="106" gradientUnits="userSpaceOnUse"><stop stopColor="#236B70" /><stop offset="1" stopColor="#519DA2" stopOpacity="0" /></linearGradient>
             <linearGradient id="paint30_linear_1_1078" x1="116.5" y1="7" x2="116.5" y2="13.8605" gradientUnits="userSpaceOnUse"><stop stopColor="#A8E0FF" /><stop offset="1" stopColor="#7FE0FF" stopOpacity="0" /></linearGradient>
             
-            {/* Gradient Knob */}
             <linearGradient id="paint0_linear_1_839" x1="39" y1="5" x2="39" y2="75" gradientUnits="userSpaceOnUse"><stop stopColor="white" /><stop offset="1" stopColor="#E8EAEA" /></linearGradient>
           </defs>
 
+          {/* DAY THEME (Langit Cerah) */}
           <motion.g 
-            initial={{ opacity: isDark ? 0 : 1 }} 
+            initial={false} 
             animate={{ opacity: isDark ? 0 : 1 }} 
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
@@ -114,8 +110,9 @@ export function ThemeToggle() {
             </g>
           </motion.g>
 
+          {/* NIGHT THEME (Bintang/Bulan) */}
           <motion.g 
-            initial={{ opacity: isDark ? 1 : 0 }} 
+            initial={false} 
             animate={{ opacity: isDark ? 1 : 0 }} 
             transition={{ duration: 0.6, ease: "easeInOut" }}
           >
@@ -138,7 +135,6 @@ export function ThemeToggle() {
               <path d="M163.012 73.1391C163.131 72.6206 163.869 72.6206 163.988 73.1391L169.856 98.8889C169.927 99.2019 169.689 99.5 169.368 99.5H157.632C157.311 99.5 157.073 99.2019 157.144 98.8889L163.012 73.1391Z" fill="url(#paint8_linear_1_1015)"/>
               <path d="M179.012 69.1391C179.131 68.6206 179.869 68.6206 179.988 69.1391L185.856 94.8889C185.927 95.2019 185.689 95.5 185.368 95.5H173.632C173.311 95.5 173.073 95.2019 173.144 94.8889L179.012 69.1391Z" fill="url(#paint8_linear_1_1015)"/>
               
-              {/* Bintang-bintang Kecil */}
               <circle cx="138" cy="12" r="1" fill="#FFFEDA" opacity="0.6"/>
               <circle cx="95.5" cy="39.5" r="1.5" fill="#FFFEDA" opacity="0.6"/>
               <circle cx="177.5" cy="23.5" r="1.5" fill="#FFFEDA" opacity="0.6"/>
@@ -157,15 +153,11 @@ export function ThemeToggle() {
             </g>
           </motion.g>
 
+          {/* KNOB RODA PUTIH */}
           <motion.g
-            initial={{ x: isDark ? 116 : 6, y: 5 }}
+            initial={false}
             animate={{ x: isDark ? 116 : 6, y: 5 }}
-            transition={{
-              type: "spring",
-              stiffness: 350,
-              damping: 25,
-              mass: 0.8
-            }}
+            transition={{ type: "spring", stiffness: 350, damping: 25, mass: 0.8 }}
           >
             <g filter="url(#filter0_d_1_839)">
               <circle cx="39" cy="40" r="35" fill="url(#paint0_linear_1_839)" />
@@ -175,13 +167,17 @@ export function ThemeToggle() {
         </svg>
       </div>
 
-      {/* Layer Animasi Lonjong yang menyebar ke seluruh layar */}
-      <div
-        className={`dark-mode-wrapper ${
-          isDark ? "dark-theme-active" : "light-theme-active"
-        }`}
-      >
-        <div className="dark-mode-pill" />
+      {/* Layer Animasi Lonjong yang dikendalikan oleh Framer Motion agar KEBAL terhadap blokiran next-themes */}
+      <div className="dark-mode-wrapper">
+        <motion.div 
+          className="dark-mode-pill"
+          initial={false}
+          animate={{ scale: isDark ? 120 : 0 }}
+          transition={{
+            duration: isDark ? 1.35 : 1.2,
+            ease: [0.65, 0, 0.35, 1]
+          }}
+        />
       </div>
     </>
   );

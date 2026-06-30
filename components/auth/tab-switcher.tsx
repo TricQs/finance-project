@@ -2,7 +2,6 @@
 
 // 1. PERBAIKAN: Ubah 'm' menjadi 'motion'
 import { motion } from "framer-motion";
-import { useState } from "react";
 
 export type AuthMode = "login" | "register";
 
@@ -17,8 +16,6 @@ const TABS: { value: AuthMode; label: string }[] = [
 ];
 
 export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
-  const [hoveredTab, setHoveredTab] = useState<AuthMode | null>(null);
-
   return (
     <div
       role="tablist"
@@ -28,11 +25,9 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
         backgroundColor: "var(--auth-floating-bg)",
         borderColor: "var(--auth-floating-border)",
       }}
-      onMouseLeave={() => setHoveredTab(null)}
     >
       {TABS.map((tab) => {
-        const isActive = tab.value === mode;
-        const isHovered = tab.value === hoveredTab;
+          const isActive = tab.value === mode;
 
         return (
           <button
