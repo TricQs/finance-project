@@ -22,10 +22,10 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
     <div
       role="tablist"
       aria-label="Pilih mode masuk atau daftar"
-      className="relative flex items-center rounded-2xl p-1.5 border transition-colors duration-1000 shadow-inner"
+      className="relative flex items-center rounded-2xl p-1 border"
       style={{
-        backgroundColor: "var(--auth-input-bg)",
-        borderColor: "var(--auth-input-border)",
+        backgroundColor: "var(--auth-floating-bg)",
+        borderColor: "var(--auth-floating-border)",
       }}
       onMouseLeave={() => setHoveredTab(null)}
     >
@@ -40,16 +40,13 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.value)}
-            onMouseEnter={() => setHoveredTab(tab.value)}
-            className={`relative flex-1 py-2.5 text-sm font-bold rounded-xl outline-none transition-all duration-300 select-none ${
-              isActive ? "cursor-default" : "cursor-pointer"
-            }`}
+            className="relative flex-1 py-2.5 text-center text-sm font-semibold rounded-xl transition-colors cursor-pointer"
           >
             {/* Indikator Tab Aktif (Pill Menonjol & Glow) */}
             {isActive && (
-              <m.div
-                layoutId="auth-tab-active-indicator"
-                className="absolute inset-0 rounded-xl border"
+              <motion.div
+                layoutId="auth-tab-indicator"
+                className="absolute inset-0 rounded-xl border opacity-10"
                 initial={false}
                 transition={{
                   type: "spring",
@@ -57,41 +54,17 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
                   duration: 0.5,
                 }}
                 style={{
-                  // Menggunakan warna background solid, BUKAN floating/transparan
-                  backgroundColor: "var(--auth-card-bg)", 
-                  // Border warna primary agar batasnya sangat tegas di Dark Mode
-                  borderColor: "var(--auth-primary)", 
-                  // Efek Glow / Pendaran Halus
-                  boxShadow: "0 4px 12px var(--auth-primary-glow)", 
+                  backgroundColor: "var(--auth-primary)",
+                  borderColor: "var(--auth-primary)",
                 }}
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
               />
             )}
-
-            {/* Indikator Hover (Pill Transparan yang mengikuti mouse) */}
-            {isHovered && !isActive && (
-              <m.div
-                layoutId="auth-tab-hover-indicator"
-                className="absolute inset-0 rounded-xl opacity-60"
-                initial={false}
-                transition={{
-                  type: "spring",
-                  bounce: 0.2,
-                  duration: 0.4,
-                }}
-                style={{
-                  backgroundColor: "var(--auth-input-hover)",
-                }}
-              />
-            )}
-
-            {/* Teks Label */}
             <span
-              className="relative z-10 block w-full text-center transition-colors duration-300"
+              className="relative z-10 transition-colors duration-200"
               style={{
                 color: isActive
-                  ? "var(--auth-primary)" // Teks menyala terang saat aktif
-                  : isHovered
-                  ? "var(--auth-text-primary)"
+                  ? "var(--auth-primary)"
                   : "var(--auth-text-muted)",
               }}
             >

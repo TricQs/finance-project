@@ -132,6 +132,7 @@
   --auth-floating-bg: rgba(255, 255, 255, 0.05);
   --auth-floating-border: rgba(255, 255, 255, 0.2); 
 
+<<<<<<< HEAD
   --auth-error-bg: rgba(239, 68, 68, 0.1);
   --auth-error-border: rgba(239, 68, 68, 0.25);
   --auth-error-text: #fca5a5;
@@ -195,6 +196,47 @@
   --auth-error-bg: oklch(0.62 0.18 27 / 0.06);
   --auth-error-border: oklch(0.62 0.18 27 / 0.15);
   --auth-error-text: oklch(0.55 0.2 27);
+
+    /* ── Auth card glass & 3D (light) ── */
+  --auth-card-bg: rgba(255, 255, 255, 0.62);
+  --auth-card-border: rgba(0, 0, 0, 0.07);
+  --auth-card-outer-glow: oklch(0.48 0.19 268 / 0.15);
+  --auth-card-shadow:
+    0 2px 0 rgba(255, 255, 255, 0.9) inset,
+    0 -1px 0 rgba(0, 0, 0, 0.06) inset,
+    0 40px 100px -12px rgba(0, 0, 0, 0.18),
+    0 16px 40px -8px rgba(0, 0, 0, 0.1),
+    0 2px 8px rgba(0, 0, 0, 0.06);
+  --auth-card-top-highlight: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.95) 30%,
+    rgba(255, 255, 255, 1) 50%,
+    rgba(255, 255, 255, 0.95) 70%,
+    transparent
+  );
+  --auth-card-inner-glow: inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.02);
+
+  /* ── Tab switcher (light) ── */
+  --auth-tab-track: rgba(0, 0, 0, 0.055);
+  --auth-tab-track-border: rgba(0, 0, 0, 0.06);
+  --auth-tab-active-text: oklch(0.18 0.015 256);
+  --auth-tab-inactive-text: oklch(0.58 0.015 256);
+  --auth-tab-pill-bg: linear-gradient(
+    160deg,
+    rgba(255, 255, 255, 0.98),
+    rgba(248, 250, 255, 0.95)
+  );
+  --auth-tab-pill-border: rgba(0, 0, 0, 0.08);
+  --auth-tab-pill-shadow: 0 1px 0 rgba(255, 255, 255, 1) inset,
+    0 4px 12px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.06);
+  --auth-tab-pill-gloss: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.8),
+    transparent
+  );
 }
 
 @layer base {
