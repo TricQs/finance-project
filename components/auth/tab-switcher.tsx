@@ -1,6 +1,7 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { m } from "framer-motion";
+import { useState } from "react";
 
 export type AuthMode = "login" | "register";
 
@@ -15,19 +16,23 @@ const TABS: { value: AuthMode; label: string }[] = [
 ];
 
 export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
+  const [hoveredTab, setHoveredTab] = useState<AuthMode | null>(null);
+
   return (
     <div
       role="tablist"
       aria-label="Pilih mode masuk atau daftar"
-      className="relative flex items-center rounded-2xl p-1.5"
+      className="relative flex items-center rounded-2xl p-1 border"
       style={{
-        backgroundColor: "var(--auth-tab-track)",
-        border: "1px solid var(--auth-tab-track-border)",
-        boxShadow: "inset 0 2px 6px rgba(0,0,0,0.18)",
+        backgroundColor: "var(--auth-floating-bg)",
+        borderColor: "var(--auth-floating-border)",
       }}
+      onMouseLeave={() => setHoveredTab(null)}
     >
       {TABS.map((tab) => {
         const isActive = tab.value === mode;
+        const isHovered = tab.value === hoveredTab;
+
         return (
           <button
             key={tab.value}
@@ -35,36 +40,36 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
             role="tab"
             aria-selected={isActive}
             onClick={() => onChange(tab.value)}
-            className="relative flex-1 py-2.5 text-center text-sm font-semibold rounded-xl transition-colors duration-200 cursor-pointer z-10"
-            style={{
-              color: isActive
-                ? "var(--auth-tab-active-text)"
-                : "var(--auth-tab-inactive-text)",
-            }}
+            className="relative flex-1 py-2.5 text-center text-sm font-semibold rounded-xl transition-colors cursor-pointer"
           >
+            {/* Indikator Tab Aktif (Pill Menonjol & Glow) */}
             {isActive && (
               <motion.div
                 layoutId="auth-tab-indicator"
-                className="absolute inset-0 rounded-xl"
+                className="absolute inset-0 rounded-xl border opacity-10"
                 initial={false}
-                style={{
-                  background: "var(--auth-tab-pill-bg)",
-                  boxShadow: "var(--auth-tab-pill-shadow)",
-                  border: "1px solid var(--auth-tab-pill-border)",
+                transition={{
+                  type: "spring",
+                  bounce: 0.15,
+                  duration: 0.5,
                 }}
-                transition={{ type: "spring", stiffness: 450, damping: 32 }}
+                style={{
+                  backgroundColor: "var(--auth-primary)",
+                  borderColor: "var(--auth-primary)",
+                }}
+                transition={{ type: "spring", stiffness: 450, damping: 30 }}
               />
             )}
-            {/* Top gloss on pill */}
-            {isActive && (
-              <motion.span
-                layoutId="auth-tab-gloss"
-                className="absolute inset-x-3 top-0 h-px rounded-full"
-                style={{ background: "var(--auth-tab-pill-gloss)" }}
-                transition={{ type: "spring", stiffness: 450, damping: 32 }}
-              />
-            )}
-            <span className="relative z-10">{tab.label}</span>
+            <span
+              className="relative z-10 transition-colors duration-200"
+              style={{
+                color: isActive
+                  ? "var(--auth-primary)"
+                  : "var(--auth-text-muted)",
+              }}
+            >
+              {tab.label}
+            </span>
           </button>
         );
       })}
