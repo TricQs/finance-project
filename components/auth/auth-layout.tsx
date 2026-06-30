@@ -69,7 +69,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
     <LazyMotion features={domAnimation}>
     <div
       className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden auth-bg-gradient auth-noise transition-colors duration-1000 ease-in-out"
-      style={{ backgroundColor: "oklch(0.97 0.006 256)" }}
+      style={{ backgroundColor: "var(--auth-bg)" }}
     >
       {/* Latar Belakang Orbs (Cahaya Pendar Artistik) */}
       <div 
