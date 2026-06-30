@@ -3,6 +3,9 @@
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { transporter } from "@/lib/email/mailer";
+import { confirmEmailTemplate } from "@/lib/email/templates";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const signInSchema = z.object({
   email: z.string().trim().toLowerCase().email("Email tidak valid"),
@@ -17,7 +20,6 @@ const signUpSchema = z.object({
 
 type ActionResult = { error: string } | { success: string } | never;
 
-// TODO: pasang rate limiting (@upstash/ratelimit) sebelum production.
 export async function signIn(
   email: string,
   password: string,
@@ -47,21 +49,57 @@ export async function signUp(
     return { error: parsed.error.issues[0]?.message ?? "Input tidak valid" };
   }
 
-  const supabase = await createClient();
-  const { error } = await supabase.auth.signUp({
-    email: parsed.data.email,
-    password: parsed.data.password,
-    options: {
-      data: { full_name: parsed.data.fullName },
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
-    },
-  });
+  const adminClient = createAdminClient();
+  const { data: linkData, error: linkError } =
+    await adminClient.auth.admin.generateLink({
+      type: "signup",
+      email: parsed.data.email,
+      password: parsed.data.password,
+      options: {
+        data: { full_name: parsed.data.fullName },
+        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+      },
+    });
 
-  if (error) {
-    if (error.message.toLowerCase().includes("already registered")) {
+  if (linkError) {
+    if (
+      linkError.message.toLowerCase().includes("already registered") ||
+      linkError.code === "email_exists"
+    ) {
       return { error: "Email ini sudah terdaftar. Coba masuk." };
     }
     return { error: "Gagal mendaftar. Silakan coba lagi." };
+  }
+
+  const rawLink = linkData?.properties?.action_link ?? "";
+
+  if (!rawLink) {
+    return { error: "Gagal membuat link konfirmasi. Silakan coba lagi." };
+  }
+
+  // Extract token dari URL Supabase, build ulang ke app URL kita
+  const supabaseUrl = new URL(rawLink);
+  const tokenHash = supabaseUrl.searchParams.get("token");
+  const type = supabaseUrl.searchParams.get("type");
+
+  const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${tokenHash}&type=${type}`;
+
+  // Kirim email via Nodemailer
+  try {
+    const { subject, html } = confirmEmailTemplate(
+      parsed.data.fullName,
+      confirmUrl,
+    );
+
+    await transporter.sendMail({
+      from: `"Uangku" <${process.env.SMTP_USER}>`,
+      to: parsed.data.email,
+      subject,
+      html,
+    });
+  } catch (emailError) {
+    console.error("Gagal kirim email:", emailError);
+    return { error: "Gagal mengirim email konfirmasi. Silakan coba lagi." };
   }
 
   return { success: "Cek email kamu untuk konfirmasi akun." };
