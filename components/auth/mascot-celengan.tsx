@@ -1,7 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useRef, useState } from "react";
-import { motion, useMotionValue, useSpring, useTransform } from "framer-motion";
+import { LazyMotion, domAnimation, m, useMotionValue, useSpring, useTransform } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export type CelenganExpression =
@@ -85,7 +85,7 @@ function SparkleStar({
   delay: number;
 }) {
   return (
-    <motion.path
+    <m.path
       d={`M ${cx},${cy - 8} L ${cx + 3},${cy - 2} L ${cx + 9},${cy - 1} L ${cx + 4},${cy + 4} L ${cx + 5},${cy + 10} L ${cx},${cy + 6} L ${cx - 5},${cy + 10} L ${cx - 4},${cy + 4} L ${cx - 9},${cy - 1} L ${cx - 3},${cy - 2} Z`}
       fill="#fde047"
       initial={{ scale: 0, opacity: 0 }}
@@ -106,6 +106,7 @@ export function MascotCelengan({
   const smoothY = useSpring(mouseY, { stiffness: 180, damping: 22 });
   const [blink, setBlink] = useState(false);
 
+  // Auto-blink: pakai state hanya untuk blink (bukan koordinat) — aman karena sangat jarang
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
 
@@ -122,26 +123,46 @@ export function MascotCelengan({
     return () => clearTimeout(timeoutId);
   }, []);
 
+  // Zero-render pointer tracking:
+  // - Listener dipasang di SVG element (scoped, tidak global)
+  // - Throttle dengan requestAnimationFrame — max 60fps update
+  // - TIDAK ada useState untuk koordinat X/Y
+  // - Koordinat diinjeksikan LANGSUNG ke MotionValue.set() => bypass React render cycle
   useEffect(() => {
     const el = svgRef.current;
     if (!el) return;
 
+    let rafId: number | null = null;
+
     const handlePointerMove = (e: PointerEvent) => {
-      const rect = el.getBoundingClientRect();
-      const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-      const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-      mouseX.set(Math.max(-1, Math.min(1, dx)));
-      mouseY.set(Math.max(-1, Math.min(1, dy)));
+      if (rafId !== null) return; // throttle: skip jika frame sebelumnya belum selesai
+
+      rafId = requestAnimationFrame(() => {
+        rafId = null;
+        const rect = el.getBoundingClientRect();
+        const dx = (e.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
+        const dy = (e.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
+        // Injeksi langsung ke MotionValue — tidak ada setState, tidak ada re-render React
+        mouseX.set(Math.max(-1, Math.min(1, dx)));
+        mouseY.set(Math.max(-1, Math.min(1, dy)));
+      });
     };
 
     const handlePointerLeave = () => {
+      if (rafId !== null) {
+        cancelAnimationFrame(rafId);
+        rafId = null;
+      }
       mouseX.set(0);
       mouseY.set(0);
     };
 
-    el.addEventListener("pointermove", handlePointerMove);
+    // Scoped ke SVG element — tidak global, tidak berlebihan
+    el.addEventListener("pointermove", handlePointerMove, { passive: true });
     el.addEventListener("pointerleave", handlePointerLeave);
+
     return () => {
+      if (rafId !== null) cancelAnimationFrame(rafId);
       el.removeEventListener("pointermove", handlePointerMove);
       el.removeEventListener("pointerleave", handlePointerLeave);
     };
@@ -170,6 +191,8 @@ export function MascotCelengan({
 
   const eyeShape = EYE_SHAPE[expression];
 
+  // LazyMotion tidak perlu di sini — sudah ada di auth-layout.tsx (parent)
+  // m.* bekerja karena LazyMotion dari parent sudah menyediakan features
   return (
     <svg
       ref={svgRef}
@@ -181,14 +204,7 @@ export function MascotCelengan({
       className={cn("select-none overflow-visible", className)}
       preserveAspectRatio="xMidYMid meet"
     >
-      <ellipse
-        cx={100}
-        cy={210}
-        rx={50}
-        ry={6}
-        fill="#000"
-        fillOpacity="0.15"
-      />
+      <ellipse cx={100} cy={210} rx={50} ry={6} fill="#000" fillOpacity="0.15" />
 
       <rect x="60" y="180" width="16" height="15" rx="6" fill="#3730a3" />
       <rect x="82" y="182" width="14" height="13" rx="5" fill="#3730a3" />
@@ -203,22 +219,8 @@ export function MascotCelengan({
         strokeLinecap="round"
       />
 
-      <motion.path
-        d={LEFT_ARM[expression]}
-        fill="none"
-        stroke="#4338ca"
-        strokeWidth="6"
-        strokeLinecap="round"
-        transition={{ duration: 0.35, ease: "easeInOut" }}
-      />
-      <motion.path
-        d={RIGHT_ARM[expression]}
-        fill="none"
-        stroke="#4338ca"
-        strokeWidth="6"
-        strokeLinecap="round"
-        transition={{ duration: 0.35, ease: "easeInOut" }}
-      />
+      <m.path d={LEFT_ARM[expression]} fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round" transition={{ duration: 0.35, ease: "easeInOut" }} />
+      <m.path d={RIGHT_ARM[expression]} fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round" transition={{ duration: 0.35, ease: "easeInOut" }} />
 
       <defs>
         <radialGradient id="celengan-body-gradient" cx="40%" cy="40%" r="60%">
@@ -226,115 +228,33 @@ export function MascotCelengan({
           <stop offset="100%" stopColor="#4f46e5" />
         </radialGradient>
       </defs>
-      <ellipse
-        cx={100}
-        cy={135}
-        rx={58}
-        ry={50}
-        fill="url(#celengan-body-gradient)"
-      />
+      <ellipse cx={100} cy={135} rx={58} ry={50} fill="url(#celengan-body-gradient)" />
 
       <rect x="86" y="82" width="28" height="5" rx="2.5" fill="#fbbf24" />
       <rect x="88" y="83" width="24" height="2" rx="1" fill="#fcd34d" />
 
-      <motion.path
-        d={LEFT_EAR[expression]}
-        fill="none"
-        stroke="#4f46e5"
-        strokeWidth="6"
-        strokeLinecap="round"
-        transition={{ duration: 0.25 }}
-      />
-      <motion.path
-        d={RIGHT_EAR[expression]}
-        fill="none"
-        stroke="#4f46e5"
-        strokeWidth="6"
-        strokeLinecap="round"
-        transition={{ duration: 0.25 }}
-      />
+      <m.path d={LEFT_EAR[expression]} fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round" transition={{ duration: 0.25 }} />
+      <m.path d={RIGHT_EAR[expression]} fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round" transition={{ duration: 0.25 }} />
 
-      <ellipse
-        cx={100}
-        cy={158}
-        rx={22}
-        ry={15}
-        fill="#6366f1"
-        fillOpacity="0.4"
-      />
+      <ellipse cx={100} cy={158} rx={22} ry={15} fill="#6366f1" fillOpacity="0.4" />
       <circle cx="93" cy="156" r="2.5" fill="#1e1b4b" fillOpacity="0.5" />
       <circle cx="107" cy="156" r="2.5" fill="#1e1b4b" fillOpacity="0.5" />
 
-      <motion.ellipse
-        cx={EYES.left.x}
-        cy={EYES.left.y}
-        initial={{ rx: eyeShape.rx, ry: eyeShape.ry }}
-        animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }}
-        transition={{ duration: 0.08 }}
-        fill="#ffffff"
-      />
-      <motion.ellipse
-        cx={EYES.right.x}
-        cy={EYES.right.y}
-        initial={{ rx: eyeShape.rx, ry: eyeShape.ry }}
-        animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }}
-        transition={{ duration: 0.08 }}
-        fill="#ffffff"
-      />
+      <m.ellipse cx={EYES.left.x} cy={EYES.left.y} initial={{ rx: eyeShape.rx, ry: eyeShape.ry }} animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }} transition={{ duration: 0.08 }} fill="#ffffff" />
+      <m.ellipse cx={EYES.right.x} cy={EYES.right.y} initial={{ rx: eyeShape.rx, ry: eyeShape.ry }} animate={{ rx: blink ? 9 : eyeShape.rx, ry: blink ? 1 : eyeShape.ry }} transition={{ duration: 0.08 }} fill="#ffffff" />
 
-      <motion.g
-        initial={{ opacity: 1 }}
-        animate={{ opacity: blink ? 0 : 1 }}
-        transition={{ duration: 0.06 }}
-      >
-        <motion.circle
-          cx={leftPupilX}
-          cy={leftPupilY}
-          r={PUPIL_RADIUS}
-          fill="#292524"
-        />
-        <motion.circle
-          cx={rightPupilX}
-          cy={rightPupilY}
-          r={PUPIL_RADIUS}
-          fill="#292524"
-        />
-      </motion.g>
+      <m.g initial={{ opacity: 1 }} animate={{ opacity: blink ? 0 : 1 }} transition={{ duration: 0.06 }}>
+        <m.circle cx={leftPupilX} cy={leftPupilY} r={PUPIL_RADIUS} fill="#292524" />
+        <m.circle cx={rightPupilX} cy={rightPupilY} r={PUPIL_RADIUS} fill="#292524" />
+      </m.g>
 
-      <ellipse
-        cx={64}
-        cy={134}
-        rx={8}
-        ry={4}
-        fill="#f472b6"
-        fillOpacity="0.3"
-      />
-      <ellipse
-        cx={136}
-        cy={134}
-        rx={8}
-        ry={4}
-        fill="#f472b6"
-        fillOpacity="0.3"
-      />
+      <ellipse cx={64} cy={134} rx={8} ry={4} fill="#f472b6" fillOpacity="0.3" />
+      <ellipse cx={136} cy={134} rx={8} ry={4} fill="#f472b6" fillOpacity="0.3" />
 
-      <motion.path
-        d={MOUTH[expression]}
-        fill="none"
-        stroke="#312e81"
-        strokeWidth="2"
-        strokeLinecap="round"
-        transition={{ duration: 0.3, ease: "easeInOut" }}
-      />
+      <m.path d={MOUTH[expression]} fill="none" stroke="#312e81" strokeWidth="2" strokeLinecap="round" transition={{ duration: 0.3, ease: "easeInOut" }} />
 
       {expression === "error" && (
-        <motion.path
-          d="M 58,108 Q 54,114 58,116 Q 62,114 58,108 Z"
-          fill="#38bdf8"
-          initial={{ opacity: 0, y: -4 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.15, duration: 0.3 }}
-        />
+        <m.path d="M 58,108 Q 54,114 58,116 Q 62,114 58,108 Z" fill="#38bdf8" initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15, duration: 0.3 }} />
       )}
 
       {expression === "success" && (

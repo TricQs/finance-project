@@ -1,6 +1,20 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // Kompresi gzip untuk semua response
+  compress: true,
+
+  // Hilangkan header X-Powered-By (keamanan + sedikit byte hemat)
+  poweredByHeader: false,
+
+  // React Strict Mode untuk deteksi masalah lebih awal
+  reactStrictMode: true,
+
+  experimental: {
+    // Tree-shaking lebih agresif untuk library besar
+    optimizePackageImports: ["framer-motion", "lucide-react", "date-fns", "recharts"],
+  },
+
   images: {
     remotePatterns: [
       {
