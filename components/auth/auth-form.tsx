@@ -37,7 +37,7 @@ interface AuthFormProps {
 export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [mode, setMode] = useState<AuthMode>("register"); // Set default ke register sesuai gambar
+  const [mode, setMode] = useState<AuthMode>("login");
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -159,20 +159,27 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
 
   return (
     <div className="flex flex-col w-full max-w-[440px] mx-auto relative font-sans transition-colors duration-1000 delay-150">
-      {/* NEON TAB SWITCHER */}
-      <div className="flex items-center p-1 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] rounded-[14px] mb-8 shadow-sm dark:shadow-none transition-colors duration-1000 delay-150">
+      {/* TAB SWITCHER — Sliding Pill */}
+      <div className="relative flex p-1 bg-gray-100 dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] rounded-[14px] mb-8 shadow-sm dark:shadow-none transition-colors duration-1000 delay-150">
+        <span className="absolute left-1/2 top-1/2 -translate-y-1/2 w-px h-5 bg-gray-300 dark:bg-gray-600 pointer-events-none transition-colors duration-700 delay-150" />
+        <span
+          className="absolute top-1 bottom-1 w-[calc(50%-14px)] rounded-[10px] bg-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all duration-500 delay-75"
+          style={{
+            left: mode === "login" ? "7px" : "calc(50% + 7px)",
+          }}
+        />
         <button
           onClick={() => { setMode("login"); setErrors({}); setServerError(""); }}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-500 delay-75 ${
-            mode === "login" ? "bg-[#00E5FF] text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-500 delay-75 ${
+            mode === "login" ? "text-black" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           }`}
         >
           Masuk
         </button>
         <button
           onClick={() => { setMode("register"); setErrors({}); setServerError(""); }}
-          className={`flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-all duration-500 delay-75 ${
-            mode === "register" ? "bg-[#00E5FF] text-black shadow-[0_0_15px_rgba(0,229,255,0.4)]" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-500 delay-75 ${
+            mode === "register" ? "text-black" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
           }`}
         >
           Daftar
@@ -220,13 +227,13 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                 {serverError && <p className="text-xs text-red-400 text-center">{serverError}</p>}
 
                 <div className="pt-2">
-                  <button
-                    onClick={handleLogin}
-                    disabled={isPending}
-                    className="w-full py-3.5 bg-[#00E5FF] text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#33edff] transition-all duration-200 shadow-[0_4px_20px_rgba(0,229,255,0.25)] active:scale-[0.98]"
-                  >
-                    {isPending ? "Memproses..." : "Masuk Sekarang"} <ArrowRight size={18} />
-                  </button>
+                <button
+                  onClick={handleLogin}
+                  disabled={isPending}
+                  className="w-full py-3.5 bg-[#00E5FF] text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#33edff] transition-all duration-200 shadow-[0_4px_20px_rgba(0,229,255,0.25)] active:scale-[0.98]"
+                >
+                  {isPending ? "Memproses..." : "Masuk Sekarang"} <ArrowRight size={18} />
+                </button>
                 </div>
               </div>
             ) : (
