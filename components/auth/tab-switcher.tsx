@@ -1,6 +1,7 @@
 "use client";
 
-import { m } from "framer-motion";
+// 1. PERBAIKAN: Ubah 'm' menjadi 'motion'
+import { motion } from "framer-motion";
 import { useState } from "react";
 
 export type AuthMode = "login" | "register";
@@ -57,7 +58,6 @@ export function TabSwitcher({ mode, onChange }: TabSwitcherProps) {
                   backgroundColor: "var(--auth-primary)",
                   borderColor: "var(--auth-primary)",
                 }}
-                transition={{ type: "spring", stiffness: 450, damping: 30 }}
               />
             )}
             <span

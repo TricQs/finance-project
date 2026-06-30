@@ -7,7 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "@/lib/auth/actions";
 import type { CelenganExpression } from "@/components/auth/mascot-celengan";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, type Variants } from "framer-motion";
 
 // --- SCHEMA VALIDATION ---
 const loginSchema = z.object({
@@ -151,10 +151,10 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
     );
   }
 
-  const formVariants = {
-    initial: (direction: number) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
+  const formVariants: Variants = {
+    initial: (direction: any) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
     animate: { x: 0, opacity: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-    exit: (direction: number) => ({ x: direction > 0 ? -20 : 20, opacity: 0, transition: { duration: 0.3 } }),
+    exit: (direction: any) => ({ x: direction > 0 ? -20 : 20, opacity: 0, transition: { duration: 0.3 } }),
   };
 
   return (
