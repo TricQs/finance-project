@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
-import { Mail, Hexagon, ShieldCheck, Eye, EyeOff, ArrowRight } from "lucide-react";
+import { User, Mail, Hexagon, ShieldCheck, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "@/lib/auth/actions";
@@ -17,6 +17,7 @@ const loginSchema = z.object({
 
 const registerSchema = z
   .object({
+    fullName: z.string().trim().min(2, "Minimal 2 karakter").max(100, "Maksimal 100 karakter"),
     email: z.string().email("Email tidak valid"),
     password: z.string().min(8, "Minimal 8 karakter"),
     confirmPassword: z.string(),
@@ -26,7 +27,7 @@ const registerSchema = z
     path: ["confirmPassword"],
   });
 
-type FieldErrors = Partial<Record<"email" | "password" | "confirmPassword", string>>;
+type FieldErrors = Partial<Record<"fullName" | "email" | "password" | "confirmPassword", string>>;
 export type AuthMode = "login" | "register";
 
 interface AuthFormProps {
@@ -100,6 +101,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const [isPending, startTransition] = useTransition();
   const [mode, setMode] = useState<AuthMode>("login");
 
+  const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
@@ -107,10 +109,12 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [showForgotForm, setShowForgotForm] = useState(false);
 
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState(initialError ?? "");
   const [submitted, setSubmitted] = useState(false);
+  const [forgotSent, setForgotSent] = useState(false);
 
   // Password strength (only for register mode)
   const passwordStrength = useMemo(
@@ -167,7 +171,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
       return;
     }
 
-    const result = registerSchema.safeParse({ email, password, confirmPassword });
+    const result = registerSchema.safeParse({ fullName, email, password, confirmPassword });
     if (!result.success) {
       const fieldErrors: FieldErrors = {};
       result.error.issues.forEach((issue) => {
@@ -180,7 +184,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
 
     setExpression("loading");
     startTransition(async () => {
-      const res = await signUp(result.data.email, result.data.password, result.data.email);
+      const res = await signUp(result.data.email, result.data.password, result.data.fullName);
       if (res && "error" in res) {
         setServerError(res.error);
         setExpression("error");
@@ -196,6 +200,33 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
     await supabase.auth.signInWithOAuth({
       provider: "google",
       options: { redirectTo: `${window.location.origin}/auth/callback` },
+    });
+  }
+
+  async function handleForgotPassword() {
+    if (!email || !email.includes("@")) {
+      setServerError("Masukkan email yang valid.");
+      setExpression("error");
+      return;
+    }
+
+    setServerError("");
+    setExpression("loading");
+
+    startTransition(async () => {
+      const supabase = createClient();
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/auth/callback`,
+      });
+
+      if (error) {
+        setServerError("Gagal mengirim link reset. Coba lagi.");
+        setExpression("error");
+        return;
+      }
+
+      setForgotSent(true);
+      setExpression("success");
     });
   }
 
@@ -296,63 +327,166 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
             className="w-full"
           >
             {mode === "login" ? (
-              <div className="space-y-5">
-                <NeonInput
-                  label="EMAIL AKTIF"
-                  icon={<Mail size={18} />}
-                  type="email"
-                  placeholder="nama@perusahaan.id"
-                  value={email}
-                  onChange={setEmail}
-                  error={errors.email}
-                  disabled={isPending}
-                  onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
-                />
-                <NeonInput
-                  label="KATA SANDI"
-                  icon={<Hexagon size={18} />}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={setPassword}
-                  error={errors.password}
-                  disabled={isPending}
-                  rightIcon={showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
-                  onRightIconClick={() => setShowPassword(!showPassword)}
-                  onFocusChange={(f) => setExpression(f ? "password" : "idle")}
-                />
+              showForgotForm ? (
+                forgotSent ? (
+                  <div className="flex flex-col items-center justify-center text-center py-6">
+                    <div className="mb-4">
+                      <AnimatedCheck />
+                    </div>
+                    <h3 className="text-lg font-bold mb-2" style={{ color: "var(--auth-text-primary)" }}>
+                      Cek Email Kamu
+                    </h3>
+                    <p className="text-sm mb-4" style={{ color: "var(--auth-text-muted)" }}>
+                      Link reset password telah dikirim ke <br/>
+                      <span style={{ color: "var(--auth-primary)" }} className="font-medium">{email}</span>
+                    </p>
+                    <button
+                      type="button"
+                      onClick={() => { setShowForgotForm(false); setForgotSent(false); }}
+                      className="text-sm font-semibold hover:underline transition-colors cursor-pointer"
+                      style={{ color: "var(--auth-primary)" }}
+                    >
+                      ← Kembali ke Login
+                    </button>
+                  </div>
+                ) : (
+                <div className="space-y-5">
+                  <p className="text-sm text-center" style={{ color: "var(--auth-text-muted)" }}>
+                    Masukkan email kamu. Kami akan kirim link untuk reset password.
+                  </p>
 
-                {serverError && (
-                  <p
-                    className="text-xs text-center py-2 px-3 rounded-lg"
+                  <NeonInput
+                    label="EMAIL AKTIF"
+                    icon={<Mail size={18} />}
+                    type="email"
+                    placeholder="nama@perusahaan.id"
+                    value={email}
+                    onChange={setEmail}
+                    error={errors.email}
+                    disabled={isPending}
+                    onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
+                  />
+
+                  {serverError && (
+                    <p
+                      className="text-xs text-center py-2 px-3 rounded-lg"
+                      style={{
+                        color: "var(--auth-error-text)",
+                        backgroundColor: "var(--auth-error-bg)",
+                        border: "1px solid var(--auth-error-border)",
+                      }}
+                    >
+                      {serverError}
+                    </p>
+                  )}
+
+                  <button
+                    onClick={handleForgotPassword}
+                    disabled={isPending}
+                    className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                     style={{
-                      color: "var(--auth-error-text)",
-                      backgroundColor: "var(--auth-error-bg)",
-                      border: "1px solid var(--auth-error-border)",
+                      backgroundColor: "var(--auth-primary)",
+                      boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
                     }}
                   >
-                    {serverError}
-                  </p>
-                )}
+                    {isPending ? <LoadingSpinner /> : "Kirim Link Reset"}
+                  </button>
 
-                <div className="pt-2">
-                <button
-                  onClick={handleLogin}
-                  disabled={isPending}
-                  className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
-                  style={{
-                    backgroundColor: "var(--auth-primary)",
-                    boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
-                  }}
-                >
-                  {isPending ? <LoadingSpinner /> : (
-                    <>Masuk Sekarang <ArrowRight size={18} /></>
-                  )}
-                </button>
+                  <button
+                    type="button"
+                    onClick={() => { setShowForgotForm(false); setServerError(""); }}
+                    className="w-full text-center text-xs font-semibold hover:underline transition-colors cursor-pointer"
+                    style={{ color: "var(--auth-text-muted)" }}
+                  >
+                    ← Kembali ke Login
+                  </button>
                 </div>
-              </div>
+                )
+              ) : (
+                <div className="space-y-5">
+                  <NeonInput
+                    label="EMAIL AKTIF"
+                    icon={<Mail size={18} />}
+                    type="email"
+                    placeholder="nama@perusahaan.id"
+                    value={email}
+                    onChange={setEmail}
+                    error={errors.email}
+                    disabled={isPending}
+                    onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
+                  />
+                  <NeonInput
+                    label="KATA SANDI"
+                    icon={<Hexagon size={18} />}
+                    type={showPassword ? "text" : "password"}
+                    placeholder="••••••••"
+                    value={password}
+                    onChange={setPassword}
+                    error={errors.password}
+                    disabled={isPending}
+                    rightIcon={showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
+                    onRightIconClick={() => setShowPassword(!showPassword)}
+                    onFocusChange={(f) => setExpression(f ? "password" : "idle")}
+                  />
+
+                  {/* LUPA PASSWORD */}
+                  <div className="flex justify-end -mt-2">
+                    <button
+                      type="button"
+                      onClick={() => setShowForgotForm(true)}
+                      className="text-[11px] font-semibold hover:underline transition-colors cursor-pointer"
+                      style={{ color: "var(--auth-text-muted)" }}
+                    >
+                      Lupa Password?
+                    </button>
+                  </div>
+
+                  {serverError && (
+                    <p
+                      className="text-xs text-center py-2 px-3 rounded-lg"
+                      style={{
+                        color: "var(--auth-error-text)",
+                        backgroundColor: "var(--auth-error-bg)",
+                        border: "1px solid var(--auth-error-border)",
+                      }}
+                    >
+                      {serverError}
+                    </p>
+                  )}
+
+                  <div className="pt-2">
+                  <button
+                    onClick={handleLogin}
+                    disabled={isPending}
+                    className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: "var(--auth-primary)",
+                      boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
+                    }}
+                  >
+                    {isPending ? <LoadingSpinner /> : (
+                      <>Masuk Sekarang <ArrowRight size={18} /></>
+                    )}
+                  </button>
+                  </div>
+                </div>
+              )
             ) : (
               <div className="space-y-5">
+                {/* NAMA LENGKAP */}
+                <NeonInput
+                  label="NAMA LENGKAP"
+                  icon={<User size={18} />}
+                  type="text"
+                  placeholder="Budi Santoso"
+                  value={fullName}
+                  onChange={setFullName}
+                  error={errors.fullName}
+                  disabled={isPending}
+                  autoComplete="name"
+                  onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
+                />
+
                 {/* EMAIL */}
                 <NeonInput
                   label="EMAIL AKTIF"
