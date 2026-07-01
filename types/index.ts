@@ -5,6 +5,7 @@ export type Profile = {
   currency: string
   locale: string
   timezone: string
+  role: 'user' | 'admin'
   is_premium: boolean
   is_active: boolean
   created_at: string
