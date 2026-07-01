@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, useMemo } from "react";
 import { useRouter } from "next/navigation";
 import { Mail, Hexagon, ShieldCheck, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { z } from "zod";
@@ -34,6 +34,67 @@ interface AuthFormProps {
   initialError?: string;
 }
 
+// --- PASSWORD STRENGTH CALCULATOR ---
+function getPasswordStrength(password: string): 0 | 1 | 2 | 3 {
+  if (!password) return 0;
+  if (password.length < 8) return 1; // Di bawah 8 karakter otomatis Lemah (1)
+  
+  let score = 1; // Panjang >= 8 karakter, minimal Lemah (1)
+  const hasMixedCase = /[A-Z]/.test(password) && /[a-z]/.test(password);
+  const hasNumbers = /[0-9]/.test(password);
+  const hasSymbols = /[^A-Za-z0-9]/.test(password);
+
+  if (hasMixedCase) score++;
+  if (hasNumbers || hasSymbols) score++;
+
+  return Math.min(score, 3) as 1 | 2 | 3;
+}
+
+const STRENGTH_LABELS = ["", "Lemah", "Sedang", "Kuat"] as const;
+const STRENGTH_COLORS = [
+  "",
+  "oklch(0.65 0.22 27)",    // merah
+  "oklch(0.75 0.18 84)",    // kuning
+  "oklch(0.62 0.18 162)",   // hijau
+] as const;
+
+// --- LOADING SPINNER ---
+function LoadingSpinner() {
+  return (
+    <svg className="animate-spin w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" opacity="0.25" />
+      <path d="M12 2a10 10 0 0 1 10 10" stroke="currentColor" strokeWidth="3" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+// --- SVG CHECK ANIMATION (pure CSS, 0 dependencies) ---
+function AnimatedCheck() {
+  return (
+    <svg
+      className="check-animation w-16 h-16"
+      viewBox="0 0 60 60"
+      fill="none"
+      aria-hidden="true"
+    >
+      <circle
+        cx="30" cy="30" r="27"
+        stroke="var(--auth-primary)"
+        strokeWidth="2.5"
+        fill="none"
+      />
+      <polyline
+        points="18,30 26,38 42,22"
+        stroke="var(--auth-primary)"
+        strokeWidth="3"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        fill="none"
+      />
+    </svg>
+  );
+}
+
 export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
@@ -42,7 +103,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreed, setAgreed] = useState(false); // State untuk checkbox
+  const [agreed, setAgreed] = useState(false);
   
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -50,6 +111,12 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const [errors, setErrors] = useState<FieldErrors>({});
   const [serverError, setServerError] = useState(initialError ?? "");
   const [submitted, setSubmitted] = useState(false);
+
+  // Password strength (only for register mode)
+  const passwordStrength = useMemo(
+    () => (mode === "register" ? getPasswordStrength(password) : 0),
+    [password, mode]
+  );
 
   useEffect(() => {
     if (initialError) {
@@ -113,7 +180,6 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
 
     setExpression("loading");
     startTransition(async () => {
-      // Mengirimkan email sebagai fullName untuk sementara karena UI tidak punya field Nama
       const res = await signUp(result.data.email, result.data.password, result.data.email);
       if (res && "error" in res) {
         setServerError(res.error);
@@ -136,14 +202,27 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   if (submitted) {
     return (
       <div className="flex flex-col items-center justify-center text-center py-10">
-        <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-6 bg-[#00E5FF]/20">
-          <Mail className="w-8 h-8 text-[#00E5FF]" />
+        {/* Pure SVG + CSS checkmark animation */}
+        <div className="mb-6">
+          <AnimatedCheck />
         </div>
-        <h3 className="text-xl font-bold mb-2 text-white">Cek Email Kamu</h3>
-        <p className="text-sm text-gray-400 mb-6">Link konfirmasi telah dikirim ke <br/><span className="text-[#00E5FF] font-medium">{email}</span></p>
+        <h3
+          className="text-xl font-bold mb-2"
+          style={{ color: "var(--auth-text-primary)", transition: "color 0.3s ease" }}
+        >
+          Cek Email Kamu
+        </h3>
+        <p
+          className="text-sm mb-6"
+          style={{ color: "var(--auth-text-muted)", transition: "color 0.3s ease" }}
+        >
+          Link konfirmasi telah dikirim ke <br/>
+          <span style={{ color: "var(--auth-primary)" }} className="font-medium">{email}</span>
+        </p>
         <button
           onClick={() => setSubmitted(false)}
-          className="text-sm font-medium text-[#00E5FF] hover:underline"
+          className="text-sm font-medium hover:underline transition-colors duration-300"
+          style={{ color: "var(--auth-primary)" }}
         >
           ← Kembali
         </button>
@@ -152,35 +231,54 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   }
 
   const formVariants: Variants = {
-    initial: (direction: number) => ({ x: direction > 0 ? 20 : -20, opacity: 0 }),
-    animate: { x: 0, opacity: 1, transition: { duration: 0.4, ease: [0.16, 1, 0.3, 1] } },
-    exit: (direction: number) => ({ x: direction > 0 ? -20 : 20, opacity: 0, transition: { duration: 0.3 } }),
+    initial: (direction: number) => ({ x: direction > 0 ? 16 : -16, opacity: 0 }),
+    animate: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
+    exit: (direction: number) => ({ x: direction > 0 ? -16 : 16, opacity: 0, transition: { duration: 0.2 } }),
   };
 
   return (
-    <div className="flex flex-col w-full max-w-[440px] mx-auto relative font-sans transition-colors duration-1000 delay-150">
-      {/* TAB SWITCHER — Sliding Pill */}
-      <div className="relative flex p-1 bg-gray-100 dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] rounded-[14px] mb-8 shadow-sm dark:shadow-none transition-colors duration-1000 delay-150">
-        <span className="absolute left-1/2 top-1/2 -translate-y-1/2 w-px h-5 bg-gray-300 dark:bg-gray-600 pointer-events-none transition-colors duration-700 delay-150" />
-        <span
-          className="absolute top-1 bottom-1 w-[calc(50%-14px)] rounded-[10px] bg-[#00E5FF] shadow-[0_0_15px_rgba(0,229,255,0.4)] transition-all duration-500 delay-75"
+    <div className="flex flex-col w-full max-w-[440px] mx-auto relative font-sans">
+      {/* TAB SWITCHER — Premium Pill with spring animation */}
+      <div className="relative flex p-1 rounded-[14px] mb-8 shadow-sm auth-subcard-transition">
+        <span className="absolute left-1/2 top-1/2 -translate-y-1/2 w-px h-5 pointer-events-none auth-subcard-transition" />
+
+        {/* Animated pill indicator */}
+        <motion.div
+          layout
+          className="absolute top-1 bottom-1 rounded-[10px]"
           style={{
-            left: mode === "login" ? "7px" : "calc(50% + 7px)",
+            width: "calc(50% - 10px)",
+            left: mode === "login" ? "5px" : "calc(50% + 5px)",
+            background: "var(--auth-primary)",
+            boxShadow: "0 0 20px var(--auth-primary-glow), 0 2px 8px rgba(0,0,0,0.2)",
+            willChange: "left",
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 400,
+            damping: 30,
           }}
         />
+
         <button
           onClick={() => { setMode("login"); setErrors({}); setServerError(""); }}
-          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-500 delay-75 ${
-            mode === "login" ? "text-black" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-[150ms] cursor-pointer ${
+            mode === "login" ? "dark:text-black text-white" : ""
           }`}
+          style={{
+            color: mode === "login" ? undefined : "var(--auth-text-muted)",
+          }}
         >
           Masuk
         </button>
         <button
           onClick={() => { setMode("register"); setErrors({}); setServerError(""); }}
-          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-500 delay-75 ${
-            mode === "register" ? "text-black" : "text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-[10px] transition-colors duration-[150ms] cursor-pointer ${
+            mode === "register" ? "dark:text-black text-white" : ""
           }`}
+          style={{
+            color: mode === "register" ? undefined : "var(--auth-text-muted)",
+          }}
         >
           Daftar
         </button>
@@ -224,15 +322,32 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                   onFocusChange={(f) => setExpression(f ? "password" : "idle")}
                 />
 
-                {serverError && <p className="text-xs text-red-400 text-center">{serverError}</p>}
+                {serverError && (
+                  <p
+                    className="text-xs text-center py-2 px-3 rounded-lg"
+                    style={{
+                      color: "var(--auth-error-text)",
+                      backgroundColor: "var(--auth-error-bg)",
+                      border: "1px solid var(--auth-error-border)",
+                    }}
+                  >
+                    {serverError}
+                  </p>
+                )}
 
                 <div className="pt-2">
                 <button
                   onClick={handleLogin}
                   disabled={isPending}
-                  className="w-full py-3.5 bg-[#00E5FF] text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#33edff] transition-all duration-200 shadow-[0_4px_20px_rgba(0,229,255,0.25)] active:scale-[0.98]"
+                  className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                  style={{
+                    backgroundColor: "var(--auth-primary)",
+                    boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
+                  }}
                 >
-                  {isPending ? "Memproses..." : "Masuk Sekarang"} <ArrowRight size={18} />
+                  {isPending ? <LoadingSpinner /> : (
+                    <>Masuk Sekarang <ArrowRight size={18} /></>
+                  )}
                 </button>
                 </div>
               </div>
@@ -281,56 +396,106 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                   />
                 </div>
 
+                {/* PASSWORD STRENGTH BAR */}
+                {password.length > 0 && (
+                  <div>
+                    <div className="password-strength-bar">
+                      <div
+                        className="password-strength-fill"
+                        data-strength={passwordStrength}
+                      />
+                    </div>
+                    {passwordStrength > 0 && (
+                      <p className="text-[10px] font-semibold mt-1" style={{ color: STRENGTH_COLORS[passwordStrength] }}>
+                        {STRENGTH_LABELS[passwordStrength]}
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* CHECKBOX */}
-                <div className="flex items-start gap-3 py-2">
+                <div className="flex items-start gap-3 py-1">
                   <div className="relative flex items-center justify-center mt-0.5">
                     <input
                       type="checkbox"
                       checked={agreed}
                       onChange={(e) => setAgreed(e.target.checked)}
-                      className="w-4 h-4 appearance-none border border-gray-300 dark:border-[#2A2D36] rounded bg-white dark:bg-[#1A1C23] checked:bg-[#00E5FF] checked:border-[#00E5FF] transition-colors duration-700 delay-150 cursor-pointer"
+                      className="w-4 h-4 appearance-none rounded border border-gray-300 dark:border-white/25 bg-gray-50 dark:bg-white/5 checked:bg-[var(--auth-primary)] checked:border-[var(--auth-primary)] cursor-pointer transition-all duration-200"
                     />
                     {agreed && (
-                      <svg className="absolute w-3 h-3 text-black pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="absolute w-3 h-3 text-white pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12"></polyline>
                       </svg>
                     )}
                   </div>
-                  <p className="text-[11px] text-gray-500 dark:text-gray-400 leading-relaxed font-medium transition-colors duration-700 delay-150">
-                    Saya menyetujui Syarat & Ketentuan serta <span className="text-[#00bad4] dark:text-[#00E5FF] cursor-pointer hover:underline transition-colors duration-700 delay-150">Kebijakan Privasi Uangku Financial</span>.
+                  <p
+                    className="text-[11px] leading-relaxed font-medium"
+                    style={{
+                      color: "var(--auth-text-muted)",
+                      transition: "color 0.3s ease",
+                    }}
+                  >
+                    Saya menyetujui Syarat & Ketentuan serta{" "}
+                    <span
+                      className="cursor-pointer hover:underline"
+                      style={{ color: "var(--auth-primary)" }}
+                    >
+                      Kebijakan Privasi Uangku Financial
+                    </span>.
                   </p>
                 </div>
 
-                {serverError && <p className="text-xs text-red-400 text-center">{serverError}</p>}
+                {serverError && (
+                  <p
+                    className="text-xs text-center py-2 px-3 rounded-lg"
+                    style={{
+                      color: "var(--auth-error-text)",
+                      backgroundColor: "var(--auth-error-bg)",
+                      border: "1px solid var(--auth-error-border)",
+                    }}
+                  >
+                    {serverError}
+                  </p>
+                )}
 
                 {/* TOMBOL DAFTAR */}
                 <div>
                   <button
                     onClick={handleRegister}
                     disabled={isPending}
-                    className="w-full py-3.5 bg-[#00E5FF] text-black font-bold rounded-xl flex items-center justify-center gap-2 hover:bg-[#33edff] transition-all duration-200 shadow-[0_4px_20px_rgba(0,229,255,0.25)] active:scale-[0.98]"
+                    className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
+                    style={{
+                      backgroundColor: "var(--auth-primary)",
+                      boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
+                    }}
                   >
-                    {isPending ? "Memproses..." : "Daftar Sekarang"} <ArrowRight size={18} />
+                    {isPending ? <LoadingSpinner /> : (
+                      <>Daftar Sekarang <ArrowRight size={18} /></>
+                    )}
                   </button>
                 </div>
               </div>
             )}
             
-            {/* DIVIDER & GOOGLE OAUTH */}
-            <div className="mt-8">
-              <div className="relative mb-6 transition-colors duration-700 delay-150">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-[#2A2D36] transition-colors duration-700 delay-150" />
-                </div>
-                <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
-                  <span className="px-4 bg-white dark:bg-transparent text-gray-500 transition-colors duration-700 delay-150" style={{ backgroundColor: "var(--auth-card-bg)" }}>ATAU</span>
-                </div>
+            {/* DIVIDER ATAU */}
+            <div className="relative mt-10 mb-6">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-black/30 dark:border-white/20" />
               </div>
+              <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
+                <span className="px-4" style={{ color: "var(--auth-text-muted)", backgroundColor: "var(--auth-card-bg)" }}>ATAU</span>
+              </div>
+            </div>
 
+            {/* GOOGLE OAUTH */}
+            <div>
               <button
                 onClick={handleGoogleLogin}
                 disabled={isPending}
-                className="w-full flex items-center justify-center gap-3 py-3.5 bg-white dark:bg-[#1A1C23] border border-gray-200 dark:border-[#2A2D36] text-gray-900 dark:text-white text-sm font-semibold rounded-xl hover:bg-gray-50 dark:hover:bg-[#20232B] transition-colors duration-1000 delay-150 active:scale-[0.98] shadow-sm dark:shadow-none"
+                className="btn-shimmer btn-hover-gradient-border w-full flex items-center justify-center gap-3 py-3.5 text-sm font-semibold rounded-xl transition-[transform,box-shadow] duration-200 active:scale-[0.98] text-gray-900 dark:text-white hover:text-white auth-subcard-transition"
+                style={{
+                  boxShadow: "0 4px 16px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.06)",
+                }}
               >
                 <GoogleIcon />
                 Lanjutkan dengan Google
@@ -360,36 +525,83 @@ interface NeonInputProps {
 }
 
 function NeonInput({ label, icon, type, placeholder, value, onChange, error, disabled, rightIcon, onRightIconClick, onFocusChange, autoComplete }: NeonInputProps) {
+  const [focused, setFocused] = useState(false);
+
+  function handleFocus() {
+    setFocused(true);
+    onFocusChange?.(true);
+  }
+
+  function handleBlur() {
+    setFocused(false);
+    onFocusChange?.(false);
+  }
+
   return (
     <div className="flex flex-col gap-1.5 w-full">
-      <label className="text-[10px] font-bold tracking-[0.15em] text-gray-500 dark:text-gray-300 uppercase transition-colors duration-700 delay-150">
+      <label
+        className="text-[10px] font-bold tracking-[0.15em] uppercase auth-text-transition"
+        style={{
+          color: focused ? "var(--auth-primary)" : "var(--auth-text-muted)",
+          transform: focused ? "scale(1.02)" : "scale(1)",
+          transformOrigin: "left center",
+        }}
+      >
         {label}
       </label>
-      <div className={`relative flex items-center bg-gray-50 dark:bg-[#1A1C23] border ${error ? 'border-red-500' : 'border-gray-200 dark:border-[#2A2D36]'} rounded-xl overflow-hidden focus-within:border-[#00E5FF] focus-within:ring-1 focus-within:ring-[#00E5FF]/30 transition-all duration-500 delay-75`}>
-        <span className="pl-3.5 text-gray-400 dark:text-gray-500 transition-colors duration-700 delay-150">{icon}</span>
+      <div
+        className={`relative flex items-center rounded-xl overflow-hidden border-[1.5px] auth-subcard-transition ${
+          error 
+            ? "border-red-500/20 dark:border-red-500/35 bg-red-500/[0.02] dark:bg-red-500/[0.04]" 
+            : focused 
+              ? "border-[var(--auth-primary)] bg-transparent" 
+              : "border-black/25 dark:border-white/20 bg-black/[0.015] dark:bg-white/[0.06]"
+        }`}
+        style={{
+          boxShadow: focused ? "0 0 0 3px var(--auth-primary-glow)" : "none",
+          transitionTimingFunction: "cubic-bezier(0.16, 1, 0.3, 1)",
+        }}
+      >
+        <span
+          className="pl-3.5 auth-text-transition"
+          style={{
+            color: focused ? "var(--auth-primary)" : "var(--auth-input-icon-color)",
+          }}
+        >
+          {icon}
+        </span>
         <input
           type={type}
           placeholder={placeholder}
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          onFocus={() => onFocusChange?.(true)}
-          onBlur={() => onFocusChange?.(false)}
+          onFocus={handleFocus}
+          onBlur={handleBlur}
           autoComplete={autoComplete}
-          className="w-full bg-transparent p-3.5 text-[13px] text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-600 outline-none disabled:opacity-50 transition-colors duration-700 delay-150"
+          className="w-full bg-transparent p-3.5 text-[13px] outline-none disabled:opacity-50 auth-text-transition"
+          style={{ color: "var(--auth-input-color)" }}
         />
         {rightIcon && (
           <button 
             type="button" 
             onClick={onRightIconClick} 
-            className="pr-3.5 text-gray-400 dark:text-gray-500 hover:text-gray-900 dark:hover:text-white transition-colors duration-500 delay-75 outline-none cursor-pointer"
+            className="pr-3.5 outline-none cursor-pointer auth-text-transition"
+            style={{ color: "var(--auth-input-icon-color)" }}
             tabIndex={-1}
           >
             {rightIcon}
           </button>
         )}
       </div>
-      {error && <span className="text-[10px] text-red-500 mt-0.5">{error}</span>}
+      {error && (
+        <span
+          className="text-[10px] mt-0.5 font-medium"
+          style={{ color: "var(--auth-error-text)" }}
+        >
+          {error}
+        </span>
+      )}
     </div>
   );
 }
