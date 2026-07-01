@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
-import { Geist, Geist_Mono, Onest } from "next/font/google";
+import { Geist, Geist_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { ThemeProvider } from "next-themes";
 import { Toaster } from "sonner";
 import "./globals.css";
@@ -16,9 +17,14 @@ const geistMono = Geist_Mono({
   display: "swap",
 });
 
-const onest = Onest({
-  variable: "--font-onest",
-  subsets: ["latin"],
+const satoshi = localFont({
+  src: [
+    { path: "../public/fonts/satoshi/Satoshi-Regular.woff2", weight: "400" },
+    { path: "../public/fonts/satoshi/Satoshi-Medium.woff2", weight: "500" },
+    { path: "../public/fonts/satoshi/Satoshi-Bold.woff2", weight: "700" },
+    { path: "../public/fonts/satoshi/Satoshi-Black.woff2", weight: "900" },
+  ],
+  variable: "--font-satoshi",
   display: "swap",
 });
 
@@ -36,7 +42,7 @@ export default function RootLayout({
   return (
     <html lang="id" suppressHydrationWarning>
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${onest.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
