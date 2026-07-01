@@ -1,6 +1,7 @@
 ﻿"use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useId } from "react";
+import { motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 
 export type CelenganExpression =
@@ -78,12 +79,14 @@ export function MascotCelengan({
   className,
 }: MascotCelenganProps) {
   const [blink, setBlink] = useState(false);
+  const id = useId();
+  const seed = Array.from(id).reduce((acc, c) => acc + c.charCodeAt(0), 0);
 
   useEffect(() => {
     let timeoutId: ReturnType<typeof setTimeout>;
 
     const scheduleBlink = () => {
-      const delay = 3500 + Math.random() * 2500;
+      const delay = 3500 + (seed % 2500);
       timeoutId = setTimeout(() => {
         setBlink(true);
         setTimeout(() => setBlink(false), 100);
@@ -124,8 +127,16 @@ export function MascotCelengan({
         strokeLinecap="round"
       />
 
-      <path d={LEFT_ARM[expression]} fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round" />
-      <path d={RIGHT_ARM[expression]} fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round" />
+      <motion.path
+        animate={{ d: LEFT_ARM[expression] }}
+        fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round"
+        transition={{ duration: 0.2 }}
+      />
+      <motion.path
+        animate={{ d: RIGHT_ARM[expression] }}
+        fill="none" stroke="#4338ca" strokeWidth="6" strokeLinecap="round"
+        transition={{ duration: 0.2 }}
+      />
 
       <defs>
         <radialGradient id="celengan-body-gradient" cx="40%" cy="40%" r="60%">
@@ -138,8 +149,16 @@ export function MascotCelengan({
       <rect x="86" y="82" width="28" height="5" rx="2.5" fill="#fbbf24" />
       <rect x="88" y="83" width="24" height="2" rx="1" fill="#fcd34d" />
 
-      <path d={LEFT_EAR[expression]} fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round" />
-      <path d={RIGHT_EAR[expression]} fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round" />
+      <motion.path
+        animate={{ d: LEFT_EAR[expression] }}
+        fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round"
+        transition={{ duration: 0.2 }}
+      />
+      <motion.path
+        animate={{ d: RIGHT_EAR[expression] }}
+        fill="none" stroke="#4f46e5" strokeWidth="6" strokeLinecap="round"
+        transition={{ duration: 0.2 }}
+      />
 
       <ellipse cx={100} cy={158} rx={22} ry={15} fill="#6366f1" fillOpacity="0.4" />
       <circle cx="93" cy="156" r="2.5" fill="#1e1b4b" fillOpacity="0.5" />
@@ -156,7 +175,11 @@ export function MascotCelengan({
       <ellipse cx={64} cy={134} rx={8} ry={4} fill="#f472b6" fillOpacity="0.3" />
       <ellipse cx={136} cy={134} rx={8} ry={4} fill="#f472b6" fillOpacity="0.3" />
 
-      <path d={MOUTH[expression]} fill="none" stroke="#312e81" strokeWidth="2" strokeLinecap="round" />
+      <motion.path
+        animate={{ d: MOUTH[expression] }}
+        fill="none" stroke="#312e81" strokeWidth="2" strokeLinecap="round"
+        transition={{ duration: 0.2 }}
+      />
 
       {expression === "error" && (
         <path d="M 58,108 Q 54,114 58,116 Q 62,114 58,108 Z" fill="#38bdf8" />

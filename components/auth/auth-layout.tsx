@@ -34,8 +34,8 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
   return (
     <LazyMotion features={domAnimation}>
       <div className="relative min-h-screen w-full flex items-center justify-center p-4 sm:p-6 md:p-8 overflow-hidden auth-bg-gradient auth-bg-transition">
-        <div className="absolute top-[-15%] left-[-5%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-40 mix-blend-normal pointer-events-none auth-glow-transition" />
-        <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full blur-[140px] opacity-30 mix-blend-normal pointer-events-none auth-primary-glow-transition" />
+        <div className="absolute top-[-15%] left-[-5%] w-[60vw] h-[60vw] rounded-full blur-[120px] opacity-40 mix-blend-normal pointer-events-none hidden sm:block auth-glow-transition" />
+        <div className="absolute bottom-[-15%] right-[-10%] w-[50vw] h-[50vw] rounded-full blur-[140px] opacity-30 mix-blend-normal pointer-events-none hidden sm:block auth-primary-glow-transition" />
 
         {mounted && <ThemeToggle />}
 
@@ -55,7 +55,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                 backdropFilter: "blur(40px) saturate(200%)",
               }}
             >
-              <div className="flex flex-col md:flex-row min-h-[580px] lg:min-h-[660px]">
+              <div className="flex flex-col md:flex-row min-h-0 sm:min-h-[580px] lg:min-h-[660px]">
 
                 {/* ── SISI KIRI: Branding, Maskot, Feature Cards ── */}
                 <div className="relative md:w-[45%] lg:w-[42%] flex flex-col items-center justify-between p-6 sm:p-8 md:p-12 overflow-hidden">
@@ -81,11 +81,11 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                     transition={{ duration: 0.6, delay: 0.1, ease: appleEase }}
                     className="relative z-10 w-full text-center md:text-left mb-2"
                   >
-                    <p className="text-xs font-bold tracking-[0.2em] uppercase auth-text-transition" style={{ color: "var(--auth-text-muted)" }}>
+                    <p className="text-xs font-bold tracking-[0.2em] uppercase font-heading auth-text-transition" style={{ color: "var(--auth-text-muted)" }}>
                       Uangku Financial
                     </p>
                     <h2
-                      className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 leading-tight auth-text-transition"
+                      className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 leading-tight font-heading auth-text-transition"
                       style={{ color: "var(--auth-text-primary)" }}
                     >
                       Kelola Keuanganmu<br />dengan <span style={{ color: "var(--auth-primary)" }}>Cerdas</span>
@@ -123,18 +123,21 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                         transition={{ duration: 0.5, delay: 0.15 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
                       >
                         <div
-                          className="relative flex items-center justify-center w-11 h-11 rounded-[14px] transition-all duration-300 group-hover:scale-110 overflow-hidden shrink-0"
+                          className="relative flex items-center justify-center w-11 h-11 rounded-[14px] transition-all duration-300 group-hover:scale-110 shrink-0"
                           style={{
                             background: "linear-gradient(135deg, var(--auth-primary), #7c3aed)",
                           }}
                         >
-                          <div className="absolute inset-0 bg-white/20 dark:bg-white/5 blur-md" />
-                          <item.icon className="relative w-5 h-5 text-white drop-shadow-md transition-transform duration-300 group-hover:rotate-6" />
+                          <div className="absolute inset-0 rounded-[14px] overflow-hidden">
+                            <div className="absolute inset-0 bg-white/20 dark:bg-white/5 blur-md" />
+                          </div>
+                          <item.icon className="relative w-5 h-5 text-white drop-shadow-md transition-transform duration-300 group-hover:rotate-6 z-10" />
+                          <div className="feature-badge">{item.num}</div>
                         </div>
 
                         <div className="flex-1 min-w-0 flex flex-col justify-center">
                           <span
-                            className="text-[13px] font-semibold tracking-wide transition-colors duration-300"
+                            className="text-[13px] font-semibold tracking-wide font-heading transition-colors duration-300"
                             style={{ color: "var(--auth-text-primary)" }}
                           >
                             {item.text}
@@ -142,7 +145,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                           <div className="feature-card-desc-container">
                             <div className="overflow-hidden">
                               <p
-                                className="text-[11px] pt-1 leading-snug feature-card-desc"
+                                className="text-[11px] pt-1 leading-snug font-heading feature-card-desc"
                                 style={{ color: "var(--auth-text-muted)" }}
                               >
                                 {item.desc}
@@ -161,7 +164,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                 </div>
 
                 {/* ── SISI KANAN: Auth Form ── */}
-                <div className="relative md:w-[55%] lg:w-[58%] flex flex-col justify-center p-6 sm:p-10 md:p-12 md:pl-10 lg:pl-16">
+                <div className="relative md:w-[55%] lg:w-[58%] flex flex-col justify-start p-6 sm:p-10 md:p-12 md:pl-10 lg:pl-16">
                   <m.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}

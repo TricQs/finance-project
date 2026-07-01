@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useTransition, useMemo } from "react";
+import { useEffect, useState, useTransition, useMemo, memo } from "react";
 import { useRouter } from "next/navigation";
 import { User, Mail, Hexagon, ShieldCheck, Eye, EyeOff, ArrowRight } from "lucide-react";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "@/lib/auth/actions";
 import type { CelenganExpression } from "@/components/auth/mascot-celengan";
-import { motion, AnimatePresence, type Variants } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion, type Variants } from "framer-motion";
 
 // --- SCHEMA VALIDATION ---
 const loginSchema = z.object({
@@ -99,6 +99,8 @@ function AnimatedCheck() {
 export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
+  const [forgotPending, startForgotTransition] = useTransition();
+  const prefersReduced = useReducedMotion();
   const [mode, setMode] = useState<AuthMode>("login");
 
   const [fullName, setFullName] = useState("");
@@ -213,7 +215,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
     setServerError("");
     setExpression("loading");
 
-    startTransition(async () => {
+    startForgotTransition(async () => {
       const supabase = createClient();
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/callback`,
@@ -262,9 +264,9 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   }
 
   const formVariants: Variants = {
-    initial: (direction: number) => ({ x: direction > 0 ? 16 : -16, opacity: 0 }),
-    animate: { x: 0, opacity: 1, transition: { duration: 0.3, ease: [0.16, 1, 0.3, 1] } },
-    exit: (direction: number) => ({ x: direction > 0 ? -16 : 16, opacity: 0, transition: { duration: 0.2 } }),
+    initial: (direction: number) => ({ x: prefersReduced ? 0 : (direction > 0 ? 16 : -16), opacity: 0 }),
+    animate: { x: 0, opacity: 1, transition: { duration: prefersReduced ? 0 : 0.3, ease: [0.16, 1, 0.3, 1] } },
+    exit: (direction: number) => ({ x: prefersReduced ? 0 : (direction > 0 ? -16 : 16), opacity: 0, transition: { duration: prefersReduced ? 0 : 0.2 } }),
   };
 
   return (
@@ -363,33 +365,43 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     value={email}
                     onChange={setEmail}
                     error={errors.email}
-                    disabled={isPending}
+                    disabled={forgotPending}
+                    autoComplete="email"
                     onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
                   />
 
-                  {serverError && (
-                    <p
-                      className="text-xs text-center py-2 px-3 rounded-lg"
-                      style={{
-                        color: "var(--auth-error-text)",
-                        backgroundColor: "var(--auth-error-bg)",
-                        border: "1px solid var(--auth-error-border)",
-                      }}
-                    >
-                      {serverError}
-                    </p>
-                  )}
+                  <AnimatePresence>
+                    {serverError && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: [0, -8, 8, -4, 4, 0] }}
+                        exit={{ opacity: 0, x: 8 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <p
+                          className="text-xs text-center py-2 px-3 rounded-lg"
+                          style={{
+                            color: "var(--auth-error-text)",
+                            backgroundColor: "var(--auth-error-bg)",
+                            border: "1px solid var(--auth-error-border)",
+                          }}
+                        >
+                          {serverError}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <button
                     onClick={handleForgotPassword}
-                    disabled={isPending}
+                    disabled={forgotPending}
                     className="btn-hover-gradient w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 active:scale-[0.98] disabled:opacity-60 disabled:cursor-not-allowed"
                     style={{
                       backgroundColor: "var(--auth-primary)",
                       boxShadow: "0 4px 20px var(--auth-primary-glow), 0 4px 14px rgba(0,0,0,0.15)",
                     }}
                   >
-                    {isPending ? <LoadingSpinner /> : "Kirim Link Reset"}
+                    {forgotPending ? <LoadingSpinner /> : "Kirim Link Reset"}
                   </button>
 
                   <button
@@ -413,8 +425,10 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     onChange={setEmail}
                     error={errors.email}
                     disabled={isPending}
+                    autoComplete="email"
                     onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
                   />
+
                   <NeonInput
                     label="KATA SANDI"
                     icon={<Hexagon size={18} />}
@@ -424,6 +438,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     onChange={setPassword}
                     error={errors.password}
                     disabled={isPending}
+                    autoComplete="current-password"
                     rightIcon={showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     onRightIconClick={() => setShowPassword(!showPassword)}
                     onFocusChange={(f) => setExpression(f ? "password" : "idle")}
@@ -440,19 +455,27 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                       Lupa Password?
                     </button>
                   </div>
-
-                  {serverError && (
-                    <p
-                      className="text-xs text-center py-2 px-3 rounded-lg"
-                      style={{
-                        color: "var(--auth-error-text)",
-                        backgroundColor: "var(--auth-error-bg)",
-                        border: "1px solid var(--auth-error-border)",
-                      }}
-                    >
-                      {serverError}
-                    </p>
-                  )}
+                  <AnimatePresence>
+                    {serverError && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: [0, -8, 8, -4, 4, 0] }}
+                        exit={{ opacity: 0, x: 8 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <p
+                          className="text-xs text-center py-2 px-3 rounded-lg"
+                          style={{
+                            color: "var(--auth-error-text)",
+                            backgroundColor: "var(--auth-error-bg)",
+                            border: "1px solid var(--auth-error-border)",
+                          }}
+                        >
+                          {serverError}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                   <div className="pt-2">
                   <button
@@ -497,6 +520,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                   onChange={setEmail}
                   error={errors.email}
                   disabled={isPending}
+                  autoComplete="email"
                   onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
                 />
 
@@ -511,6 +535,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     onChange={setPassword}
                     error={errors.password}
                     disabled={isPending}
+                    autoComplete="new-password"
                     rightIcon={showPassword ? <Eye size={16} /> : <EyeOff size={16} />}
                     onRightIconClick={() => setShowPassword(!showPassword)}
                     onFocusChange={(f) => setExpression(f ? "password" : "idle")}
@@ -524,6 +549,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     onChange={setConfirmPassword}
                     error={errors.confirmPassword}
                     disabled={isPending}
+                    autoComplete="new-password"
                     rightIcon={showConfirm ? <Eye size={16} /> : <EyeOff size={16} />}
                     onRightIconClick={() => setShowConfirm(!showConfirm)}
                     onFocusChange={(f) => setExpression(f ? "password" : "idle")}
@@ -579,18 +605,27 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                   </p>
                 </div>
 
-                {serverError && (
-                  <p
-                    className="text-xs text-center py-2 px-3 rounded-lg"
-                    style={{
-                      color: "var(--auth-error-text)",
-                      backgroundColor: "var(--auth-error-bg)",
-                      border: "1px solid var(--auth-error-border)",
-                    }}
-                  >
-                    {serverError}
-                  </p>
-                )}
+                <AnimatePresence>
+                    {serverError && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -8 }}
+                        animate={{ opacity: 1, x: [0, -8, 8, -4, 4, 0] }}
+                        exit={{ opacity: 0, x: 8 }}
+                        transition={{ duration: 0.4 }}
+                      >
+                        <p
+                          className="text-xs text-center py-2 px-3 rounded-lg"
+                          style={{
+                            color: "var(--auth-error-text)",
+                            backgroundColor: "var(--auth-error-bg)",
+                            border: "1px solid var(--auth-error-border)",
+                          }}
+                        >
+                          {serverError}
+                        </p>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
 
                 {/* TOMBOL DAFTAR */}
                 <div>
@@ -658,7 +693,7 @@ interface NeonInputProps {
   autoComplete?: string;
 }
 
-function NeonInput({ label, icon, type, placeholder, value, onChange, error, disabled, rightIcon, onRightIconClick, onFocusChange, autoComplete }: NeonInputProps) {
+const NeonInput = memo(function NeonInput({ label, icon, type, placeholder, value, onChange, error, disabled, rightIcon, onRightIconClick, onFocusChange, autoComplete }: NeonInputProps) {
   const [focused, setFocused] = useState(false);
 
   function handleFocus() {
@@ -738,7 +773,7 @@ function NeonInput({ label, icon, type, placeholder, value, onChange, error, dis
       )}
     </div>
   );
-}
+});
 
 // --- IKON GOOGLE ---
 function GoogleIcon() {
