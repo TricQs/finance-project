@@ -5,7 +5,7 @@ import { Bell, Plus, Search, Settings } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { ThemeToggle } from "@/components/shared/theme-toggle";
+import { ThemeToggleCompact } from "@/components/layout/theme-toggle-compact";
 import { resolveNavTitle } from "@/lib/nav-config";
 
 type AppTopbarProps = {
@@ -57,8 +57,8 @@ export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
           <Settings className="size-4.5" />
         </button>
 
-        <ThemeToggle />
-
+        <ThemeToggleCompact />
+        
         <Button
           size="lg"
           onClick={onAddTransaction}
