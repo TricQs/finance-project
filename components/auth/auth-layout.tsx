@@ -14,9 +14,24 @@ import {
 const appleEase = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
 const FEATURES = [
-  { icon: Wallet, text: "Catat pemasukan & pengeluaran", desc: "Pantau setiap transaksi harian dengan mudah dan cepat", num: "01" },
-  { icon: BarChart3, text: "Analisis keuangan real-time", desc: "Visualisasi data keuangan dalam grafik interaktif", num: "02" },
-  { icon: Lock, text: "Data aman & terenkripsi", desc: "Enkripsi end-to-end melindungi semua data kamu", num: "03" },
+  {
+    icon: Wallet,
+    text: "Catat pemasukan & pengeluaran",
+    desc: "Pantau setiap transaksi harian dengan mudah dan cepat",
+    num: "01",
+  },
+  {
+    icon: BarChart3,
+    text: "Analisis keuangan real-time",
+    desc: "Visualisasi data keuangan dalam grafik interaktif",
+    num: "02",
+  },
+  {
+    icon: Lock,
+    text: "Data aman & terenkripsi",
+    desc: "Enkripsi end-to-end melindungi semua data kamu",
+    num: "03",
+  },
 ];
 
 interface AuthLayoutProps {
@@ -43,23 +58,20 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: appleEase }}
-          className="relative z-20 w-full max-w-[1060px]"
+          className="relative z-20 w-full max-w-360"
         >
           <div className="relative">
-
             <div className="absolute -inset-1.5 sm:-inset-2 rounded-[2.5rem] sm:rounded-[3rem] pointer-events-none blur-2xl opacity-50 auth-glow-transition" />
 
             <div
-              className="relative rounded-[2rem] sm:rounded-[2.5rem] overflow-hidden border shadow-2xl ring-1 ring-white/10 dark:ring-white/5 auth-card-transition"
+              className="relative rounded-4xl sm:rounded-[2.5rem] overflow-hidden border shadow-2xl ring-1 ring-white/10 dark:ring-white/5 auth-card-transition"
               style={{
                 backdropFilter: "blur(40px) saturate(200%)",
               }}
             >
-              <div className="flex flex-col md:flex-row min-h-[580px] lg:min-h-[660px]">
-
+              <div className="flex flex-col md:flex-row min-h-175 md:min-h-190 lg:min-h-210">
                 {/* ── SISI KIRI: Branding, Maskot, Feature Cards ── */}
-                <div className="relative md:w-[45%] lg:w-[42%] flex flex-col items-center justify-between p-6 sm:p-8 md:p-12 overflow-hidden">
-
+                <div className="relative md:w-1/2 flex flex-col items-center justify-between p-6 sm:p-8 md:p-12 overflow-hidden">
                   {/* Particles */}
                   <div className="auth-particles">
                     <div className="auth-particle" />
@@ -81,14 +93,22 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                     transition={{ duration: 0.6, delay: 0.1, ease: appleEase }}
                     className="relative z-10 w-full text-center md:text-left mb-2"
                   >
-                    <p className="text-xs font-bold tracking-[0.2em] uppercase auth-text-transition" style={{ color: "var(--auth-text-muted)" }}>
+                    <p
+                      className="text-xs font-bold tracking-[0.2em] uppercase auth-text-transition"
+                      style={{ color: "var(--auth-text-muted)" }}
+                    >
                       Uangku Financial
                     </p>
                     <h2
                       className="text-lg sm:text-xl lg:text-2xl font-bold mt-1 leading-tight auth-text-transition"
                       style={{ color: "var(--auth-text-primary)" }}
                     >
-                      Kelola Keuanganmu<br />dengan <span style={{ color: "var(--auth-primary)" }}>Cerdas</span>
+                      Kelola Keuanganmu
+                      <br />
+                      dengan{" "}
+                      <span style={{ color: "var(--auth-primary)" }}>
+                        Cerdas
+                      </span>
                     </h2>
                   </m.div>
 
@@ -99,8 +119,12 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                     <m.div
                       initial={{ opacity: 0, scale: 0.9 }}
                       animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.6, delay: 0.2, ease: appleEase }}
-                      className="relative w-36 h-40 sm:w-44 sm:h-48 lg:w-[200px] lg:h-[220px] select-none pointer-events-none drop-shadow-2xl"
+                      transition={{
+                        duration: 0.6,
+                        delay: 0.2,
+                        ease: appleEase,
+                      }}
+                      className="relative w-36 h-40 sm:w-44 sm:h-48 lg:w-50 lg:h-55 select-none pointer-events-none drop-shadow-2xl"
                     >
                       <MascotCelengan
                         expression={expression}
@@ -110,7 +134,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                   </div>
 
                   {/* Feature Cards with Staggered Entrance */}
-                  <div className="relative z-10 w-full space-y-2.5 max-w-[280px] sm:max-w-sm md:max-w-none mt-2">
+                  <div className="relative z-10 w-full space-y-2.5 max-w-70 sm:max-w-sm md:max-w-none mt-2">
                     {FEATURES.map((item, i) => (
                       <m.div
                         key={item.text}
@@ -120,12 +144,17 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                         }}
                         initial={{ opacity: 0, y: 16 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.5, delay: 0.15 + i * 0.15, ease: [0.16, 1, 0.3, 1] }}
+                        transition={{
+                          duration: 0.5,
+                          delay: 0.15 + i * 0.15,
+                          ease: [0.16, 1, 0.3, 1],
+                        }}
                       >
                         <div
                           className="relative flex items-center justify-center w-11 h-11 rounded-[14px] transition-all duration-300 group-hover:scale-110 overflow-hidden shrink-0"
                           style={{
-                            background: "linear-gradient(135deg, var(--auth-primary), #7c3aed)",
+                            background:
+                              "linear-gradient(135deg, var(--auth-primary), #7c3aed)",
                           }}
                         >
                           <div className="absolute inset-0 bg-white/20 dark:bg-white/5 blur-md" />
@@ -161,7 +190,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                 </div>
 
                 {/* ── SISI KANAN: Auth Form ── */}
-                <div className="relative md:w-[55%] lg:w-[58%] flex flex-col justify-center p-6 sm:p-10 md:p-12 md:pl-10 lg:pl-16">
+                <div className="relative md:w-1/2 flex flex-col justify-center p-6 sm:p-10 md:p-12 md:pl-10 lg:pl-16">
                   <m.div
                     initial={{ opacity: 0, x: 20 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -170,7 +199,7 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                       delay: 0.15,
                       ease: appleEase,
                     }}
-                    className="w-full max-w-[420px] mx-auto md:mx-0"
+                    className="w-full max-w-105 mx-auto"
                   >
                     <AuthForm
                       onExpressionChange={setExpression}
@@ -178,14 +207,15 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                     />
                   </m.div>
                 </div>
-
               </div>
             </div>
           </div>
 
-
           <div className="mt-8 flex items-center justify-center gap-2 auth-text-transition">
-            <Lock className="w-3.5 h-3.5 opacity-60 auth-text-transition" style={{ color: "var(--auth-text-muted)" }} />
+            <Lock
+              className="w-3.5 h-3.5 opacity-60 auth-text-transition"
+              style={{ color: "var(--auth-text-muted)" }}
+            />
             <p
               className="text-center text-[11px] font-semibold tracking-[0.2em] uppercase opacity-50 auth-text-transition"
               style={{ color: "var(--auth-text-muted)" }}

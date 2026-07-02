@@ -240,6 +240,92 @@
       transparent);
 }
 
+/* ============================================
+   NEUMORPHISM TOKENS
+   ============================================ */
+:root {
+  --neu-light: oklch(0.22 0.02 260 / 0.55);
+  --neu-dark: oklch(0.02 0.01 260 / 0.85);
+
+  --neu-shadow-raised: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
+  --neu-shadow-raised-sm: 3px 3px 8px var(--neu-dark), -3px -3px 8px var(--neu-light);
+  --neu-shadow-raised-lg: 10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
+  --neu-shadow-pressed: inset 4px 4px 10px var(--neu-dark), inset -4px -4px 10px var(--neu-light);
+  --neu-shadow-pressed-sm: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+}
+
+.light {
+  --neu-light: rgba(255, 255, 255, 0.95);
+  --neu-dark: oklch(0.7 0.015 80 / 0.55);
+
+  --neu-shadow-raised: 8px 8px 18px var(--neu-dark), -8px -8px 18px var(--neu-light);
+  --neu-shadow-raised-sm: 4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light);
+  --neu-shadow-raised-lg: 12px 12px 28px var(--neu-dark), -12px -12px 28px var(--neu-light);
+  --neu-shadow-pressed: inset 4px 4px 10px var(--neu-dark), inset -4px -4px 10px var(--neu-light);
+  --neu-shadow-pressed-sm: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+}
+
+@theme inline {
+  --radius-3xl: 1.5rem;
+}
+
+/* ============================================
+   NEUMORPHISM UTILITIES
+   ============================================ */
+.neu-raised {
+  background: var(--card);
+  box-shadow: var(--neu-shadow-raised);
+  border: none;
+}
+
+.neu-raised-sm {
+  background: var(--card);
+  box-shadow: var(--neu-shadow-raised-sm);
+  border: none;
+}
+
+.neu-raised-lg {
+  background: var(--card);
+  box-shadow: var(--neu-shadow-raised-lg);
+  border: none;
+}
+
+.neu-pressed {
+  background: var(--card);
+  box-shadow: var(--neu-shadow-pressed);
+  border: none;
+}
+
+.neu-pressed-sm {
+  background: var(--card);
+  box-shadow: var(--neu-shadow-pressed-sm);
+  border: none;
+}
+
+.neu-flat {
+  background: var(--sidebar);
+  box-shadow: none;
+  border: none;
+}
+
+.neu-transition {
+  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
+    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.neu-interactive {
+  cursor: pointer;
+}
+
+.neu-interactive:hover {
+  box-shadow: var(--neu-shadow-raised-lg);
+}
+
+.neu-interactive:active {
+  box-shadow: var(--neu-shadow-pressed-sm);
+  transform: scale(0.98);
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
