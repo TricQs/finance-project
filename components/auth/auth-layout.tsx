@@ -13,27 +13,6 @@ import {
 
 const appleEase = [0.16, 1, 0.3, 1] as [number, number, number, number];
 
-const FEATURES = [
-  {
-    icon: Wallet,
-    text: "Catat pemasukan & pengeluaran",
-    desc: "Pantau setiap transaksi harian dengan mudah dan cepat",
-    num: "01",
-  },
-  {
-    icon: BarChart3,
-    text: "Analisis keuangan real-time",
-    desc: "Visualisasi data keuangan dalam grafik interaktif",
-    num: "02",
-  },
-  {
-    icon: Lock,
-    text: "Data aman & terenkripsi",
-    desc: "Enkripsi end-to-end melindungi semua data kamu",
-    num: "03",
-  },
-];
-
 interface AuthLayoutProps {
   initialError?: string;
 }
@@ -131,59 +110,6 @@ export function AuthLayout({ initialError }: AuthLayoutProps) {
                         className="w-full h-full"
                       />
                     </m.div>
-                  </div>
-
-                  {/* Feature Cards with Staggered Entrance */}
-                  <div className="relative z-10 w-full space-y-2.5 max-w-70 sm:max-w-sm md:max-w-none mt-2">
-                    {FEATURES.map((item, i) => (
-                      <m.div
-                        key={item.text}
-                        className="feature-card feature-card-float group flex items-center gap-4 px-4 py-3 rounded-2xl border cursor-default select-none hover:shadow-lg transition-all duration-300"
-                        style={{
-                          animationDelay: `${0.15 + i * 0.15}s`,
-                        }}
-                        initial={{ opacity: 0, y: 16 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{
-                          duration: 0.5,
-                          delay: 0.15 + i * 0.15,
-                          ease: [0.16, 1, 0.3, 1],
-                        }}
-                      >
-                        <div
-                          className="relative flex items-center justify-center w-11 h-11 rounded-[14px] transition-all duration-300 group-hover:scale-110 shrink-0"
-                          style={{
-                            background:
-                              "linear-gradient(135deg, var(--auth-primary), #7c3aed)",
-                          }}
-                        >
-                          <div className="absolute inset-0 rounded-[14px] overflow-hidden">
-                            <div className="absolute inset-0 bg-white/20 dark:bg-white/5 blur-md" />
-                          </div>
-                          <item.icon className="relative w-5 h-5 text-white drop-shadow-md transition-transform duration-300 group-hover:rotate-6 z-10" />
-                          <div className="feature-badge">{item.num}</div>
-                        </div>
-
-                        <div className="flex-1 min-w-0 flex flex-col justify-center">
-                          <span
-                            className="text-[13px] font-semibold tracking-wide font-heading transition-colors duration-300"
-                            style={{ color: "var(--auth-text-primary)" }}
-                          >
-                            {item.text}
-                          </span>
-                          <div className="feature-card-desc-container">
-                            <div className="overflow-hidden">
-                              <p
-                                className="text-[11px] pt-1 leading-snug font-heading feature-card-desc"
-                                style={{ color: "var(--auth-text-muted)" }}
-                              >
-                                {item.desc}
-                              </p>
-                            </div>
-                          </div>
-                        </div>
-                      </m.div>
-                    ))}
                   </div>
                 </div>
 

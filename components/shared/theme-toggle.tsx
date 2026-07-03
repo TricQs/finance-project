@@ -2,7 +2,7 @@
 
 import { useTheme } from "next-themes";
 import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function ThemeToggle() {
   const { resolvedTheme, setTheme } = useTheme();
@@ -157,22 +157,41 @@ export function ThemeToggle() {
           pointerEvents: "none"
         }}
       >
-        <motion.div
-          className="dark-mode-pill"
-          initial={false}
-          animate={{ scale: isDark ? 120 : 0 }}
-          transition={{
-            duration: isDark ? 1.2 : 1.4,
-            ease: [0.65, 0, 0.35, 1]
-          }}
-          style={{
-            position: "absolute",
-            inset: 0,
-            borderRadius: "50%",
-            backgroundColor: "oklch(0.09 0.012 260)",
-            transformOrigin: "center center"
-          }}
-        />
+        <AnimatePresence>
+          {isDark ? (
+            <motion.div
+              key="dark-circle"
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 120, opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.8 } }}
+              transition={{ duration: 1.2, ease: [0.65, 0, 0.35, 1] }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                backgroundColor: "oklch(0.08 0.015 256)",
+                transformOrigin: "center center",
+                willChange: "transform, opacity"
+              }}
+            />
+          ) : (
+            <motion.div
+              key="light-circle"
+              initial={{ scale: 0, opacity: 1 }}
+              animate={{ scale: 120, opacity: 1 }}
+              exit={{ opacity: 0, transition: { duration: 0.8 } }}
+              transition={{ duration: 1.2, ease: [0.65, 0, 0.35, 1] }}
+              style={{
+                position: "absolute",
+                inset: 0,
+                borderRadius: "50%",
+                backgroundColor: "oklch(0.97 0.006 256)",
+                transformOrigin: "center center",
+                willChange: "transform, opacity"
+              }}
+            />
+          )}
+        </AnimatePresence>
       </div>
     </>
   );

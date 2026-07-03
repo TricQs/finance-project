@@ -564,17 +564,17 @@
   backdrop-filter: blur(12px) saturate(180%);
   /* Dari gelap ke terang: delay 150ms pada warna, duration 600ms */
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 600ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0s, 0s, 150ms, 150ms;
 }
 
 .dark .feature-card {
   transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
-              background-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow 0.4s cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
+    background-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0s, 0s, 450ms, 450ms;
 }
 
@@ -979,21 +979,24 @@
 /* 1. All text elements (fast color transition in both directions) */
 .auth-text-transition {
   transition: color 150ms cubic-bezier(0.16, 1, 0.3, 1),
-              fill 150ms cubic-bezier(0.16, 1, 0.3, 1),
-              stroke 150ms cubic-bezier(0.16, 1, 0.3, 1);
+    fill 150ms cubic-bezier(0.16, 1, 0.3, 1),
+    stroke 150ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0ms !important;
 }
 
 /* 2. Main background (Delayed when going to Dark mode so circle wipe is visible) */
 .auth-bg-transition {
   background-color: oklch(0.97 0.006 256);
-  transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: 0ms; /* transitions to light instantly as circle shrinks */
+  transition: background-color 10000ms cubic-bezier(0.16, 1, 0.3, 1);
+  transition-delay: 0ms;
+  /* transitions to light instantly as circle shrinks */
 }
+
 .dark .auth-bg-transition {
   background-color: oklch(0.08 0.015 256);
   transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
-  transition-delay: 550ms; /* delays dark background until circle wipe covers screen */
+  transition-delay: 550ms;
+  /* delays dark background until circle wipe covers screen */
 }
 
 /* 3. Glowing blobs/filters */
@@ -1002,6 +1005,7 @@
   transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0ms;
 }
+
 .dark .auth-glow-transition {
   background-color: oklch(0.58 0.23 268 / 0.25);
   transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -1013,6 +1017,7 @@
   transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0ms;
 }
+
 .dark .auth-primary-glow-transition {
   background-color: oklch(0.58 0.23 268 / 0.35);
   transition: background-color 800ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -1024,16 +1029,17 @@
   background-color: rgba(255, 255, 255, 0.78);
   border-color: rgba(0, 0, 0, 0.06);
   transition: background-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0ms;
 }
+
 .dark .auth-card-transition {
   background-color: rgba(15, 17, 26, 0.7);
   border-color: rgba(255, 255, 255, 0.15);
   transition: background-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
-              box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 600ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 600ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 500ms;
 }
 
@@ -1042,13 +1048,14 @@
   background-color: rgba(255, 255, 255, 0.85);
   border-color: rgba(0, 0, 0, 0.05);
   transition: background-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 0ms;
 }
+
 .dark .auth-subcard-transition {
   background-color: rgba(255, 255, 255, 0.05);
   border-color: rgba(255, 255, 255, 0.2);
   transition: background-color 500ms cubic-bezier(0.16, 1, 0.3, 1),
-              border-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
+    border-color 500ms cubic-bezier(0.16, 1, 0.3, 1);
   transition-delay: 450ms;
 }

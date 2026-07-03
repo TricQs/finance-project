@@ -24,7 +24,7 @@ import { createClient } from "@/lib/supabase/client";
 import { signIn, signUp } from "@/lib/auth/actions";
 import type { CelenganExpression } from "@/components/auth/mascot-celengan";
 import {
-  motion,
+  m,
   AnimatePresence,
   useReducedMotion,
   type Variants,
@@ -211,7 +211,7 @@ function WaitingConfirmation({
   const gmailUrl = `https://mail.google.com/mail/u/0/#search/from%3Auangku+konfirmasi`;
 
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
@@ -219,7 +219,7 @@ function WaitingConfirmation({
     >
       {/* Animated envelope icon */}
       <div className="relative mb-6">
-        <motion.div
+        <m.div
           animate={{ y: [0, -6, 0] }}
           transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
           className="w-20 h-20 rounded-2xl flex items-center justify-center"
@@ -237,9 +237,9 @@ function WaitingConfirmation({
             <rect x="2" y="4" width="20" height="16" rx="2" />
             <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
           </svg>
-        </motion.div>
+        </m.div>
         {/* Pulsing ring */}
-        <motion.div
+        <m.div
           animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0, 0.5] }}
           transition={{ duration: 2, repeat: Infinity }}
           className="absolute inset-0 rounded-2xl border-2"
@@ -272,7 +272,7 @@ function WaitingConfirmation({
         }}
       >
         <div className="flex items-center justify-center gap-2 mb-3">
-          <motion.div
+          <m.div
             animate={{ rotate: 360 }}
             transition={{ duration: 1.5, repeat: Infinity, ease: "linear" }}
             className="w-4 h-4"
@@ -286,7 +286,7 @@ function WaitingConfirmation({
             >
               <path d="M21 12a9 9 0 1 1-6.219-8.56" />
             </svg>
-          </motion.div>
+          </m.div>
           <span style={{ color: "var(--auth-text-muted)" }}>
             Menunggu konfirmasi{dots}
           </span>
@@ -337,14 +337,14 @@ function WaitingConfirmation({
       {/* Resend */}
       <div className="w-full">
         {resendSuccess && (
-          <motion.p
+          <m.p
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             className="text-xs text-center mb-2"
             style={{ color: "oklch(0.62 0.18 162)" }}
           >
             ✓ Email konfirmasi berhasil dikirim ulang
-          </motion.p>
+          </m.p>
         )}
         {resendError && (
           <p
@@ -383,7 +383,7 @@ function WaitingConfirmation({
       >
         Tidak ada email? Cek folder <strong>Spam</strong> atau klik kirim ulang.
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -565,11 +565,11 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
     <div className="flex flex-col w-full max-w-110 mx-auto relative font-sans">
       {/* TAB SWITCHER */}
       <div className="relative flex p-1 rounded-[14px] mb-8 shadow-sm auth-subcard-transition">
-        <motion.div
+        <m.div
           layout
           className="absolute top-1 bottom-1 rounded-md"
           style={{
-            width: "calc(50% - 10px)",
+            width: showForgotForm ? "calc(100% - 10px)" : "calc(50% - 10px)",
             left: mode === "login" ? "5px" : "calc(50% + 5px)",
             background: "var(--auth-primary)",
             boxShadow:
@@ -596,7 +596,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
             setErrors({});
             setServerError("");
           }}
-          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-md transition-colors duration-150 cursor-pointer ${mode === "register" ? "dark:text-black text-white" : ""}`}
+          className={`relative z-10 flex-1 py-2.5 text-sm font-bold rounded-md transition-colors duration-150 cursor-pointer ${mode === "register" ? "dark:text-black text-white" : ""} ${showForgotForm ? "hidden" : ""}`}
           style={{
             color: mode === "register" ? undefined : "var(--auth-text-muted)",
           }}
@@ -611,7 +611,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
           initial={false}
           custom={mode === "login" ? -1 : 1}
         >
-          <motion.div
+          <m.div
             key={mode}
             custom={mode === "login" ? -1 : 1}
             variants={formVariants}
@@ -651,8 +651,11 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                         setShowForgotForm(false);
                         setForgotSent(false);
                       }}
-                      className="text-sm font-semibold hover:underline cursor-pointer"
-                      style={{ color: "var(--auth-primary)" }}
+                      className="w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 hover:brightness-75 active:scale-[0.98]"
+                      style={{
+                        backgroundColor: "var(--auth-primary)",
+                        boxShadow: "0 4px 20px var(--auth-primary-glow)",
+                      }}
                     >
                       ← Kembali ke Login
                     </button>
@@ -699,8 +702,11 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                         setShowForgotForm(false);
                         setServerError("");
                       }}
-                      className="w-full text-center text-xs font-semibold hover:underline cursor-pointer"
-                      style={{ color: "var(--auth-text-muted)" }}
+                      className="w-full py-3.5 dark:text-black text-white font-bold rounded-xl flex items-center justify-center gap-2 transition-all duration-300 hover:brightness-75 active:scale-[0.98]"
+                      style={{
+                        backgroundColor: "var(--auth-primary)",
+                        boxShadow: "0 4px 20px var(--auth-primary-glow)",
+                      }}
                     >
                       ← Kembali ke Login
                     </button>
@@ -799,44 +805,42 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                   autoComplete="email"
                   onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
                 />
-                <div className="grid grid-cols-2 gap-4">
-                  <NeonInput
-                    label="KATA SANDI"
-                    icon={<Hexagon size={18} />}
-                    type={showPassword ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={password}
-                    onChange={setPassword}
-                    error={errors.password}
-                    disabled={isPending}
-                    autoComplete="new-password"
-                    rightIcon={
-                      showPassword ? <Eye size={16} /> : <EyeOff size={16} />
-                    }
-                    onRightIconClick={() => setShowPassword(!showPassword)}
-                    onFocusChange={(f) =>
-                      setExpression(f ? "password" : "idle")
-                    }
-                  />
-                  <NeonInput
-                    label="KONFIRMASI"
-                    icon={<ShieldCheck size={18} />}
-                    type={showConfirm ? "text" : "password"}
-                    placeholder="••••••••"
-                    value={confirmPassword}
-                    onChange={setConfirmPassword}
-                    error={errors.confirmPassword}
-                    disabled={isPending}
-                    autoComplete="new-password"
-                    rightIcon={
-                      showConfirm ? <Eye size={16} /> : <EyeOff size={16} />
-                    }
-                    onRightIconClick={() => setShowConfirm(!showConfirm)}
-                    onFocusChange={(f) =>
-                      setExpression(f ? "password" : "idle")
-                    }
-                  />
-                </div>
+                <NeonInput
+                  label="KATA SANDI"
+                  icon={<Hexagon size={18} />}
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={password}
+                  onChange={setPassword}
+                  error={errors.password}
+                  disabled={isPending}
+                  autoComplete="new-password"
+                  rightIcon={
+                    showPassword ? <Eye size={16} /> : <EyeOff size={16} />
+                  }
+                  onRightIconClick={() => setShowPassword(!showPassword)}
+                  onFocusChange={(f) =>
+                    setExpression(f ? "password" : "idle")
+                  }
+                />
+                <NeonInput
+                  label="KONFIRMASI"
+                  icon={<ShieldCheck size={18} />}
+                  type={showConfirm ? "text" : "password"}
+                  placeholder="••••••••"
+                  value={confirmPassword}
+                  onChange={setConfirmPassword}
+                  error={errors.confirmPassword}
+                  disabled={isPending}
+                  autoComplete="new-password"
+                  rightIcon={
+                    showConfirm ? <Eye size={16} /> : <EyeOff size={16} />
+                  }
+                  onRightIconClick={() => setShowConfirm(!showConfirm)}
+                  onFocusChange={(f) =>
+                    setExpression(f ? "password" : "idle")
+                  }
+                />
                 {password.length > 0 && (
                   <div>
                     <div className="password-strength-bar">
@@ -855,42 +859,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     )}
                   </div>
                 )}
-                <div className="flex items-start gap-3 py-1">
-                  <div className="relative flex items-center justify-center mt-0.5">
-                    <input
-                      type="checkbox"
-                      checked={agreed}
-                      onChange={(e) => setAgreed(e.target.checked)}
-                      className="w-4 h-4 appearance-none rounded border border-gray-300 dark:border-white/25 bg-gray-50 dark:bg-white/5 checked:bg-(--auth-primary) checked:border-(--auth-primary) cursor-pointer transition-all duration-200"
-                    />
-                    {agreed && (
-                      <svg
-                        className="absolute w-3 h-3 text-white pointer-events-none"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="3.5"
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                      >
-                        <polyline points="20 6 9 17 4 12" />
-                      </svg>
-                    )}
-                  </div>
-                  <p
-                    className="text-[11px] leading-relaxed font-medium"
-                    style={{ color: "var(--auth-text-muted)" }}
-                  >
-                    Saya menyetujui Syarat & Ketentuan serta{" "}
-                    <span
-                      className="cursor-pointer hover:underline"
-                      style={{ color: "var(--auth-primary)" }}
-                    >
-                      Kebijakan Privasi Uangku Financial
-                    </span>
-                    .
-                  </p>
-                </div>
+
                 <AnimatePresence>
                   {serverError && <ErrorMessage message={serverError} />}
                 </AnimatePresence>
@@ -919,19 +888,17 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
 
             {/* DIVIDER */}
             <div className="relative mt-10 mb-6">
-              <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-black/30 dark:border-white/20" />
-              </div>
-              <div className="relative flex justify-center text-[10px] uppercase tracking-widest font-bold">
+              <div className="flex items-center justify-center text-[10px] uppercase tracking-widest font-bold">
+                <div className="flex-1 border-t border-black/30 dark:border-white/20" />
                 <span
                   className="px-4"
                   style={{
                     color: "var(--auth-text-muted)",
-                    backgroundColor: "var(--auth-card-bg)",
                   }}
                 >
                   ATAU
                 </span>
+                <div className="flex-1 border-t border-black/30 dark:border-white/20" />
               </div>
             </div>
 
@@ -947,7 +914,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                 Lanjutkan dengan Google
               </button>
             </div>
-          </motion.div>
+          </m.div>
         </AnimatePresence>
       </div>
     </div>
@@ -956,7 +923,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
 
 function ErrorMessage({ message }: { message: string }) {
   return (
-    <motion.div
+    <m.div
       initial={{ opacity: 0, x: -8 }}
       animate={{ opacity: 1, x: [0, -8, 8, -4, 4, 0] }}
       exit={{ opacity: 0, x: 8 }}
@@ -972,7 +939,7 @@ function ErrorMessage({ message }: { message: string }) {
       >
         {message}
       </p>
-    </motion.div>
+    </m.div>
   );
 }
 
@@ -1017,12 +984,12 @@ const NeonInput = memo(function NeonInput({
         {label}
       </label>
       <div
-        className={`relative flex items-center rounded-xl overflow-hidden border-[1.5px] auth-subcard-transition ${
+        className={`relative flex items-center rounded-xl overflow-hidden border-[2px] auth-subcard-transition ${
           error
-            ? "border-red-500/20 dark:border-red-500/35 bg-red-500/2 dark:bg-red-500/4"
+            ? "border-red-500/40 dark:border-red-500/55 bg-red-500/2 dark:bg-red-500/4"
             : focused
               ? "border-(--auth-primary) bg-transparent"
-              : "border-black/25 dark:border-white/20 bg-black/1.5 dark:bg-white/6"
+              : "border-black dark:border-white/70 bg-black/1.5 dark:bg-white/6"
         }`}
         style={{
           boxShadow: focused ? "0 0 0 3px var(--auth-primary-glow)" : "none",
