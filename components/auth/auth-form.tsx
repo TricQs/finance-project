@@ -672,7 +672,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                       label="EMAIL AKTIF"
                       icon={<Mail size={18} />}
                       type="email"
-                      placeholder="nama@perusahaan.id"
+                      placeholder="nama@gmail.com"
                       value={email}
                       onChange={setEmail}
                       error={errors.email}
@@ -718,7 +718,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
                     label="EMAIL AKTIF"
                     icon={<Mail size={18} />}
                     type="email"
-                    placeholder="nama@perusahaan.id"
+                    placeholder="nama@gmail.com"
                     value={email}
                     onChange={setEmail}
                     error={errors.email}
@@ -782,22 +782,10 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
             ) : (
               <div className="space-y-5">
                 <NeonInput
-                  label="NAMA LENGKAP"
-                  icon={<User size={18} />}
-                  type="text"
-                  placeholder="Budi Santoso"
-                  value={fullName}
-                  onChange={setFullName}
-                  error={errors.fullName}
-                  disabled={isPending}
-                  autoComplete="name"
-                  onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
-                />
-                <NeonInput
                   label="EMAIL AKTIF"
                   icon={<Mail size={18} />}
                   type="email"
-                  placeholder="nama@perusahaan.id"
+                  placeholder="nama@gmail.com"
                   value={email}
                   onChange={setEmail}
                   error={errors.email}
