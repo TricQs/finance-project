@@ -398,7 +398,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [agreed, setAgreed] = useState(false);
+
 
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
@@ -454,11 +454,7 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
   function handleRegister() {
     setErrors({});
     setServerError("");
-    if (!agreed) {
-      setServerError("Kamu harus menyetujui Syarat & Ketentuan.");
-      setExpression("error");
-      return;
-    }
+
     const result = registerSchema.safeParse({
       fullName,
       email,
@@ -781,6 +777,18 @@ export function AuthForm({ onExpressionChange, initialError }: AuthFormProps) {
               )
             ) : (
               <div className="space-y-5">
+                <NeonInput
+                  label="NAMA LENGKAP"
+                  icon={<User size={18} />}
+                  type="text"
+                  placeholder="John Doe"
+                  value={fullName}
+                  onChange={setFullName}
+                  error={errors.fullName}
+                  disabled={isPending}
+                  autoComplete="name"
+                  onFocusChange={(f) => setExpression(f ? "typing" : "idle")}
+                />
                 <NeonInput
                   label="EMAIL AKTIF"
                   icon={<Mail size={18} />}

@@ -20,53 +20,48 @@ export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
   return (
     <header
       className={cn(
-        "flex flex-wrap items-center justify-between gap-4 px-6 py-5",
+        "flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-border/20 bg-background/50 backdrop-blur-md sticky top-0 z-30",
         className,
       )}
     >
-      <div className="flex flex-col">
-        <h1 className="font-heading text-xl font-semibold text-foreground">
+      <div className="flex flex-col text-left">
+        <h1 className="font-heading text-lg sm:text-xl font-bold text-foreground tracking-tight">
           {label}
         </h1>
         {subtitle && (
-          <span className="text-sm text-muted-foreground">{subtitle}</span>
+          <span className="text-xs sm:text-sm text-muted-foreground">{subtitle}</span>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="neu-pressed-sm hidden items-center gap-2 rounded-2xl px-4 py-2.5 sm:flex">
+      <div className="flex items-center gap-2.5">
+        <div className="hidden items-center gap-2 rounded-2xl border border-border bg-muted/30 px-3.5 py-2 sm:flex">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
             type="text"
-            placeholder="Cari transaksi, akun..."
-            className="w-48 bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-64"
+            placeholder="Cari transaksi..."
+            className="w-36 bg-transparent text-xs sm:text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-56"
           />
         </div>
 
         <button
           type="button"
-          className="neu-raised-sm neu-interactive neu-transition flex size-10 shrink-0 items-center justify-center rounded-2xl text-muted-foreground hover:text-foreground"
+          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer"
         >
-          <Bell className="size-4.5" />
-        </button>
-
-        <button
-          type="button"
-          className="neu-raised-sm neu-interactive neu-transition hidden size-10 shrink-0 items-center justify-center rounded-2xl text-muted-foreground hover:text-foreground sm:flex"
-        >
-          <Settings className="size-4.5" />
+          <Bell className="size-4 sm:size-4.5" />
         </button>
 
         <ThemeToggleCompact />
-        
-        <Button
-          size="lg"
-          onClick={onAddTransaction}
-          className="neu-raised-sm neu-transition rounded-2xl shadow-none hover:neu-raised-lg"
-        >
-          <Plus className="size-4" />
-          <span className="hidden sm:inline">Tambah Transaksi</span>
-        </Button>
+
+        {onAddTransaction && (
+          <Button
+            size="sm"
+            onClick={onAddTransaction}
+            className="rounded-2xl gap-1.5 cursor-pointer font-semibold shadow-sm"
+          >
+            <Plus className="size-4" />
+            <span className="hidden sm:inline">Tambah Transaksi</span>
+          </Button>
+        )}
       </div>
     </header>
   );

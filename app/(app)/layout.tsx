@@ -34,7 +34,7 @@ export default async function AppLayout({
       />
       <div className="flex flex-1 flex-col overflow-x-hidden">
         <AppTopbar />
-        <main className="flex-1 px-6 pb-8">{children}</main>
+        <main className="flex-1 px-4 sm:px-6 pb-24 md:pb-8 max-w-7xl w-full mx-auto">{children}</main>
       </div>
     </div>
   )

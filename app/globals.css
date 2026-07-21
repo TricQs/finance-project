@@ -240,28 +240,22 @@
 }
 
 /* ============================================
-   NEUMORPHISM TOKENS
+   MODERN SAAS DESIGN TOKENS
    ============================================ */
 :root {
-  --neu-light: oklch(0.22 0.02 260 / 0.55);
-  --neu-dark: oklch(0.02 0.01 260 / 0.85);
-
-  --neu-shadow-raised: 6px 6px 14px var(--neu-dark), -6px -6px 14px var(--neu-light);
-  --neu-shadow-raised-sm: 3px 3px 8px var(--neu-dark), -3px -3px 8px var(--neu-light);
-  --neu-shadow-raised-lg: 10px 10px 24px var(--neu-dark), -10px -10px 24px var(--neu-light);
-  --neu-shadow-pressed: inset 4px 4px 10px var(--neu-dark), inset -4px -4px 10px var(--neu-light);
-  --neu-shadow-pressed-sm: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+  --neu-shadow-raised: 0 4px 6px -1px rgba(0, 0, 0, 0.15), 0 2px 4px -2px rgba(0, 0, 0, 0.15);
+  --neu-shadow-raised-sm: 0 1px 3px rgba(0, 0, 0, 0.1), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --neu-shadow-raised-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.2), 0 4px 6px -4px rgba(0, 0, 0, 0.2);
+  --neu-shadow-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.15);
+  --neu-shadow-pressed-sm: inset 0 1px 2px rgba(0, 0, 0, 0.1);
 }
 
 .light {
-  --neu-light: rgba(255, 255, 255, 0.95);
-  --neu-dark: oklch(0.7 0.015 80 / 0.55);
-
-  --neu-shadow-raised: 8px 8px 18px var(--neu-dark), -8px -8px 18px var(--neu-light);
-  --neu-shadow-raised-sm: 4px 4px 10px var(--neu-dark), -4px -4px 10px var(--neu-light);
-  --neu-shadow-raised-lg: 12px 12px 28px var(--neu-dark), -12px -12px 28px var(--neu-light);
-  --neu-shadow-pressed: inset 4px 4px 10px var(--neu-dark), inset -4px -4px 10px var(--neu-light);
-  --neu-shadow-pressed-sm: inset 2px 2px 6px var(--neu-dark), inset -2px -2px 6px var(--neu-light);
+  --neu-shadow-raised: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+  --neu-shadow-raised-sm: 0 1px 2px rgba(0, 0, 0, 0.03);
+  --neu-shadow-raised-lg: 0 10px 20px -3px rgba(0, 0, 0, 0.04), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+  --neu-shadow-pressed: inset 0 2px 4px rgba(0, 0, 0, 0.03);
+  --neu-shadow-pressed-sm: inset 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
 @theme inline {
@@ -269,47 +263,46 @@
 }
 
 /* ============================================
-   NEUMORPHISM UTILITIES
+   MODERN SAAS UTILITIES (ELEMET ELEVATION)
    ============================================ */
 .neu-raised {
   background: var(--card);
   box-shadow: var(--neu-shadow-raised);
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-raised-sm {
   background: var(--card);
   box-shadow: var(--neu-shadow-raised-sm);
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-raised-lg {
   background: var(--card);
   box-shadow: var(--neu-shadow-raised-lg);
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-pressed {
   background: var(--card);
   box-shadow: var(--neu-shadow-pressed);
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-pressed-sm {
   background: var(--card);
   box-shadow: var(--neu-shadow-pressed-sm);
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-flat {
   background: var(--sidebar);
   box-shadow: none;
-  border: none;
+  border: 1px solid var(--border);
 }
 
 .neu-transition {
-  transition: box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1),
-    transform 0.15s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .neu-interactive {
@@ -317,12 +310,14 @@
 }
 
 .neu-interactive:hover {
+  transform: translateY(-1.5px);
   box-shadow: var(--neu-shadow-raised-lg);
+  border-color: var(--primary);
 }
 
 .neu-interactive:active {
+  transform: translateY(0px);
   box-shadow: var(--neu-shadow-pressed-sm);
-  transform: scale(0.98);
 }
 
 @layer base {
