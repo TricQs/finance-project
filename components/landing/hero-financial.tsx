@@ -9,7 +9,7 @@ export function HeroFinancial() {
   return (
     <section className="min-h-screen bg-[#f7f9fc] dark:bg-zinc-950 text-[#1e293b] dark:text-zinc-100 relative overflow-hidden flex flex-col items-center font-sans transition-colors duration-300">
       {/* Background Hero Photo (Original Unsplash Image Background) */}
-      <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center opacity-30 pointer-events-none" />
+      <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center opacity-40 dark:opacity-40 pointer-events-none" />
 
       {/* Top Header Navbar - Responsive for Mobile, Tablet & Desktop */}
       <header
