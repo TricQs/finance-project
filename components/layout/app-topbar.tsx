@@ -1,7 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Plus, Search, Settings } from "lucide-react";
+import { Bell, Plus, Search } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -13,14 +13,17 @@ type AppTopbarProps = {
   className?: string;
 };
 
-export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
+export function AppTopbar({
+  onAddTransaction,
+  className,
+}: AppTopbarProps) {
   const pathname = usePathname();
   const { label, subtitle } = resolveNavTitle(pathname ?? "");
 
   return (
     <header
       className={cn(
-        "flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-4 sm:py-5 border-b border-border/20 bg-background/50 backdrop-blur-md sticky top-0 z-30",
+        "flex flex-wrap items-center justify-between gap-3 px-4 sm:px-6 py-3.5 border-b border-border/40 bg-background/95 backdrop-blur-md transform-gpu sticky top-0 z-30 font-sans shrink-0",
         className,
       )}
     >
@@ -29,12 +32,12 @@ export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
           {label}
         </h1>
         {subtitle && (
-          <span className="text-xs sm:text-sm text-muted-foreground">{subtitle}</span>
+          <span className="text-xs text-muted-foreground">{subtitle}</span>
         )}
       </div>
 
       <div className="flex items-center gap-2.5">
-        <div className="hidden items-center gap-2 rounded-2xl border border-border bg-muted/30 px-3.5 py-2 sm:flex">
+        <div className="hidden items-center gap-2 rounded-2xl border border-border/60 bg-muted/30 px-3.5 py-2 sm:flex">
           <Search className="size-4 shrink-0 text-muted-foreground" />
           <input
             type="text"
@@ -45,7 +48,7 @@ export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
 
         <button
           type="button"
-          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer"
+          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer shadow-xs"
         >
           <Bell className="size-4 sm:size-4.5" />
         </button>
@@ -56,7 +59,7 @@ export function AppTopbar({ onAddTransaction, className }: AppTopbarProps) {
           <Button
             size="sm"
             onClick={onAddTransaction}
-            className="rounded-2xl gap-1.5 cursor-pointer font-semibold shadow-sm"
+            className="rounded-2xl gap-1.5 cursor-pointer font-semibold shadow-sm text-xs sm:text-sm px-3.5 py-2"
           >
             <Plus className="size-4" />
             <span className="hidden sm:inline">Tambah Transaksi</span>

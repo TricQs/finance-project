@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
-import { AuthLayout } from "@/components/auth/auth-layout";
+import { SignInPage } from "@/components/auth/sign-in-page";
 
 export const metadata: Metadata = {
-  title: "Masuk atau Daftar — Uangku",
+  title: "Welcome — Sign In / Create Account | Uangku",
   description:
-    "Masuk atau buat akun baru untuk mulai mengelola keuanganmu di Uangku.",
+    "Access your account and continue your journey with us on Uangku.",
 };
 
 interface AuthPageProps {
@@ -13,5 +13,5 @@ interface AuthPageProps {
 
 export default async function AuthPage({ searchParams }: AuthPageProps) {
   const { error } = await searchParams;
-  return <AuthLayout initialError={error} />;
+  return <SignInPage initialError={error} />;
 }

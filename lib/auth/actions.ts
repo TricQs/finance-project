@@ -109,7 +109,7 @@ export async function signUp(
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut({ scope: "local" });
-  redirect("/auth");
+  redirect("/");
 }
 
 export async function getUser() {

@@ -59,6 +59,101 @@
   }
 }
 
+/* Enforce modern clean sans-serif typography across all elements */
+body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span {
+  font-family: var(--font-geist-sans), var(--font-satoshi), system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* Entrance blur animations */
+@keyframes blurFadeUp {
+  0% {
+    opacity: 0;
+    transform: translateY(24px);
+    filter: blur(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes blurSlideRight {
+  0% {
+    opacity: 0;
+    transform: translateX(-40px);
+    filter: blur(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+    filter: blur(0px);
+  }
+}
+
+@keyframes pureFadeIn {
+  0% {
+    opacity: 0;
+    filter: blur(28px);
+  }
+  100% {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+.animate-fade-only {
+  opacity: 0;
+  filter: blur(24px);
+  will-change: opacity, filter;
+  animation: pureFadeIn 1.1s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-page-entrance {
+  opacity: 0;
+  filter: blur(14px);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity, transform, filter;
+  animation: blurFadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-element {
+  opacity: 0;
+  filter: blur(12px);
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  will-change: opacity, transform, filter;
+  animation: blurFadeUp 0.60s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+.animate-slide-right {
+  opacity: 0;
+  filter: blur(16px);
+  will-change: opacity, transform, filter;
+  animation: blurSlideRight 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-testimonial {
+  opacity: 0;
+  filter: blur(12px);
+  will-change: opacity, transform, filter;
+  animation: blurFadeUp 0.95s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-delay-100 { animation-delay: 80ms; }
+.animate-delay-200 { animation-delay: 160ms; }
+.animate-delay-300 { animation-delay: 240ms; }
+.animate-delay-400 { animation-delay: 320ms; }
+.animate-delay-500 { animation-delay: 400ms; }
+.animate-delay-600 { animation-delay: 480ms; }
+.animate-delay-700 { animation-delay: 560ms; }
+.animate-delay-800 { animation-delay: 640ms; }
+.animate-delay-900 { animation-delay: 720ms; }
+.animate-delay-1000 { animation-delay: 850ms; }
+.animate-delay-1200 { animation-delay: 1000ms; }
+
+
 /* ============================================
    UANGKU DARK THEME (default)
    ============================================ */
