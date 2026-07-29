@@ -11,62 +11,6 @@ export function HeroFinancial() {
       {/* Background Hero Photo (Original Unsplash Image Background) */}
       <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center opacity-30 pointer-events-none" />
 
-      {/* Decorative Light SVG Vector Mesh (Hidden in Dark Mode to remove white beam stripe) */}
-      <svg
-        width="358"
-        height="483"
-        viewBox="0 0 358 483"
-        className="absolute top-0 z-1 left-0 pointer-events-none opacity-60 dark:hidden"
-        fill="none"
-        xmlns="http://www.w3.org/2000/svg"
-      >
-        <g filter="url(#filter0_f_0_1)">
-          <rect
-            x="-86.9961"
-            y="-33.114"
-            width="72"
-            height="541"
-            rx="36"
-            transform="rotate(-30.8182 -86.9961 -33.114)"
-            fill="url(#paint0_linear_0_1)"
-          />
-        </g>
-        <defs>
-          <filter
-            id="filter0_f_0_1"
-            x="-137.641"
-            y="-120.646"
-            width="440.285"
-            height="602.787"
-            filterUnits="userSpaceOnUse"
-            colorInterpolationFilters="sRGB"
-          >
-            <feFlood floodOpacity="0" result="BackgroundImageFix" />
-            <feBlend
-              mode="normal"
-              in="SourceGraphic"
-              in2="BackgroundImageFix"
-              result="shape"
-            />
-            <feGaussianBlur
-              stdDeviation="32"
-              result="effect1_foregroundBlur_0_1"
-            />
-          </filter>
-          <linearGradient
-            id="paint0_linear_0_1"
-            x1="-50.9961"
-            y1="-33.114"
-            x2="-50.9961"
-            y2="507.886"
-            gradientUnits="userSpaceOnUse"
-          >
-            <stop stopColor="#91bbfb" />
-            <stop offset="1" stopColor="#E6F1FF" />
-          </linearGradient>
-        </defs>
-      </svg>
-
       {/* Top Header Navbar - Responsive for Mobile, Tablet & Desktop */}
       <header
         className="animate-fade-only relative z-10 w-full max-w-7xl mx-auto p-4 sm:p-6 font-sans"
