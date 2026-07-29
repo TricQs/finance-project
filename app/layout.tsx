@@ -40,13 +40,14 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" suppressHydrationWarning>
+    <html lang="id" className="light" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} ${satoshi.variable} antialiased`}
       >
         <ThemeProvider
           attribute="class"
-          defaultTheme="dark"
+          defaultTheme="light"
+          storageKey="uangku_theme_preference"
           enableSystem={false}
         >
           {children}

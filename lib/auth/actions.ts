@@ -49,7 +49,18 @@ export async function signUp(
     return { error: parsed.error.issues[0]?.message ?? "Input tidak valid" };
   }
 
+function getAppUrl() {
+  if (process.env.NEXT_PUBLIC_APP_URL) {
+    return process.env.NEXT_PUBLIC_APP_URL;
+  }
+  if (process.env.VERCEL_URL) {
+    return `https://${process.env.VERCEL_URL}`;
+  }
+  return "http://localhost:3000";
+}
+
   const adminClient = createAdminClient();
+  const baseUrl = getAppUrl();
   const { data: linkData, error: linkError } =
     await adminClient.auth.admin.generateLink({
       type: "signup",
@@ -57,7 +68,7 @@ export async function signUp(
       password: parsed.data.password,
       options: {
         data: { full_name: parsed.data.fullName },
-        redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback`,
+        redirectTo: `${baseUrl}/auth/callback`,
       },
     });
 
@@ -82,7 +93,7 @@ export async function signUp(
   const tokenHash = supabaseUrl.searchParams.get("token");
   const type = supabaseUrl.searchParams.get("type");
 
-  const confirmUrl = `${process.env.NEXT_PUBLIC_APP_URL}/auth/callback?token_hash=${tokenHash}&type=${type}`;
+  const confirmUrl = `${baseUrl}/auth/callback?token_hash=${tokenHash}&type=${type}`;
 
   // Kirim email via Nodemailer (fire-and-forget agar tidak block response)
   try {
