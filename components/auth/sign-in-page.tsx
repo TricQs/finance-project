@@ -120,7 +120,11 @@ export function SignInPage({ initialError }: { initialError?: string }) {
         }
       }
     } catch (err: any) {
-      setErrorMsg(err.message || "Terjadi kesalahan. Silakan coba lagi.");
+      if (err.message && err.message.includes("NEXT_REDIRECT")) {
+        setSuccessMsg("Login successful! Redirecting...");
+      } else {
+        setErrorMsg(err.message || "Terjadi kesalahan. Silakan coba lagi.");
+      }
     } finally {
       setLoading(false);
     }
@@ -178,7 +182,7 @@ export function SignInPage({ initialError }: { initialError?: string }) {
               )}
 
               {successMsg && (
-                <div className="animate-element animate-delay-250 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-xs font-medium">
+                <div className="animate-element animate-delay-250 p-3.5 rounded-2xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-semibold text-center shadow-sm">
                   {successMsg}
                 </div>
               )}
