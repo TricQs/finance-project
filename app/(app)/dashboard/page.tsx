@@ -14,7 +14,6 @@ import {
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/format-currency";
-import { Button } from "@/components/ui/button";
 
 export const revalidate = 0;
 
@@ -36,7 +35,7 @@ export default async function DashboardPage() {
     .eq("id", user.id)
     .single();
 
-  const userName = profile?.full_name || user.email?.split("@")[0] || "Al Razi";
+  const userName = profile?.full_name || user.email?.split("@")[0] || "Pengguna";
 
   // 2. Query Balances
   const { data: accounts } = await supabase
@@ -47,34 +46,102 @@ export default async function DashboardPage() {
     .is("deleted_at", null);
 
   const totalBalance =
-    accounts?.reduce((sum, acc) => sum + Number(acc.balance), 0) || 10340;
+    accounts?.reduce((sum, acc) => sum + Number(acc.balance), 0) || 12450000;
 
-  // 3. Query Transactions This Month
+  // 3. Query All Transactions This Year for Charts
   const now = new Date();
-  const startOfThisMonth = new Date(now.getFullYear(), now.getMonth(), 1)
-    .toISOString()
-    .split("T")[0];
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth(); // 0-11
+  
+  const startOfThisYear = new Date(currentYear, 0, 1).toISOString().split("T")[0];
+  const startOfThisMonth = new Date(currentYear, currentMonth, 1).toISOString().split("T")[0];
 
-  const { data: thisMonthTx } = await supabase
+  const { data: allYearTx } = await supabase
     .from("transactions")
     .select("id, amount, type, category, date, description")
     .eq("user_id", user.id)
-    .gte("date", startOfThisMonth)
+    .gte("date", startOfThisYear)
     .is("deleted_at", null)
     .order("date", { ascending: false });
 
+  // Separate transactions into this month vs whole year
+  const thisMonthTx = allYearTx?.filter(tx => tx.date >= startOfThisMonth) || [];
+
+  // Monthly stats
   let totalIncomeThisMonth = 0;
   let totalExpenseThisMonth = 0;
 
-  thisMonthTx?.forEach((tx) => {
+  thisMonthTx.forEach((tx) => {
     if (tx.type === "income") totalIncomeThisMonth += Number(tx.amount);
     else if (tx.type === "expense") totalExpenseThisMonth += Number(tx.amount);
   });
 
-  // Fallbacks if user is new
-  const incomeDisplay = totalIncomeThisMonth || 5200;
-  const expenseDisplay = totalExpenseThisMonth || 1475;
-  const savingsDisplay = incomeDisplay - expenseDisplay || 620;
+  const incomeDisplay = totalIncomeThisMonth || 6800000;
+  const expenseDisplay = totalExpenseThisMonth || 4230000;
+  const savingsDisplay = incomeDisplay - expenseDisplay;
+
+  // -- CALCULATE BAR CHART (Total Expense per month for this year) --
+  const monthlyExpenses = new Array(12).fill(0);
+  allYearTx?.forEach(tx => {
+    if (tx.type === 'expense') {
+      const txMonth = new Date(tx.date).getMonth();
+      monthlyExpenses[txMonth] += Number(tx.amount);
+    }
+  });
+  
+  const maxExpense = Math.max(...monthlyExpenses, 1); // Avoid div by 0
+  
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const barChartData = monthNames.map((month, index) => {
+    const amount = monthlyExpenses[index];
+    let heightPct = (amount / maxExpense) * 100;
+    
+    // If no real data, use mock visual height just so it's not totally flat if they just started
+    if (maxExpense === 1) {
+       const dummyHeights = [40, 55, 35, 70, 60, 85, 100, 50, 65, 75, 45, 60];
+       heightPct = dummyHeights[index];
+    } else {
+       heightPct = Math.max(heightPct, 5); // min 5% height so bar is visible
+    }
+
+    return {
+      month,
+      height: `${heightPct}%`,
+      highlight: index === currentMonth,
+      amount: formatCurrency(amount)
+    };
+  });
+
+  const totalExpenseThisYear = monthlyExpenses.reduce((a, b) => a + b, 0);
+  const overviewTotalDisplay = maxExpense === 1 ? 8435000 : totalExpenseThisYear;
+
+  // -- CALCULATE CATEGORY PROGRESS BARS (This Month) --
+  const categoryTotals: Record<string, number> = {};
+  thisMonthTx.forEach(tx => {
+    if (tx.type === 'expense') {
+      categoryTotals[tx.category] = (categoryTotals[tx.category] || 0) + Number(tx.amount);
+    }
+  });
+
+  // Sort categories by highest expense
+  let sortedCategories = Object.entries(categoryTotals)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 5)
+    .map(([name, amount]) => ({
+      name,
+      pct: Math.round((amount / expenseDisplay) * 100)
+    }));
+
+  // Fallback category data if no real expenses this month
+  if (sortedCategories.length === 0) {
+    sortedCategories = [
+      { name: "Makanan & Minuman", pct: 45 },
+      { name: "Belanja Harian", pct: 25 },
+      { name: "Transportasi", pct: 15 },
+      { name: "Tagihan & Utilitas", pct: 10 },
+      { name: "Lainnya", pct: 5 },
+    ];
+  }
 
   return (
     <div className="flex flex-col gap-6 pt-2 pb-10 font-sans text-zinc-900 dark:text-zinc-100">
@@ -186,19 +253,19 @@ export default async function DashboardPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-                Transactions Overview
+                Expenses Overview
               </h2>
               <p className="text-3xl font-extrabold text-zinc-900 dark:text-white font-heading mt-1">
-                Rp 8.435.000<span className="text-xl text-zinc-400 font-normal">.00</span>
+                {formatCurrency(overviewTotalDisplay)}
               </p>
             </div>
             <div className="flex items-center gap-3">
               <div className="flex items-center gap-3 text-xs font-semibold text-zinc-500">
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block" /> Total Sales
+                  <span className="w-2.5 h-2.5 rounded-full bg-indigo-600 inline-block" /> Expenses
                 </span>
                 <span className="flex items-center gap-1">
-                  <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700 inline-block" /> Earning
+                  <span className="w-2.5 h-2.5 rounded-full bg-zinc-300 dark:bg-zinc-700 inline-block" /> Inactive
                 </span>
               </div>
               <button className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
@@ -207,25 +274,12 @@ export default async function DashboardPage() {
             </div>
           </div>
 
-          {/* Bar Chart Visual Mock */}
+          {/* Bar Chart Dynamic */}
           <div className="h-48 flex items-end justify-between gap-2 pt-6 px-2">
-            {[
-              { month: "Jan", height: "40%", highlight: false },
-              { month: "Feb", height: "55%", highlight: false },
-              { month: "Mar", height: "35%", highlight: false },
-              { month: "Apr", height: "70%", highlight: false },
-              { month: "May", height: "60%", highlight: false },
-              { month: "Jun", height: "85%", highlight: false },
-              { month: "Jul", height: "100%", highlight: true, amount: "Rp 22,430k" },
-              { month: "Aug", height: "50%", highlight: false },
-              { month: "Sep", height: "65%", highlight: false },
-              { month: "Oct", height: "75%", highlight: false },
-              { month: "Nov", height: "45%", highlight: false },
-              { month: "Dec", height: "60%", highlight: false },
-            ].map((bar) => (
+            {barChartData.map((bar) => (
               <div key={bar.month} className="flex-1 flex flex-col items-center gap-2 group relative">
-                {bar.highlight && (
-                  <span className="absolute -top-7 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-md">
+                {bar.highlight && maxExpense > 1 && (
+                  <span className="absolute -top-8 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-md z-10 whitespace-nowrap">
                     {bar.amount}
                   </span>
                 )}
@@ -248,28 +302,22 @@ export default async function DashboardPage() {
           <div>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                <ShoppingBag size={18} className="text-indigo-600" /> Sales Overview
+                <ShoppingBag size={18} className="text-indigo-600" /> Category Breakdown
               </h2>
             </div>
             <div className="flex items-baseline gap-2 mb-6">
               <span className="text-3xl font-extrabold text-zinc-900 dark:text-white font-heading">
-                8379
+                {formatCurrency(expenseDisplay)}
               </span>
-              <span className="text-xs font-bold text-emerald-500 flex items-center gap-0.5">
-                ↑ 4.9%
+              <span className="text-xs font-medium text-zinc-500">
+                this month
               </span>
             </div>
 
             {/* Category Progress Bars */}
-            <div className="space-y-3.5">
-              {[
-                { name: "Makanan & Minuman", pct: 81 },
-                { name: "Belanja Harian", pct: 73 },
-                { name: "Transportasi", pct: 54 },
-                { name: "Tagihan & Utilitas", pct: 32 },
-                { name: "Hiburan & Gaya Hidup", pct: 20 },
-              ].map((item) => (
-                <div key={item.name} className="space-y-1">
+            <div className="space-y-4">
+              {sortedCategories.map((item) => (
+                <div key={item.name} className="space-y-1.5">
                   <div className="flex justify-between text-xs font-medium">
                     <span className="text-zinc-600 dark:text-zinc-300">{item.name}</span>
                     <span className="text-zinc-400 font-mono">{item.pct}%</span>
@@ -291,7 +339,7 @@ export default async function DashboardPage() {
       <div className="p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
           <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-            Recent Orders &amp; Transactions
+            Recent Transactions
           </h2>
 
           <div className="flex items-center gap-3">
@@ -299,8 +347,8 @@ export default async function DashboardPage() {
               <Search className="size-4 absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400" />
               <input
                 type="text"
-                placeholder="Search products..."
-                className="pl-9 pr-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-xs text-zinc-900 dark:text-white outline-none focus:border-indigo-500"
+                placeholder="Search transactions..."
+                className="pl-9 pr-4 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-950 text-xs text-zinc-900 dark:text-white outline-none focus:border-indigo-500 w-full sm:w-64"
               />
             </div>
             <button className="px-3.5 py-2 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-semibold flex items-center gap-1.5 cursor-pointer">
@@ -311,79 +359,78 @@ export default async function DashboardPage() {
 
         {/* Table */}
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
+          <table className="w-full text-left text-xs whitespace-nowrap">
             <thead>
               <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider">
-                <th className="py-3 px-4">Product Info</th>
-                <th className="py-3 px-4">Order ID</th>
+                <th className="py-3 px-4">Description</th>
+                <th className="py-3 px-4">Transaction ID</th>
                 <th className="py-3 px-4">Date</th>
-                <th className="py-3 px-4">Customer / Category</th>
-                <th className="py-3 px-4">Status</th>
-                <th className="py-3 px-4 text-right">Total</th>
+                <th className="py-3 px-4">Category</th>
+                <th className="py-3 px-4">Type</th>
+                <th className="py-3 px-4 text-right">Amount</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
-              {(thisMonthTx && thisMonthTx.length > 0
-                ? thisMonthTx.slice(0, 5)
+              {(allYearTx && allYearTx.length > 0
+                ? allYearTx.slice(0, 10)
                 : [
                     {
                       id: "1",
-                      description: "Men's Genuine Leather Shoes",
-                      orderId: "#878910",
-                      date: "2 Dec 2026",
-                      customer: "Oliver John Brown",
-                      category: "Shoes, Sneakers",
-                      status: "Pending",
-                      amount: 789000,
-                    },
-                    {
-                      id: "2",
                       description: "Gaji Bulanan / Income",
                       orderId: "#878911",
-                      date: "1 Dec 2026",
-                      customer: "Perusahaan Utama",
+                      date: "2026-07-01",
                       category: "Gaji & Bonus",
-                      status: "Completed",
+                      type: "income",
                       amount: 8500000,
                     },
                     {
-                      id: "3",
+                      id: "2",
                       description: "Belanja Supermarket",
                       orderId: "#878912",
-                      date: "28 Nov 2026",
-                      customer: "Indomaret / Alfamart",
+                      date: "2026-07-05",
                       category: "Kebutuhan Rumah",
-                      status: "Completed",
+                      type: "expense",
                       amount: 450000,
+                    },
+                    {
+                      id: "3",
+                      description: "Makan Siang",
+                      orderId: "#878913",
+                      date: "2026-07-06",
+                      category: "Makanan & Minuman",
+                      type: "expense",
+                      amount: 75000,
                     },
                   ]
               ).map((row: any) => (
                 <tr key={row.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
-                  <td className="py-3.5 px-4 font-semibold text-zinc-900 dark:text-white">
+                  <td className="py-3.5 px-4 font-semibold text-zinc-900 dark:text-white max-w-[200px] truncate">
                     {row.description || "Transaksi Baru"}
                   </td>
                   <td className="py-3.5 px-4 font-mono text-zinc-400">
-                    {row.orderId || `#${row.id.slice(0, 6)}`}
+                    {row.orderId || `#${row.id.slice(0, 8)}`}
                   </td>
                   <td className="py-3.5 px-4 text-zinc-500">
-                    {row.date}
+                    {new Date(row.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
                   </td>
                   <td className="py-3.5 px-4 text-zinc-500">
-                    {row.customer || row.category}
+                    {row.category}
                   </td>
                   <td className="py-3.5 px-4">
                     <span
                       className={`px-2.5 py-1 rounded-full text-[11px] font-semibold ${
-                        row.status === "Pending"
-                          ? "bg-amber-500/10 text-amber-600 border border-amber-500/20"
+                        row.type === "expense"
+                          ? "bg-rose-500/10 text-rose-600 border border-rose-500/20"
                           : "bg-emerald-500/10 text-emerald-600 border border-emerald-500/20"
                       }`}
                     >
-                      {row.status || "Completed"}
+                      {row.type === "expense" ? "Expense" : "Income"}
                     </span>
                   </td>
-                  <td className="py-3.5 px-4 text-right font-bold text-zinc-900 dark:text-white">
-                    {formatCurrency(Number(row.amount))}
+                  <td className={`py-3.5 px-4 text-right font-bold ${
+                    row.type === 'expense' ? 'text-zinc-900 dark:text-white' : 'text-emerald-600 dark:text-emerald-400'
+                  }`}>
+                    {row.type === 'income' ? '+' : ''}{formatCurrency(Number(row.amount))}
                   </td>
                 </tr>
               ))}
