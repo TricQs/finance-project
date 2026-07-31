@@ -38,12 +38,12 @@ export function AppTopbar({
       </div>
 
       <div className="flex items-center gap-2.5">
-        <div className="hidden items-center gap-2 rounded-2xl border border-border/60 bg-muted/30 px-3.5 py-2 sm:flex">
-          <Search className="size-4 shrink-0 text-muted-foreground" />
+        <div className="hidden items-center gap-2 rounded-2xl border border-slate-400/80 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3.5 py-2 sm:flex transition-all hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 shadow-xs">
+          <Search className="size-4 shrink-0 text-slate-500 dark:text-zinc-400" />
           <input
             type="text"
             placeholder="Cari transaksi..."
-            className="w-36 bg-transparent text-xs sm:text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-56"
+            className="w-36 bg-transparent text-xs sm:text-sm text-foreground outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500 lg:w-56"
           />
         </div>
 
@@ -51,14 +51,15 @@ export function AppTopbar({
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("open-uangku-tour"))}
           title="Panduan Aplikasi"
-          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background text-muted-foreground hover:text-primary hover:border-primary/50 transition-all cursor-pointer shadow-xs"
+          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-400/80 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500 transition-all cursor-pointer shadow-xs"
         >
           <HelpCircle className="size-4 sm:size-4.5" />
         </button>
 
         <button
           type="button"
-          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background text-muted-foreground hover:text-foreground hover:border-primary/50 transition-all cursor-pointer shadow-xs"
+          title="Notifikasi"
+          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-slate-400/80 dark:border-zinc-600 bg-white dark:bg-zinc-900 text-slate-600 dark:text-zinc-400 hover:text-blue-600 dark:hover:text-blue-400 hover:border-blue-500 transition-all cursor-pointer shadow-xs"
         >
           <Bell className="size-4 sm:size-4.5" />
         </button>

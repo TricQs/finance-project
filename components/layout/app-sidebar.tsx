@@ -32,14 +32,12 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Circular Authentic Brand Logo Badges untuk E-Commerce Indonesia (Shopee, Tokopedia, Blibli, Lazada)
+// Community & Official Style Brand Logo Badges untuk E-Commerce Indonesia (Shopee, Tokopedia, Blibli, Lazada)
 function ShopeeIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-6 h-6 rounded-full bg-[#ee4d2d] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <line x1="3" y1="6" x2="21" y2="6"/>
-        <path d="M16 10a4 4 0 0 1-8 0"/>
+    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-br from-[#ff5722] to-[#ee4d2d] text-white flex items-center justify-center shrink-0 shadow-sm select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="none" className="w-3.5 h-3.5 text-white">
+        <path d="M19 8H16V6C16 3.79086 14.2091 2 12 2C9.79086 2 8 3.79086 8 6V8H5C3.89543 8 3 8.89543 3 10V20C3 21.1046 3.89543 22 5 22H19C20.1046 22 21 21.1046 21 20V10C21 8.89543 20.1046 8 19 8ZM10 6C10 4.89543 10.8954 4 12 4C13.1046 4 14 4.89543 14 6V8H10V6ZM13.8 17.5C12.5 18.2 10.8 17.8 10.2 16.8C10 16.5 10 16.1 10.2 15.8C10.5 15.3 11.2 15.1 11.7 15.3L12.5 15.6C13.2 15.9 13.8 15.4 13.7 14.6C13.6 14.1 13.1 13.8 12.6 13.8H11.5C11 13.8 10.5 13.5 10.3 13.1C10.1 12.7 10.2 12.1 10.6 11.8C11.6 11 13.2 11.1 14 12.1C14.2 12.4 14.2 12.8 14 13.1" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
       </svg>
     </div>
   );
@@ -47,10 +45,9 @@ function ShopeeIcon({ className }: { className?: string }) {
 
 function TokopediaIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-6 h-6 rounded-full bg-[#03ac0e] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
-        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
-        <circle cx="12" cy="13" r="2.5"/>
+    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-br from-[#03be0f] to-[#03ac0e] text-white flex items-center justify-center shrink-0 shadow-sm select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
+        <path d="M19 6h-3c0-2.21-1.79-4-4-4S8 3.79 8 6H5C3.9 6 3 6.9 3 8v12c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm-7-2c1.1 0 2 .9 2 2h-4c0-1.1.9-2 2-2zm-3.5 8c.83 0 1.5.67 1.5 1.5S9.33 15 8.5 15 7 14.33 7 13.5 7.67 12 8.5 12zm7 0c.83 0 1.5.67 1.5 1.5s-.67 1.5-1.5 1.5-1.5-.67-1.5-1.5.67-1.5 1.5-1.5zM12 18l-1.5-1.5h3L12 18z"/>
       </svg>
     </div>
   );
@@ -58,16 +55,18 @@ function TokopediaIcon({ className }: { className?: string }) {
 
 function BlibliIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-6 h-6 rounded-full bg-[#0095da] text-white flex items-center justify-center font-black text-[13px] leading-none shrink-0 shadow-xs select-none italic font-sans pl-0.5", className)}>
-      b
+    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-br from-[#00a8f7] to-[#0095da] text-white flex items-center justify-center shrink-0 shadow-sm select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
+        <path d="M19 7h-3V6c0-2.21-1.79-4-4-4S8 3.79 8 6v1H5c-1.1 0-2 .9-2 2v11c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V9c0-1.1-.9-2-2-2zm-9-1c0-1.1.9-2 2-2s2 .9 2 2v1h-4V6zm.8 11.5c-1.3 0-2.3-1-2.3-2.3 0-1.2.9-2.1 2.1-2.2v-3.5h2.2v8h-2zm0-5.3c-.5 0-.9.4-.9.9s.4.9.9.9.9-.4.9-.9-.4-.9-.9-.9z"/>
+      </svg>
     </div>
   );
 }
 
 function LazadaIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-tr from-[#6b1b7f] to-[#e61376] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
-      <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-tr from-[#1a1c6e] via-[#8d1679] to-[#f41168] text-white flex items-center justify-center shrink-0 shadow-sm select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5 text-white">
         <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
       </svg>
     </div>
