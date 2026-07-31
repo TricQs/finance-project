@@ -68,8 +68,12 @@ export function IndonesianDatePicker({
         val = `0${num}`;
         setDay(val);
         notifyChange(val, month, year);
-        monthRef.current?.focus();
-        monthRef.current?.select();
+
+        requestAnimationFrame(() => {
+          monthRef.current?.focus();
+          monthRef.current?.select();
+        });
+
         return;
       }
     }
@@ -80,10 +84,14 @@ export function IndonesianDatePicker({
     if (val.length === 2) {
       const dNum = parseInt(val, 10);
       if (dNum > 31) val = "31";
+
       setDay(val);
       notifyChange(val, month, year);
-      monthRef.current?.focus();
-      monthRef.current?.select();
+
+      requestAnimationFrame(() => {
+        monthRef.current?.focus();
+        monthRef.current?.select();
+      });
     }
   };
 
@@ -105,8 +113,12 @@ export function IndonesianDatePicker({
         val = `0${num}`;
         setMonth(val);
         notifyChange(day, val, year);
-        yearRef.current?.focus();
-        yearRef.current?.select();
+
+        requestAnimationFrame(() => {
+          yearRef.current?.focus();
+          yearRef.current?.select();
+        });
+
         return;
       }
     }
@@ -117,10 +129,14 @@ export function IndonesianDatePicker({
     if (val.length === 2) {
       const mNum = parseInt(val, 10);
       if (mNum > 12) val = "12";
+
       setMonth(val);
       notifyChange(day, val, year);
-      yearRef.current?.focus();
-      yearRef.current?.select();
+
+      requestAnimationFrame(() => {
+        yearRef.current?.focus();
+        yearRef.current?.select();
+      });
     }
   };
 
@@ -217,7 +233,7 @@ export function IndonesianDatePicker({
   };
 
   return (
-    <div 
+    <div
       onClick={handleContainerClick}
       className={cn("relative flex items-center justify-between w-full rounded-2xl border-2 border-border bg-background px-3.5 py-1.5 focus-within:border-primary transition-colors font-sans cursor-text h-10 select-none", className)}
     >
