@@ -55,6 +55,9 @@ const INCOME_CATEGORIES = [
   "Lainnya"
 ];
 
+import { useLanguage } from "@/lib/i18n/context";
+import { translateCategory } from "@/lib/i18n/dictionary";
+
 interface TransactionModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -68,6 +71,7 @@ export function TransactionModal({
   transactionToEdit = null,
   onSuccess,
 }: TransactionModalProps) {
+  const { t } = useLanguage();
   const isEdit = !!transactionToEdit;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -141,18 +145,18 @@ export function TransactionModal({
       }
       setDeleteOldReceipt(false);
       setSelectedFile(null);
-    } else {
-      // Form Reset
+    } else if (open) {
+      // Form Reset untuk transaksi baru: Pengguna memilih akun secara manual
       setActiveTab("expense");
       setAccountId("");
+      setFromAccountId("");
+      setToAccountId("");
       setAmount("");
       setCategory("");
       setDate(new Date().toISOString().split("T")[0]);
       setDescription("");
       setIsRecurring(false);
       setRecurringInterval("monthly");
-      setFromAccountId("");
-      setToAccountId("");
       setTransferAmount("");
       setSelectedFile(null);
       setReceiptPreview(null);
@@ -278,7 +282,7 @@ export function TransactionModal({
       <DialogContent className="sm:max-w-[480px] font-sans rounded-3xl border border-border bg-background p-6 shadow-2xl transition-all">
         <DialogHeader>
           <DialogTitle className="font-heading text-lg font-semibold text-foreground">
-            {isEdit ? "Edit Transaksi" : "Catat Transaksi Keuangan"}
+            {isEdit ? t.transactionModal.editTitle : t.transactionModal.addTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -294,15 +298,15 @@ export function TransactionModal({
             <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1 h-auto">
               <TabsTrigger value="expense" className="rounded-xl gap-1.5 cursor-pointer text-xs font-semibold py-2">
                 <TrendingDown className="size-3.5 text-red-500" />
-                Pengeluaran
+                {t.transactionModal.expense}
               </TabsTrigger>
               <TabsTrigger value="income" className="rounded-xl gap-1.5 cursor-pointer text-xs font-semibold py-2">
                 <TrendingUp className="size-3.5 text-emerald-500" />
-                Pemasukan
+                {t.transactionModal.income}
               </TabsTrigger>
               <TabsTrigger value="transfer" className="rounded-xl gap-1.5 cursor-pointer text-xs font-semibold py-2">
                 <ArrowRightLeft className="size-3.5 text-indigo-500" />
-                Transfer
+                {t.transactionModal.transfer}
               </TabsTrigger>
             </TabsList>
           )}
@@ -344,36 +348,50 @@ export function TransactionModal({
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Akun Asal (Sumber)
                   </Label>
-                  <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val ?? "")} disabled={loading}>
-                    <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                      <SelectValue placeholder="Pilih Akun" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {accounts.map((acc) => (
-                        <SelectItem key={acc.id} value={acc.id}>
-                          {acc.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const selectedFrom = accounts.find((a) => a.id === fromAccountId);
+                    return (
+                      <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val ?? "")} disabled={loading}>
+                        <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
+                          <SelectValue placeholder="Pilih Akun">
+                            {selectedFrom ? selectedFrom.name : (fromAccountId ? "Akun Terhapus" : "Pilih Akun")}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {accounts.map((acc) => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                              {acc.name} {!acc.is_active && "(Diarsipkan)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })()}
                 </div>
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                     Akun Tujuan (Penerima)
                   </Label>
-                  <Select value={toAccountId} onValueChange={(val) => setToAccountId(val ?? "")} disabled={loading}>
-                    <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                      <SelectValue placeholder="Pilih Akun" />
-                    </SelectTrigger>
-                    <SelectContent className="rounded-xl">
-                      {accounts.map((acc) => (
-                        <SelectItem key={acc.id} value={acc.id}>
-                          {acc.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {(() => {
+                    const selectedTo = accounts.find((a) => a.id === toAccountId);
+                    return (
+                      <Select value={toAccountId} onValueChange={(val) => setToAccountId(val ?? "")} disabled={loading}>
+                        <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
+                          <SelectValue placeholder="Pilih Akun">
+                            {selectedTo ? selectedTo.name : (toAccountId ? "Akun Terhapus" : "Pilih Akun")}
+                          </SelectValue>
+                        </SelectTrigger>
+                        <SelectContent className="rounded-xl">
+                          {accounts.map((acc) => (
+                            <SelectItem key={acc.id} value={acc.id}>
+                              {acc.name} {!acc.is_active && "(Diarsipkan)"}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    );
+                  })()}
                 </div>
               </div>
 
@@ -457,10 +475,10 @@ export function TransactionModal({
 
             <div className="space-y-1.5">
               <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Keterangan / Deskripsi
+                {t.transactionModal.descriptionLabel}
               </Label>
               <Textarea
-                placeholder="Contoh: Makan siang nasi goreng pedas manis"
+                placeholder={t.transactionModal.descriptionPlaceholder}
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
                 className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0 min-h-16"
@@ -472,7 +490,7 @@ export function TransactionModal({
             {activeTab !== "transfer" && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Unggah Resi / Nota Bukti (Max 5MB)
+                  {t.transactionModal.proofLabel}
                 </Label>
                 <div className="flex items-center gap-4">
                   {receiptPreview ? (
@@ -499,9 +517,9 @@ export function TransactionModal({
                   )}
                   <div className="text-xs text-muted-foreground flex flex-col gap-0.5">
                     <span className="font-semibold text-foreground">
-                      {selectedFile ? selectedFile.name : existingReceiptPath ? "Bukti saat ini disimpan" : "Belum ada bukti dilampirkan"}
+                      {selectedFile ? selectedFile.name : existingReceiptPath ? "Bukti saat ini disimpan" : t.transactionModal.noProof}
                     </span>
-                    <span>Format: JPG, PNG, PDF</span>
+                    <span>{t.transactionModal.proofFormat}</span>
                   </div>
                   <input
                     type="file"
@@ -519,17 +537,21 @@ export function TransactionModal({
                 type="button"
                 variant="outline"
                 onClick={() => onOpenChange(false)}
-                className="rounded-2xl"
+                className="rounded-2xl border-2 cursor-pointer"
                 disabled={loading}
               >
-                Batal
+                {t.transactionModal.cancel}
               </Button>
               <Button
                 type="submit"
-                className="rounded-2xl"
+                className="rounded-2xl cursor-pointer"
                 disabled={loading}
               >
-                {loading ? "Mengeksekusi..." : isEdit ? "Perbarui" : "Catat Transaksi"}
+                {loading
+                  ? t.settings.saveChanges
+                  : isEdit
+                  ? t.transactionModal.submitEdit
+                  : t.transactionModal.submitAdd}
               </Button>
             </DialogFooter>
           </form>
@@ -561,26 +583,31 @@ function ExpenseIncomeFormFields({
   categories: string[];
   loading: boolean;
 }) {
+  const { t, language } = useLanguage();
+  const selectedAccount = accounts.find((a) => a.id === accountId);
+
   return (
     <>
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-1.5 col-span-2 sm:col-span-1">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Rekening / Akun
+            {t.transactionModal.accountLabel}
           </Label>
           <Select value={accountId} onValueChange={(val) => setAccountId(val ?? "")} disabled={loading}>
             <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-              <SelectValue placeholder="Pilih Akun" />
+              <SelectValue placeholder={t.transactionModal.accountLabel}>
+                {selectedAccount ? selectedAccount.name : (accountId ? t.dashboard.deletedAccount : t.transactionModal.accountLabel)}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               {accounts.map((acc) => (
                 <SelectItem key={acc.id} value={acc.id}>
-                  {acc.name} {!acc.is_active && "(Diarsipkan)"}
+                  {acc.name} {!acc.is_active && `(${t.accounts.archivedTab})`}
                 </SelectItem>
               ))}
               {accountId && !accounts.some((a) => a.id === accountId) && (
                 <SelectItem value={accountId}>
-                  Akun Terhapus ({accountId.substring(0, 8)}...)
+                  {t.dashboard.deletedAccount}
                 </SelectItem>
               )}
             </SelectContent>
@@ -589,16 +616,16 @@ function ExpenseIncomeFormFields({
 
         <div className="space-y-1.5 col-span-2 sm:col-span-1">
           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Kategori
+            {t.transactionModal.categoryLabel}
           </Label>
           <Select value={category} onValueChange={(val) => setCategory(val ?? "")} disabled={loading}>
             <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-              <SelectValue placeholder="Pilih Kategori" />
+              <SelectValue placeholder={t.transactionModal.categoryLabel} />
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               {categories.map((cat) => (
                 <SelectItem key={cat} value={cat}>
-                  {cat}
+                  {translateCategory(cat, language)}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -608,7 +635,7 @@ function ExpenseIncomeFormFields({
 
       <div className="space-y-1.5">
         <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          Jumlah Nominal
+          {t.transactionModal.amountLabel}
         </Label>
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">IDR</span>

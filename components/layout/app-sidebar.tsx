@@ -120,6 +120,8 @@ type AppSidebarProps = {
   onToggleSidebar?: () => void;
 };
 
+import { useLanguage } from "@/lib/i18n/context";
+
 export function AppSidebar({
   userName = "Pengguna",
   userEmail = "",
@@ -129,7 +131,16 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useLanguage();
   const [logoHovered, setLogoHovered] = useState(false);
+
+  const MENU_ITEMS: MenuItem[] = [
+    { label: t.nav.dashboard, href: "/dashboard", icon: LayoutGrid },
+    { label: t.nav.accounts, href: "/accounts", icon: Wallet },
+    { label: t.nav.transactions, href: "/transactions", icon: ArrowRightLeft },
+    { label: t.nav.insights, href: "/insights", icon: SlidersHorizontal },
+    { label: t.nav.budgets, href: "/budgets", icon: PiggyBank },
+  ];
 
   return (
     <>
@@ -221,12 +232,14 @@ export function AppSidebar({
             {MENU_ITEMS.map(({ label, href, icon: Icon, badge }) => {
               const isActive =
                 pathname === href || pathname?.startsWith(`${href}/`);
+              const isAccounts = href === "/accounts";
 
               return (
                 <Link
                   key={href}
                   href={href}
                   prefetch={true}
+                  id={isAccounts ? "tour-accounts-link" : undefined}
                   data-tour={label.toLowerCase()}
                   title={isCollapsed ? label : undefined}
                   className={cn(
@@ -294,7 +307,7 @@ export function AppSidebar({
           <Link
             href="/settings"
             prefetch={true}
-            title={isCollapsed ? "Pengaturan" : undefined}
+            title={isCollapsed ? t.nav.settings : undefined}
             className={cn(
               "flex items-center gap-3 rounded-2xl text-sm font-medium transition-all cursor-pointer",
               isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5",
@@ -304,7 +317,7 @@ export function AppSidebar({
             )}
           >
             <Settings className="size-4.5 shrink-0" />
-            {!isCollapsed && <span>Pengaturan</span>}
+            {!isCollapsed && <span>{t.nav.settings}</span>}
           </Link>
 
           <DropdownMenu>
@@ -367,6 +380,7 @@ export function AppSidebar({
               key={href}
               href={href}
               prefetch={true}
+              id={href === "/accounts" ? "tour-accounts-link" : undefined}
               data-tour={label.toLowerCase()}
               className={cn(
                 "flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-all min-h-[44px] justify-center",

@@ -27,6 +27,9 @@ import type { Account } from "@/types";
 import { toast } from "sonner";
 import Link from "next/link";
 
+import { useLanguage } from "@/lib/i18n/context";
+import { translateCategory } from "@/lib/i18n/dictionary";
+
 interface DashboardClientProps {
   userName: string;
   accounts: Account[];
@@ -38,6 +41,7 @@ export function DashboardClientPage({
   accounts,
   allYearTransactions,
 }: DashboardClientProps) {
+  const { getGreeting, t, language } = useLanguage();
   const [search, setSearch] = useState("");
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear());
   const [isTourOpen, setIsTourOpen] = useState(false);
@@ -151,35 +155,53 @@ export function DashboardClientPage({
     return result.slice(0, 10);
   }, [allYearTransactions, search]);
 
-  // Export CSV
+  // Export CSV (Translates headers & values dynamically & formats clean YYYY-MM-DD for Excel)
   function handleExportCSV() {
     if (allYearTransactions.length === 0) {
       toast.error("Belum ada data transaksi untuk diekspor");
       return;
     }
 
-    const headers = ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
-    const rows = allYearTransactions.map((t) => [
-      t.date,
-      t.type.toUpperCase(),
-      t.category,
-      t.amount,
-      t.type === "transfer" ? `${t.from_account_name} -> ${t.to_account_name}` : t.account_name,
-      t.description || "",
-    ]);
+    const headers = language === "en"
+      ? ["Date", "Type", "Category", "Amount", "Account", "Description"]
+      : language === "ja"
+      ? ["日付", "タイプ", "カテゴリー", "金額", "口座", "説明"]
+      : ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
+
+    const rows = allYearTransactions.map((t) => {
+      const cleanDate = (t.date || "").split("T")[0];
+      const translatedType = t.type === "expense"
+        ? (language === "ja" ? "支出" : language === "en" ? "Expense" : "Pengeluaran")
+        : t.type === "income"
+        ? (language === "ja" ? "収入" : language === "en" ? "Income" : "Pemasukan")
+        : (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer");
+
+      const translatedCat = translateCategory(t.category, language);
+
+      return [
+        cleanDate,
+        translatedType,
+        translatedCat,
+        t.amount,
+        t.type === "transfer" ? `${t.from_account_name || ""} -> ${t.to_account_name || ""}` : (t.account_name || ""),
+        t.description || "",
+      ];
+    });
 
     const csvContent =
-      "data:text/csv;charset=utf-8," +
-      [headers.join(","), ...rows.map((e) => e.map((val) => `"${val}"`).join(","))].join("\n");
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((e) => e.map((val) => `"${val}"`).join(","))].join("\r\n");
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `laporan-keuangan-${selectedYear}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    toast.success("File CSV Laporan Keuangan berhasil diunduh!");
+    URL.revokeObjectURL(url);
+    toast.success("File CSV berhasil diunduh!");
   }
 
   return (
@@ -191,10 +213,10 @@ export function DashboardClientPage({
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 relative z-10">
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight flex items-center gap-2 font-heading">
-              Selamat Datang, {userName} <Sparkles size={22} className="text-amber-300 shrink-0" />
+              {getGreeting()}, {userName} <Sparkles size={22} className="text-amber-300 shrink-0" />
             </h1>
             <p className="text-sm text-indigo-100 mt-1">
-              Ringkasan otomatis arus kas, saldo dompet, dan histori transaksi riil Anda.
+              {t.dashboard.subtitle}
             </p>
           </div>
 
@@ -203,7 +225,7 @@ export function DashboardClientPage({
               onClick={handleExportCSV}
               className="px-4 py-2 rounded-xl bg-white text-indigo-700 hover:bg-indigo-50 text-xs font-bold flex items-center gap-2 transition shadow-md cursor-pointer"
             >
-              <Download size={14} /> Ekspor CSV
+              <Download size={14} /> {t.transactions.exportCSV}
             </Button>
           </div>
         </div>
@@ -217,7 +239,7 @@ export function DashboardClientPage({
                 <Wallet size={18} />
               </div>
               <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 py-0 border-purple-500/30 text-purple-600 dark:text-purple-300">
-                SALDO
+                {t.dashboard.netWorthBadge}
               </Badge>
             </div>
             <div className="mt-3">
@@ -225,7 +247,7 @@ export function DashboardClientPage({
                 {formatCurrency(totalBalance)}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-                Total Kekayaan Bersih
+                {t.dashboard.totalNetWorth}
               </p>
             </div>
           </div>
@@ -237,7 +259,7 @@ export function DashboardClientPage({
                 <TrendingUp size={18} />
               </div>
               <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 py-0 border-emerald-500/30 text-emerald-600 dark:text-emerald-300">
-                PEMASUKAN
+                {t.dashboard.incomeBadge}
               </Badge>
             </div>
             <div className="mt-3">
@@ -245,7 +267,7 @@ export function DashboardClientPage({
                 {formatCurrency(thisMonthIncome)}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-                Pemasukan Bulan Ini
+                {t.dashboard.incomeThisMonth}
               </p>
             </div>
           </div>
@@ -257,7 +279,7 @@ export function DashboardClientPage({
                 <CreditCard size={18} />
               </div>
               <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 py-0 border-rose-500/30 text-rose-600 dark:text-rose-300">
-                PENGELUARAN
+                {t.dashboard.expenseBadge}
               </Badge>
             </div>
             <div className="mt-3">
@@ -265,7 +287,7 @@ export function DashboardClientPage({
                 {formatCurrency(thisMonthExpense)}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-                Pengeluaran Bulan Ini
+                {t.dashboard.expenseThisMonth}
               </p>
             </div>
           </div>
@@ -277,7 +299,7 @@ export function DashboardClientPage({
                 <PiggyBank size={18} />
               </div>
               <Badge variant="outline" className="text-[9px] uppercase font-bold px-1.5 py-0 border-blue-500/30 text-blue-600 dark:text-blue-300">
-                SISA BERSIH
+                {t.dashboard.savingsBadge}
               </Badge>
             </div>
             <div className="mt-3">
@@ -285,7 +307,7 @@ export function DashboardClientPage({
                 {formatCurrency(monthlySavings)}
               </p>
               <p className="text-xs text-zinc-500 dark:text-zinc-400 mt-0.5 font-medium">
-                Tabungan Bulan Ini
+                {t.dashboard.savingsThisMonth}
               </p>
             </div>
           </div>
@@ -299,14 +321,14 @@ export function DashboardClientPage({
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-                Grafik Pengeluaran Tahun {selectedYear}
+                {t.dashboard.expenseChartTitle} {selectedYear}
               </h2>
               <p className="text-2xl sm:text-3xl font-extrabold text-zinc-900 dark:text-white font-heading mt-1 tabular-nums">
                 {formatCurrency(totalYearExpense)}
               </p>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-zinc-400">Tahun:</span>
+              <span className="text-xs font-semibold text-zinc-400">{t.dashboard.year}:</span>
               <select
                 value={selectedYear}
                 onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
@@ -349,28 +371,28 @@ export function DashboardClientPage({
           <div>
             <div className="flex items-center justify-between mb-2">
               <h2 className="text-base font-bold text-zinc-900 dark:text-white flex items-center gap-2">
-                <ShoppingBag size={18} className="text-indigo-600" /> Kategori Terbesar
+                <ShoppingBag size={18} className="text-indigo-600" /> {t.dashboard.topCategory}
               </h2>
             </div>
             <div className="flex items-baseline gap-2 mb-5">
               <span className="text-2xl font-extrabold text-zinc-900 dark:text-white font-heading tabular-nums">
                 {formatCurrency(thisMonthExpense)}
               </span>
-              <span className="text-xs font-medium text-zinc-500">bulan ini</span>
+              <span className="text-xs font-medium text-zinc-500">{t.dashboard.thisMonth}</span>
             </div>
 
             {/* Category List */}
             {sortedCategories.length === 0 ? (
               <div className="py-8 text-center text-xs text-zinc-400 flex flex-col items-center gap-2">
                 <AlertCircle className="size-6 text-zinc-400/50" />
-                <span>Belum ada transaksi pengeluaran bulan ini.</span>
+                <span>{t.dashboard.noTransactions}</span>
               </div>
             ) : (
               <div className="space-y-3.5">
                 {sortedCategories.map((item) => (
                   <div key={item.name} className="space-y-1">
                     <div className="flex justify-between text-xs font-semibold">
-                      <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[140px]">{item.name}</span>
+                      <span className="text-zinc-700 dark:text-zinc-300 truncate max-w-[140px]">{translateCategory(item.name, language)}</span>
                       <div className="flex items-center gap-2 font-mono">
                         <span className="text-zinc-400">{formatCurrency(item.amount)}</span>
                         <span className="text-indigo-600 dark:text-indigo-400 w-8 text-right font-bold">{item.pct}%</span>
@@ -395,13 +417,13 @@ export function DashboardClientPage({
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-2">
             <h2 className="text-base font-bold text-zinc-900 dark:text-white">
-              Transaksi Terkini
+              {t.dashboard.recentTransactions}
             </h2>
             <Link
               href="/transactions"
               className="text-xs font-bold text-indigo-600 dark:text-indigo-400 hover:underline ml-2"
             >
-              Lihat Semua ➔
+              {t.dashboard.viewAll} ➔
             </Link>
           </div>
 
@@ -420,18 +442,18 @@ export function DashboardClientPage({
         {/* Table */}
         {filteredRecentTx.length === 0 ? (
           <div className="py-12 text-center text-xs text-zinc-400 border-2 border-dashed border-zinc-200 dark:border-zinc-800 rounded-2xl">
-            Tidak ada transaksi ditemukan.
+            {t.dashboard.noTransactions}
           </div>
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full text-left text-xs whitespace-nowrap">
               <thead>
                 <tr className="border-b border-zinc-200 dark:border-zinc-800 text-zinc-400 font-semibold uppercase tracking-wider">
-                  <th className="py-3 px-4">Deskripsi / Kategori</th>
-                  <th className="py-3 px-4">Tanggal</th>
-                  <th className="py-3 px-4">Rekening</th>
-                  <th className="py-3 px-4">Tipe</th>
-                  <th className="py-3 px-4 text-right">Nominal</th>
+                  <th className="py-3 px-4">{t.dashboard.tableDescription}</th>
+                  <th className="py-3 px-4">{t.dashboard.tableDate}</th>
+                  <th className="py-3 px-4">{t.dashboard.tableAccount}</th>
+                  <th className="py-3 px-4">{t.dashboard.tableType}</th>
+                  <th className="py-3 px-4 text-right">{t.dashboard.tableAmount}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-100 dark:divide-zinc-800/60">
@@ -443,7 +465,7 @@ export function DashboardClientPage({
                   return (
                     <tr key={tx.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
                       <td className="py-3.5 px-4 font-semibold text-zinc-900 dark:text-white max-w-[200px] truncate">
-                        {isTransfer ? `${tx.from_account_name} ➔ ${tx.to_account_name}` : tx.category}
+                        {isTransfer ? `${tx.from_account_name} ➔ ${tx.to_account_name}` : translateCategory(tx.category, language)}
                         {tx.description && <span className="text-zinc-400 font-normal block text-[11px] truncate">{tx.description}</span>}
                       </td>
                       <td className="py-3.5 px-4 text-zinc-500 font-medium">

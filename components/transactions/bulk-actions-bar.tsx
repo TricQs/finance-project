@@ -3,13 +3,16 @@
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import { Trash2, X, CheckSquare } from "lucide-react";
+import { Trash2, X, CheckSquare, Archive, ArchiveRestore } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface BulkActionsBarProps {
   selectedCount: number;
   onClearSelection: () => void;
   onDeleteSelected: () => void;
+  onArchiveSelected?: () => void;
+  archiveLabel?: string;
+  itemLabel?: string;
   loading?: boolean;
 }
 
@@ -17,6 +20,9 @@ export function BulkActionsBar({
   selectedCount,
   onClearSelection,
   onDeleteSelected,
+  onArchiveSelected,
+  archiveLabel = "Arsipkan",
+  itemLabel = "item",
   loading = false,
 }: BulkActionsBarProps) {
   const [mounted, setMounted] = useState(false);
@@ -26,6 +32,8 @@ export function BulkActionsBar({
   }, []);
 
   if (!mounted) return null;
+
+  const isActivate = archiveLabel.toLowerCase().includes("aktif");
 
   return createPortal(
     <AnimatePresence>
@@ -42,12 +50,29 @@ export function BulkActionsBar({
         >
           <div className="flex items-center gap-2 text-xs sm:text-sm font-bold text-foreground shrink-0">
             <CheckSquare className="size-4 sm:size-5 text-primary" />
-            <span>{selectedCount} <span className="hidden sm:inline">transaksi</span> terpilih</span>
+            <span>{selectedCount} <span className="hidden sm:inline">{itemLabel}</span> terpilih</span>
           </div>
 
           <div className="h-4 sm:h-5 w-[1px] bg-border shrink-0" />
 
           <div className="flex items-center gap-1.5 sm:gap-2">
+            {onArchiveSelected && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={onArchiveSelected}
+                disabled={loading}
+                className="rounded-xl sm:rounded-2xl gap-1.5 h-8 sm:h-9 px-3 sm:px-4 text-xs font-bold border-amber-500/40 text-amber-600 dark:text-amber-400 hover:bg-amber-500/10 shadow-xs cursor-pointer"
+              >
+                {isActivate ? (
+                  <ArchiveRestore className="size-3.5 sm:size-4 text-emerald-500" />
+                ) : (
+                  <Archive className="size-3.5 sm:size-4 text-amber-500" />
+                )}
+                <span>{archiveLabel}</span>
+              </Button>
+            )}
+
             <Button
               size="sm"
               variant="destructive"
@@ -58,6 +83,7 @@ export function BulkActionsBar({
               <Trash2 className="size-3.5 sm:size-4" />
               <span>Hapus</span>
             </Button>
+
             <Button
               size="sm"
               variant="ghost"

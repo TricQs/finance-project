@@ -23,11 +23,14 @@ import { getBudgets, deleteBudget, BudgetsSummary, BudgetCategoryItem } from "@/
 import { toast } from "sonner";
 import { motion } from "framer-motion";
 
+import { useLanguage } from "@/lib/i18n/context";
+
 interface BudgetsClientPageProps {
   initialSummary: BudgetsSummary;
 }
 
 export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
+  const { t } = useLanguage();
   const [summary, setSummary] = useState<BudgetsSummary>(initialSummary);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<BudgetCategoryItem | null>(null);
@@ -81,10 +84,10 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
               </Badge>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Kelola &amp; Kontrol Anggaran Bulanan
+              {t.budgets.title}
             </h1>
             <p className="text-sm text-white/80 leading-relaxed">
-              Tetapkan batas maksimal belanja per kategori agar finansial tetap stabil dan tidak impulsif.
+              {t.budgets.subtitle}
             </p>
           </div>
 
@@ -112,11 +115,11 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
               <span className="absolute text-base font-black">{summary.overallPercentage}%</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Total Pemakaian</span>
+              <span className="text-xs text-white/70 font-medium uppercase tracking-wider">{t.budgets.totalUsage}</span>
               <span className="text-base font-extrabold tabular-nums">
                 {formatCurrency(summary.totalSpent)}
               </span>
-              <span className="text-[11px] text-white/60">dari total {formatCurrency(summary.totalBudget)}</span>
+              <span className="text-[11px] text-white/60">{t.budgets.fromTotal} {formatCurrency(summary.totalBudget)}</span>
             </div>
           </div>
         </div>
@@ -126,7 +129,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {/* Total Budget */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Batas Anggaran</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.budgets.totalBudget}</span>
           <span className="text-2xl font-extrabold text-foreground tabular-nums">
             {formatCurrency(summary.totalBudget)}
           </span>
@@ -134,7 +137,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
 
         {/* Total Spent */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Terpakai Bulan Ini</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.budgets.usedThisMonth}</span>
           <span className="text-2xl font-extrabold text-foreground tabular-nums">
             {formatCurrency(summary.totalSpent)}
           </span>
@@ -142,7 +145,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
 
         {/* Remaining Budget */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
-          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Sisa Anggaran</span>
+          <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.budgets.totalRemaining}</span>
           <span className={`text-2xl font-extrabold tabular-nums ${summary.totalRemaining >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400"}`}>
             {formatCurrency(summary.totalRemaining)}
           </span>
@@ -153,7 +156,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
       <div className="flex items-center justify-between pt-2">
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <PieChart className="size-5 text-primary" />
-          <span>Daftar Anggaran Kategori ({summary.budgets.length})</span>
+          <span>{t.budgets.categoryBudgetList} ({summary.budgets.length})</span>
         </h2>
 
         <Button 
@@ -164,7 +167,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
           className="rounded-2xl gap-2 shadow-sm cursor-pointer"
         >
           <Plus className="size-4.5" />
-          <span>Tetapkan Anggaran Baru</span>
+          <span>{t.budgets.setNewBudget}</span>
         </Button>
       </div>
 
@@ -174,9 +177,9 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
           <div className="size-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground mb-4">
             <PiggyBank className="size-8" />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-1">Belum Ada Anggaran Kategori</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t.budgets.noBudgetsYet}</h3>
           <p className="text-sm text-muted-foreground max-w-sm mb-6">
-            Mulai atur batas maksimal anggaran belanja per kategori (contoh: Makanan, Belanja, Transportasi) untuk mencegah boros.
+            {t.budgets.noBudgetsDesc}
           </p>
           <Button 
             onClick={() => {
@@ -185,7 +188,7 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
             }}
             className="rounded-2xl"
           >
-            Tetapkan Anggaran Pertama
+            {t.budgets.setFirstBudget}
           </Button>
         </div>
       ) : (

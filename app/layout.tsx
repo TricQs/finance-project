@@ -39,6 +39,8 @@ export const metadata: Metadata = {
   },
 };
 
+import { LanguageProvider } from "@/lib/i18n/context";
+
 export default function RootLayout({
   children,
 }: {
@@ -55,8 +57,10 @@ export default function RootLayout({
           storageKey="uangku_theme_preference"
           enableSystem={false}
         >
-          {children}
-          <Toaster richColors position="top-right" />
+          <LanguageProvider>
+            {children}
+            <Toaster richColors position="top-right" />
+          </LanguageProvider>
         </ThemeProvider>
       </body>
     </html>

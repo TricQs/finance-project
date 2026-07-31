@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { formatCurrency } from "@/lib/format-currency";
 import type { Transaction, Transfer } from "@/types";
 
 type ActionResult<T = any> = { error: string } | { success: T };
@@ -79,7 +80,8 @@ export async function getTransactions(filters: TransactionFilters = {}): Promise
       query = query.lte("date", filters.endDate);
     }
     if (filters.search) {
-      query = query.ilike("description", `%${filters.search}%`);
+      const searchTerm = `%${filters.search}%`;
+      query = query.or(`description.ilike.${searchTerm},category.ilike.${searchTerm}`);
     }
 
     const { data } = await query;
@@ -156,11 +158,26 @@ export async function getTransactions(filters: TransactionFilters = {}): Promise
   });
 
   // Urutkan berdasarkan tanggal desc, lalu created_at desc
-  return unifiedTx.sort((a, b) => {
+  const sorted = unifiedTx.sort((a, b) => {
     const dateDiff = new Date(b.date).getTime() - new Date(a.date).getTime();
     if (dateDiff !== 0) return dateDiff;
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+
+  // Filter pencarian teks komprehensif (Deskripsi, Kategori, Nama Akun)
+  if (filters.search) {
+    const s = filters.search.trim().toLowerCase();
+    return sorted.filter((tx) => {
+      const descMatch = tx.description?.toLowerCase().includes(s);
+      const catMatch = tx.category?.toLowerCase().includes(s);
+      const accMatch = tx.account_name?.toLowerCase().includes(s);
+      const fromAccMatch = tx.from_account_name?.toLowerCase().includes(s);
+      const toAccMatch = tx.to_account_name?.toLowerCase().includes(s);
+      return descMatch || catMatch || accMatch || fromAccMatch || toAccMatch;
+    });
+  }
+
+  return sorted;
 }
 
 // 4. UPLOAD RECEIPT KE SUPABASE STORAGE
@@ -227,12 +244,33 @@ export async function createTransaction(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Pengguna tidak terautentikasi" };
 
+  const numAmount = Number(data.amount);
+
+  // Cek kecukupan saldo untuk Pengeluaran (Expense)
+  if (data.type === "expense") {
+    const { data: account } = await supabase
+      .from("accounts")
+      .select("balance, name")
+      .eq("id", data.account_id)
+      .single();
+
+    if (account) {
+      const currentBalance = Number(account.balance);
+      if (currentBalance < numAmount) {
+        if (receiptPath) await deleteReceiptFile(receiptPath);
+        return {
+          error: `Saldo akun "${account.name}" tidak mencukupi (Saldo saat ini: ${formatCurrency(currentBalance)}). Transaksi pengeluaran sebesar ${formatCurrency(numAmount)} ditolak.`
+        };
+      }
+    }
+  }
+
   const { data: newTx, error } = await supabase
     .from("transactions")
     .insert([
       {
         ...data,
-        amount: Number(data.amount),
+        amount: numAmount,
         user_id: user.id,
         receipt_url: receiptPath,
       },
@@ -320,10 +358,10 @@ export async function deleteTransaction(id: string): Promise<ActionResult> {
     .eq("id", id)
     .single();
 
-  // Soft delete transaksi
+  // Hard delete permanen langsung dari Supabase
   const { error } = await supabase
     .from("transactions")
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -354,6 +392,24 @@ export async function createTransfer(
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Pengguna tidak terautentikasi" };
+
+  const numAmount = Number(data.amount);
+
+  // Cek saldo akun asal
+  const { data: fromAccount } = await supabase
+    .from("accounts")
+    .select("balance, name")
+    .eq("id", data.from_account_id)
+    .single();
+
+  if (fromAccount) {
+    const currentBalance = Number(fromAccount.balance);
+    if (currentBalance < numAmount) {
+      return {
+        error: `Saldo akun asal "${fromAccount.name}" tidak mencukupi (Saldo saat ini: ${formatCurrency(currentBalance)}). Transfer dana sebesar ${formatCurrency(numAmount)} ditolak.`
+      };
+    }
+  }
 
   const { data: newTransfer, error } = await supabase
     .from("transfers")
@@ -386,7 +442,7 @@ export async function deleteTransfer(id: string): Promise<ActionResult> {
 
   const { error } = await supabase
     .from("transfers")
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .eq("id", id)
     .eq("user_id", user.id);
 
@@ -416,10 +472,10 @@ export async function bulkDeleteTransactions(ids: string[]): Promise<ActionResul
     .in("id", ids)
     .eq("user_id", user.id);
 
-  // Soft delete transactions
+  // Hard delete transactions permanen langsung dari Supabase
   const { error } = await supabase
     .from("transactions")
-    .update({ deleted_at: new Date().toISOString() })
+    .delete()
     .in("id", ids)
     .eq("user_id", user.id);
 

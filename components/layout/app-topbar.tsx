@@ -1,12 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Plus, Search, HelpCircle } from "lucide-react";
+import { Bell, Plus, HelpCircle } from "lucide-react";
 import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ThemeToggleCompact } from "@/components/layout/theme-toggle-compact";
+import { useLanguage } from "@/lib/i18n/context";
 import { resolveNavTitle } from "@/lib/nav-config";
 
 type AppTopbarProps = {
@@ -19,7 +20,32 @@ export function AppTopbar({
   className,
 }: AppTopbarProps) {
   const pathname = usePathname();
+  const { t } = useLanguage();
   const { label, subtitle } = resolveNavTitle(pathname ?? "");
+
+  // Map dynamic translated title if route matches
+  let pageTitle = label;
+  let pageSubtitle = subtitle;
+
+  if (pathname?.startsWith("/dashboard")) {
+    pageTitle = t.nav.dashboard;
+    pageSubtitle = t.dashboard.subtitle;
+  } else if (pathname?.startsWith("/accounts")) {
+    pageTitle = t.nav.accounts;
+    pageSubtitle = t.accounts.subtitle;
+  } else if (pathname?.startsWith("/transactions")) {
+    pageTitle = t.nav.transactions;
+    pageSubtitle = t.transactions.subtitle;
+  } else if (pathname?.startsWith("/insights")) {
+    pageTitle = t.nav.insights;
+    pageSubtitle = t.insights.subtitle;
+  } else if (pathname?.startsWith("/budgets")) {
+    pageTitle = t.nav.budgets;
+    pageSubtitle = t.budgets.subtitle;
+  } else if (pathname?.startsWith("/settings")) {
+    pageTitle = t.nav.settings;
+    pageSubtitle = t.settings.subtitle;
+  }
 
   return (
     <header
@@ -30,23 +56,14 @@ export function AppTopbar({
     >
       <div className="flex flex-col text-left">
         <h1 className="font-heading text-lg sm:text-xl font-bold text-foreground tracking-tight">
-          {label}
+          {pageTitle}
         </h1>
-        {subtitle && (
-          <span className="text-xs text-muted-foreground">{subtitle}</span>
+        {pageSubtitle && (
+          <span className="text-xs text-muted-foreground">{pageSubtitle}</span>
         )}
       </div>
 
       <div className="flex items-center gap-2.5">
-        <div className="hidden items-center gap-2 rounded-2xl border border-slate-400/80 dark:border-zinc-600 bg-white dark:bg-zinc-900 px-3.5 py-2 sm:flex transition-all hover:border-blue-500 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 shadow-xs">
-          <Search className="size-4 shrink-0 text-slate-500 dark:text-zinc-400" />
-          <input
-            type="text"
-            placeholder="Cari transaksi..."
-            className="w-36 bg-transparent text-xs sm:text-sm text-foreground outline-none placeholder:text-slate-400 dark:placeholder:text-zinc-500 lg:w-56"
-          />
-        </div>
-
         <button
           type="button"
           onClick={() => window.dispatchEvent(new CustomEvent("open-uangku-tour"))}

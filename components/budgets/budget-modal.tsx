@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { upsertBudget, BudgetCategoryItem } from "@/lib/budgets/actions";
 import { toast } from "sonner";
+import { useLanguage } from "@/lib/i18n/context";
+import { translateCategory } from "@/lib/i18n/dictionary";
 
 const BUDGET_CATEGORIES = [
   "Makanan & Minuman",
@@ -46,6 +48,7 @@ export function BudgetModal({
   budgetToEdit,
   onSuccess,
 }: BudgetModalProps) {
+  const { t, language } = useLanguage();
   const [category, setCategory] = useState("Makanan & Minuman");
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
@@ -91,7 +94,7 @@ export function BudgetModal({
       <DialogContent className="sm:max-w-[440px] font-sans rounded-3xl border border-border bg-background p-6 shadow-2xl transition-all">
         <DialogHeader className="border-b border-border pb-4 mb-2">
           <DialogTitle className="font-heading text-lg font-bold text-foreground">
-            {budgetToEdit ? "Ubah Batas Anggaran" : "Atur Batas Anggaran Kategori"}
+            {budgetToEdit ? t.budgetModal.editTitle : t.budgetModal.addTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -99,7 +102,7 @@ export function BudgetModal({
           {/* KATEGORI */}
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Kategori Pengeluaran
+              {t.budgetModal.categoryLabel}
             </Label>
             <Select 
               value={category} 
@@ -107,12 +110,12 @@ export function BudgetModal({
               disabled={loading || !!budgetToEdit}
             >
               <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0 w-full">
-                <SelectValue placeholder="Pilih Kategori" />
+                <SelectValue placeholder={t.budgetModal.categoryLabel} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 {BUDGET_CATEGORIES.map((cat) => (
                   <SelectItem key={cat} value={cat}>
-                    {cat}
+                    {translateCategory(cat, language)}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -122,13 +125,13 @@ export function BudgetModal({
           {/* BATAS NOMINAL ANGGARAN BULANAN */}
           <div className="space-y-1.5">
             <Label htmlFor="budget-amount" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Batas Maksimal Anggaran / Bulan (Rp)
+              {t.budgetModal.limitLabel}
             </Label>
             <Input
               id="budget-amount"
               type="text"
               inputMode="numeric"
-              placeholder="Contoh: 2,000,000"
+              placeholder={t.budgetModal.limitPlaceholder}
               value={amount}
               onChange={(e) => {
                 const raw = e.target.value.replace(/[^0-9]/g, "");
@@ -151,14 +154,14 @@ export function BudgetModal({
               disabled={loading}
               className="rounded-2xl border-2 border-border"
             >
-              Batal
+              {t.budgetModal.cancel}
             </Button>
             <Button
               type="submit"
               disabled={loading}
               className="rounded-2xl font-bold shadow-sm"
             >
-              {loading ? "Menyimpan..." : budgetToEdit ? "Simpan Perubahan" : "Tetapkan Anggaran"}
+              {loading ? t.settings.saveChanges : budgetToEdit ? t.budgetModal.submitEdit : t.budgetModal.submitAdd}
             </Button>
           </DialogFooter>
         </form>

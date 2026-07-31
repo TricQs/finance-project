@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge";
 import { TransactionModal } from "@/components/transactions/transaction-modal";
 import { BulkActionsBar } from "@/components/transactions/bulk-actions-bar";
 import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { IndonesianDatePicker } from "@/components/ui/indonesian-date-picker";
 import {
   getTransactions,
   deleteTransaction,
@@ -71,10 +72,14 @@ interface TransactionsClientPageProps {
   accounts: Account[];
 }
 
+import { useLanguage } from "@/lib/i18n/context";
+import { translateCategory } from "@/lib/i18n/dictionary";
+
 export function TransactionsClientPage({
   initialTransactions,
   accounts,
 }: TransactionsClientPageProps) {
+  const { t, language } = useLanguage();
   const [transactions, setTransactions] = useState<UnifiedTransaction[]>(initialTransactions);
 
   // States Filter
@@ -201,33 +206,52 @@ export function TransactionsClientPage({
     }
   }
 
-  // Ekspor transaksi ke CSV
+  // Ekspor transaksi ke CSV (Translates headers & values dynamically & formats clean YYYY-MM-DD for Excel)
   function handleExportCSV() {
     if (transactions.length === 0) {
       toast.error("Tidak ada data transaksi untuk diekspor");
       return;
     }
 
-    const headers = ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
-    const rows = transactions.map((t) => [
-      t.date,
-      t.type.toUpperCase(),
-      t.category,
-      t.amount,
-      t.type === "transfer" ? `${t.from_account_name} -> ${t.to_account_name}` : t.account_name,
-      t.description || ""
-    ]);
+    const headers = language === "en"
+      ? ["Date", "Type", "Category", "Amount", "Account", "Description"]
+      : language === "ja"
+      ? ["日付", "タイプ", "カテゴリー", "金額", "口座", "説明"]
+      : ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
 
-    const csvContent = "data:text/csv;charset=utf-8,"
-      + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
+    const rows = transactions.map((t) => {
+      const cleanDate = (t.date || "").split("T")[0];
+      const translatedType = t.type === "expense"
+        ? (language === "ja" ? "支出" : language === "en" ? "Expense" : "Pengeluaran")
+        : t.type === "income"
+        ? (language === "ja" ? "収入" : language === "en" ? "Income" : "Pemasukan")
+        : (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer");
 
-    const encodedUri = encodeURI(csvContent);
+      const translatedCat = translateCategory(t.category, language);
+
+      return [
+        cleanDate,
+        translatedType,
+        translatedCat,
+        t.amount,
+        t.type === "transfer" ? `${t.from_account_name || ""} -> ${t.to_account_name || ""}` : (t.account_name || ""),
+        t.description || "",
+      ];
+    });
+
+    const csvContent =
+      "\uFEFF" +
+      [headers.join(","), ...rows.map((e) => e.map((val) => `"${val}"`).join(","))].join("\r\n");
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
+    link.setAttribute("href", url);
     link.setAttribute("download", `riwayat-transaksi-${new Date().toISOString().split("T")[0]}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
     toast.success("File CSV berhasil diunduh!");
   }
 
@@ -261,17 +285,17 @@ export function TransactionsClientPage({
       <div className="neu-raised-lg rounded-3xl p-5 bg-background space-y-4">
         <div className="flex items-center gap-2 text-sm font-bold text-foreground">
           <Filter className="size-4.5 text-primary" />
-          <span>Filter Keuangan</span>
+          <span>{t.transactions.filterTitle}</span>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-          {/* SEARCH */}
-          <div className="space-y-1.5 lg:col-span-2">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Cari Deskripsi</Label>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
+          {/* BARIS 1: SEARCH (SPAN 2), TIPE, REKENING, KATEGORI */}
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.searchLabel}</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground" />
               <Input
-                placeholder="Makan siang, gaji..."
+                placeholder={t.transactions.searchPlaceholder}
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && refreshTransactions()}
@@ -280,31 +304,29 @@ export function TransactionsClientPage({
             </div>
           </div>
 
-          {/* TIPE */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Tipe</Label>
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.typeLabel}</Label>
             <Select value={type} onValueChange={(val: any) => setType(val)}>
               <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                <SelectValue placeholder="Pilih Tipe" />
+                <SelectValue placeholder={t.transactions.typeLabel} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">Semua Tipe</SelectItem>
-                <SelectItem value="expense">Pengeluaran</SelectItem>
-                <SelectItem value="income">Pemasukan</SelectItem>
-                <SelectItem value="transfer">Transfer Dana</SelectItem>
+                <SelectItem value="all">{t.transactions.allTypes}</SelectItem>
+                <SelectItem value="expense">{t.transactions.expense}</SelectItem>
+                <SelectItem value="income">{t.transactions.income}</SelectItem>
+                <SelectItem value="transfer">{t.transactions.transfer}</SelectItem>
               </SelectContent>
             </Select>
           </div>
 
-          {/* AKUN / REKENING */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Rekening</Label>
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.accountLabel}</Label>
             <Select value={accountId} onValueChange={(val) => setAccountId(val ?? "all")}>
               <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                <SelectValue placeholder="Pilih Rekening" />
+                <SelectValue placeholder={t.transactions.accountLabel} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">Semua Akun</SelectItem>
+                <SelectItem value="all">{t.transactions.allAccounts}</SelectItem>
                 {accounts.map((acc) => (
                   <SelectItem key={acc.id} value={acc.id}>{acc.name}</SelectItem>
                 ))}
@@ -312,30 +334,37 @@ export function TransactionsClientPage({
             </Select>
           </div>
 
-          {/* KATEGORI */}
           <div className="space-y-1.5">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Kategori</Label>
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.categoryLabel}</Label>
             <Select value={category} onValueChange={(val) => setCategory(val ?? "all")}>
               <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                <SelectValue placeholder="Pilih Kategori" />
+                <SelectValue placeholder={t.transactions.categoryLabel} />
               </SelectTrigger>
               <SelectContent className="rounded-xl">
-                <SelectItem value="all">Semua Kategori</SelectItem>
+                <SelectItem value="all">{t.transactions.allCategories}</SelectItem>
                 {ALL_CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                  <SelectItem key={cat} value={cat}>{translateCategory(cat, language)}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
           </div>
 
-          {/* RENTANG TANGGAL */}
-          <div className="space-y-1.5 col-span-1">
-            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Mulai Tanggal</Label>
-            <Input
-              type="date"
+          {/* BARIS 2: MULAI TANGGAL & SAMPAI TANGGAL (SEJAJAR DI BAWAH CARI DESKRIPSI) */}
+          <div className="space-y-1.5 sm:col-span-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.startDateLabel}</Label>
+            <IndonesianDatePicker
               value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
-              className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
+              onChange={setStartDate}
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
+
+          <div className="space-y-1.5 sm:col-span-1">
+            <Label className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">{t.transactions.endDateLabel}</Label>
+            <IndonesianDatePicker
+              value={endDate}
+              onChange={setEndDate}
+              placeholder="dd/mm/yyyy"
             />
           </div>
         </div>
@@ -343,16 +372,16 @@ export function TransactionsClientPage({
         <div className="flex flex-wrap items-center justify-between gap-4 border-t border-border/50 pt-3">
           <div className="flex items-center gap-2">
             <Button size="sm" onClick={refreshTransactions} className="rounded-2xl px-4 cursor-pointer">
-              Terapkan Filter
+              {t.transactions.applyFilter}
             </Button>
             <Button size="sm" variant="ghost" onClick={handleResetFilters} className="rounded-2xl cursor-pointer hover:bg-muted text-muted-foreground">
-              Reset
+              {t.transactions.resetFilter}
             </Button>
           </div>
 
           <Button size="sm" variant="outline" onClick={handleExportCSV} className="rounded-2xl border-2 gap-2 cursor-pointer">
             <Download className="size-4" />
-            <span>Ekspor CSV</span>
+            <span>{t.transactions.exportCSV}</span>
           </Button>
         </div>
       </div>
@@ -360,7 +389,7 @@ export function TransactionsClientPage({
       {/* HEADER TOTALS / CTA */}
       <div className="flex items-center justify-between">
         <h3 className="font-heading text-base font-bold text-foreground">
-          Daftar Transaksi ({transactions.length})
+          {t.transactions.transactionList} ({transactions.length})
         </h3>
         <Button
           onClick={() => {
@@ -370,7 +399,7 @@ export function TransactionsClientPage({
           className="rounded-2xl gap-2 cursor-pointer"
         >
           <Plus className="size-4.5" />
-          <span>Tambah Transaksi</span>
+          <span>{t.transactions.addTransaction}</span>
         </Button>
       </div>
 
@@ -380,10 +409,7 @@ export function TransactionsClientPage({
           <div className="size-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground mb-4">
             <AlertCircle className="size-8" />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-1">Transaksi Tidak Ditemukan</h3>
-          <p className="text-sm text-muted-foreground max-w-sm">
-            Tidak ada transaksi yang cocok dengan filter yang Anda gunakan atau Anda belum membuat transaksi.
-          </p>
+          <h3 className="text-lg font-bold text-foreground mb-1">{t.transactions.emptyState}</h3>
         </div>
       ) : (
         <div className="flex flex-col gap-6">
@@ -396,7 +422,7 @@ export function TransactionsClientPage({
               className="size-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
             />
             <span className="text-xs font-semibold text-muted-foreground">
-              Pilih Semua  {selectedIds.length > 0 && `(${selectedIds.length} Terpilih)`}
+              {t.transactions.selectAll} {selectedIds.length > 0 && `(${selectedIds.length})`}
             </span>
           </div>
 
@@ -432,6 +458,10 @@ export function TransactionsClientPage({
                       IconComp = ArrowRightLeft;
                     }
 
+                    const isAccountDeleted = !isTransfer 
+                      ? (!tx.account_id || !tx.account_name) 
+                      : (!tx.from_account_id || !tx.from_account_name || !tx.to_account_id || !tx.to_account_name);
+
                     return (
                       <div
                         key={tx.id}
@@ -450,7 +480,7 @@ export function TransactionsClientPage({
                           {/* ICON */}
                           <div
                             className="size-11 rounded-2xl flex items-center justify-center text-white shrink-0"
-                            style={{ backgroundColor: tx.account_color || "#6366f1" }}
+                            style={{ backgroundColor: isAccountDeleted ? "#64748b" : (tx.account_color || "#6366f1") }}
                           >
                             <IconComp className="size-5" />
                           </div>
@@ -460,8 +490,8 @@ export function TransactionsClientPage({
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-foreground truncate">
                                 {isTransfer
-                                  ? `${tx.from_account_name} ➔ ${tx.to_account_name}`
-                                  : tx.category
+                                  ? `${tx.from_account_name || t.dashboard.deletedAccount} ➔ ${tx.to_account_name || t.dashboard.deletedAccount}`
+                                  : translateCategory(tx.category, language)
                                 }
                               </span>
                               {tx.is_recurring && (
@@ -469,11 +499,16 @@ export function TransactionsClientPage({
                                   RECURRING
                                 </Badge>
                               )}
+                              {isAccountDeleted && (
+                                <Badge variant="destructive" className="text-[9px] uppercase font-extrabold px-1.5 py-0 bg-rose-500/10 text-rose-500 border-rose-500/20">
+                                  Akun Terhapus
+                                </Badge>
+                              )}
                             </div>
-                            <span className="text-xs text-muted-foreground truncate mt-0.5">
+                            <span className={`text-xs truncate mt-0.5 ${isAccountDeleted ? "text-rose-500 font-semibold" : "text-muted-foreground"}`}>
                               {isTransfer
                                 ? "Transfer Keuangan"
-                                : tx.account_name
+                                : (tx.account_name || "Akun Terhapus")
                               }
                               {tx.description && ` • ${tx.description}`}
                             </span>
@@ -499,21 +534,23 @@ export function TransactionsClientPage({
                                 <FileText className="size-4.5 text-muted-foreground" />
                               </Button>
                             )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleEdit(tx)}
-                              className="size-8 p-0 rounded-xl hover:bg-muted"
-                              title="Edit"
-                            >
-                              <Edit3 className="size-4.5 text-muted-foreground" />
-                            </Button>
+                            {!isAccountDeleted && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleEdit(tx)}
+                                className="size-8 p-0 rounded-xl hover:bg-muted"
+                                title="Edit Transaksi"
+                              >
+                                <Edit3 className="size-4.5 text-muted-foreground" />
+                              </Button>
+                            )}
                             <Button
                               size="sm"
                               variant="ghost"
                               onClick={() => handleDeleteClick(tx)}
                               className="size-8 p-0 rounded-xl hover:bg-muted text-red-500 hover:text-red-600 hover:bg-red-50/10"
-                              title="Hapus"
+                              title="Hapus Transaksi Permanen"
                             >
                               <Trash2 className="size-4.5" />
                             </Button>
@@ -569,7 +606,7 @@ export function TransactionsClientPage({
       {/* MODAL KONFIRMASI HAPUS SINGLE */}
       <ConfirmModal
         open={!!txToDelete}
-        onOpenChange={(open) => { if (!open) setTxToDelete(null); }}
+        onOpenChange={(open: boolean) => { if (!open) setTxToDelete(null); }}
         title="Hapus Catatan Transaksi"
         description="Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini akan secara otomatis mengupdate saldo akun terkait."
         confirmText="Ya, Hapus Transaksi"

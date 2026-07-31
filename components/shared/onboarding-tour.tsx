@@ -1,10 +1,9 @@
-"use client";
-
 import { useState, useEffect, useRef, useCallback } from "react";
 import { createPortal } from "react-dom";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Sparkles, Wallet, TrendingUp, Compass, PlusCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useRouter, usePathname } from "next/navigation";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface TourStep {
   title: string;
@@ -17,46 +16,18 @@ interface TourStep {
   requiredPath?: string;
 }
 
-const TOUR_STEPS: TourStep[] = [
-  {
-    title: "Selamat Datang di Uangku! 👋",
-    description: "Ini adalah ringkasan keuangan kamu. Kamu bisa melihat total saldo, arus kas, dan histori transaksi terbaru di sini.",
-    targetSelector: "#tour-hero-banner",
-    position: "bottom",
-    borderRadius: 24,
-  },
-  {
-    title: "Total Kekayaan Bersih 💳",
-    description: "Kartu ini menampilkan gabungan seluruh sisa uang kamu dari bank, e-wallet, dan uang tunai secara otomatis.",
-    targetSelector: "#tour-networth-card",
-    position: "bottom",
-    borderRadius: 16,
-  },
-  {
-    title: "Grafik & Kategori Pengeluaran 📈",
-    description: "Di sini kamu bisa memantau grafik pengeluaran bulanan dan melihat kategori apa yang paling banyak memakan anggaranmu.",
-    targetSelector: "#tour-chart",
-    position: "top",
-    borderRadius: 24,
-  },
-  {
-    title: "Langkah 1: Buka Menu Accounts 💳",
-    description: "Yuk mulai catat uangmu! Klik menu Accounts di bawah ini untuk mendaftarkan dompet atau rekening pertamamu.",
-    targetSelector: '[data-tour="accounts"]',
-    position: "right",
-    borderRadius: 16,
-    requireSidebarClick: true,
-  },
-  {
-    title: "Langkah 2: Tambah Rekening Kamu 🚀",
-    description: "Klik tombol '+ Tambah Rekening' di atas untuk memasukkan saldo awal bank/e-wallet kamu. Selamat mencoba! (Panduan ini bisa diulang kapan saja lewat tombol Panduan di atas).",
-    targetSelector: "#tour-add-account",
-    position: "bottom",
-    borderRadius: 16,
-    allowTargetClick: true,
-    requiredPath: "/accounts",
-  },
-];
+const STEP_ICONS = [Sparkles, Wallet, TrendingUp, Compass, PlusCircle];
+
+interface TourStep {
+  title: string;
+  description: string;
+  targetSelector: string;
+  position: "right" | "bottom" | "top";
+  borderRadius?: number;
+  requireSidebarClick?: boolean;
+  allowTargetClick?: boolean;
+  requiredPath?: string;
+}
 
 interface OnboardingTourProps {
   forceOpen?: boolean;
@@ -64,6 +35,7 @@ interface OnboardingTourProps {
 }
 
 export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourProps) {
+  const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
@@ -81,6 +53,58 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   const animFrameIdRef = useRef<number | null>(null);
   const scrolledStepRef = useRef<number | null>(null);
 
+  const tourSteps: TourStep[] = [
+    {
+      title: t.tour.step1Title,
+      description: t.tour.step1Desc,
+      targetSelector: "#tour-hero-banner",
+      position: "bottom",
+      borderRadius: 24,
+    },
+    {
+      title: t.tour.step2Title,
+      description: t.tour.step2Desc,
+      targetSelector: "#tour-networth-card",
+      position: "bottom",
+      borderRadius: 16,
+    },
+    {
+      title: t.tour.step3Title,
+      description: t.tour.step3Desc,
+      targetSelector: "#tour-chart",
+      position: "top",
+      borderRadius: 24,
+    },
+    {
+      title: t.tour.step4Title,
+      description: t.tour.step4Desc,
+      targetSelector: "#tour-accounts-link",
+      position: "right",
+      borderRadius: 16,
+      requireSidebarClick: true,
+    },
+    {
+      title: t.tour.step5Title,
+      description: t.tour.step5Desc,
+      targetSelector: "#tour-add-account",
+      position: "bottom",
+      borderRadius: 16,
+      allowTargetClick: true,
+      requiredPath: "/accounts",
+    },
+  ];
+
+  // Helper to scroll all scrollable main containers to top 0
+  const scrollToContainerTop = useCallback(() => {
+    if (typeof window !== "undefined") {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      const scrollables = document.querySelectorAll(".overflow-y-auto, main, div.flex-1");
+      scrollables.forEach((c) => {
+        c.scrollTo({ top: 0, behavior: "smooth" });
+      });
+    }
+  }, []);
+
   useEffect(() => {
     setMounted(true);
   }, []);
@@ -88,6 +112,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   // Initial check for new users
   useEffect(() => {
     if (forceOpen) {
+      scrollToContainerTop();
       setOpen(true);
       setCurrentStep(0);
       return;
@@ -96,12 +121,13 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
     const hasCompleted = localStorage.getItem("uangku_onboarding_completed");
     if (!hasCompleted) {
       const timer = setTimeout(() => {
+        scrollToContainerTop();
         setOpen(true);
         setCurrentStep(0);
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [forceOpen]);
+  }, [forceOpen, scrollToContainerTop]);
 
   // Transition to step 5 when user reaches /accounts page
   useEffect(() => {
@@ -114,17 +140,22 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   const autoScrollToTarget = useCallback((el: Element) => {
     if (scrolledStepRef.current !== currentStep) {
       scrolledStepRef.current = currentStep;
-      const rect = el.getBoundingClientRect();
-      const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
 
-      if (currentStep === 2) {
-        // Step 3 (Grafik & Kategori): Scroll to center on the single chart card (matches Image 2!)
+      if (currentStep === 0) {
+        // Step 1: Force scroll main container to top 0
+        scrollToContainerTop();
+      } else if (currentStep === 2) {
+        // Step 3 (Grafik & Kategori): Scroll to center on the single chart card
         el.scrollIntoView({ behavior: "smooth", block: "center" });
-      } else if (rect.top < 60 || rect.bottom > viewportH - 60) {
-        el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+      } else {
+        const rect = el.getBoundingClientRect();
+        const viewportH = typeof window !== "undefined" ? window.innerHeight : 800;
+        if (rect.top < 80 || rect.bottom > viewportH - 60) {
+          el.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
       }
     }
-  }, [currentStep]);
+  }, [currentStep, scrollToContainerTop]);
 
   // Throttled updateRect for maximum web performance
   const updateRect = useCallback(() => {
@@ -133,7 +164,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
     }
 
     animFrameIdRef.current = requestAnimationFrame(() => {
-      const step = TOUR_STEPS[currentStep];
+      const step = tourSteps[currentStep];
       if (!step) return;
 
       const elements = document.querySelectorAll(step.targetSelector);
@@ -159,7 +190,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
         setTargetRect(null);
       }
     });
-  }, [currentStep, autoScrollToTarget]);
+  }, [currentStep, autoScrollToTarget, tourSteps]);
 
   // Continuously recalculate targetRect during entrance animations (first 500ms)
   useEffect(() => {
@@ -196,6 +227,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
       const params = new URLSearchParams(window.location.search);
       if (params.get("tour") === "true") {
         if (pathname === "/dashboard") {
+          scrollToContainerTop();
           setOpen(true);
           setCurrentStep(0);
         } else {
@@ -207,6 +239,9 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
     handleCheckAndOpen();
 
     const handleCustomOpen = () => {
+      scrollToContainerTop();
+      setTimeout(scrollToContainerTop, 100);
+      scrolledStepRef.current = null;
       if (pathname === "/dashboard") {
         setOpen(true);
         setCurrentStep(0);
@@ -225,13 +260,13 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
     function checkQuery() {
       handleCheckAndOpen();
     }
-  }, [pathname, router]);
+  }, [pathname, router, scrollToContainerTop]);
 
   // Listen for sidebar click on Step 4
   useEffect(() => {
     if (!open || currentStep !== 3) return;
 
-    const accountsBtns = document.querySelectorAll('[data-tour="accounts"]');
+    const accountsBtns = document.querySelectorAll("#tour-accounts-link, [data-tour='accounts']");
     if (accountsBtns.length === 0) return;
 
     const handleAccountsClick = () => {
@@ -247,6 +282,8 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   function handleClose() {
     localStorage.setItem("uangku_onboarding_completed", "true");
     setOpen(false);
+    setCurrentStep(0);
+    scrolledStepRef.current = null;
     onClose?.();
     if (typeof window !== "undefined" && window.location.search.includes("tour=true")) {
       router.replace(pathname);
@@ -254,7 +291,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   }
 
   function handleNext() {
-    if (currentStep < TOUR_STEPS.length - 1) {
+    if (currentStep < tourSteps.length - 1) {
       setCurrentStep((prev) => prev + 1);
     } else {
       handleClose();
@@ -268,8 +305,9 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
     return null;
   }
 
-  const step = TOUR_STEPS[currentStep];
-  const isLastStep = currentStep === TOUR_STEPS.length - 1;
+  const step = tourSteps[currentStep];
+  const StepIcon = STEP_ICONS[currentStep] || Sparkles;
+  const isLastStep = currentStep === tourSteps.length - 1;
   const isClickableTarget = step.requireSidebarClick || step.allowTargetClick || currentStep === 4;
 
   // Calculate Tooltip Box Position & Pointer Arrow dynamically for Desktop & Mobile
@@ -287,7 +325,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
       // Desktop Sidebar target (Step 4)
       popoverLeft = `${Math.min(screenWidth - 410, targetRect.right + 16)}px`;
       popoverTop = `${Math.max(16, Math.min(screenHeight - 240, targetRect.top - 10))}px`;
-      arrowClass = "absolute -left-2.5 top-6 size-5 bg-amber-400 rotate-45 rounded-xs border-l border-b border-amber-300";
+      arrowClass = "absolute -left-2.5 top-6 size-5 bg-zinc-900 rotate-45 rounded-xs border-l border-b border-amber-400";
     } else if (step.position === "right" && isMobile) {
       // Mobile Bottom Nav target (Step 4 on mobile devices)
       const popoverLeftNum = Math.max(16, Math.min(screenWidth - 390, targetRect.left - 120));
@@ -296,7 +334,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
 
       popoverLeft = `${popoverLeftNum}px`;
       popoverTop = `${Math.max(16, targetRect.top - 210)}px`;
-      arrowClass = "absolute -bottom-2.5 size-5 bg-amber-400 rotate-45 rounded-xs border-b border-r border-amber-300 -translate-x-1/2";
+      arrowClass = "absolute -bottom-2.5 size-5 bg-zinc-900 rotate-45 rounded-xs border-b border-r border-amber-400 -translate-x-1/2";
       arrowStyle = { left: `${arrowOffset}px` };
     } else if (step.position === "bottom") {
       if (currentStep === 4) {
@@ -307,17 +345,17 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
 
         popoverLeft = `${popoverLeftNum}px`;
         popoverTop = `${Math.min(screenHeight - 240, targetRect.bottom + 16)}px`;
-        arrowClass = "absolute -top-2.5 size-5 bg-amber-400 rotate-45 rounded-xs border-t border-l border-amber-300 -translate-x-1/2";
+        arrowClass = "absolute -top-2.5 size-5 bg-zinc-900 rotate-45 rounded-xs border-t border-l border-amber-400 -translate-x-1/2";
         arrowStyle = { left: `${arrowOffset}px` };
       } else {
         popoverLeft = `${Math.max(16, Math.min(screenWidth - 390, targetRect.left))}px`;
         popoverTop = `${Math.min(screenHeight - 240, targetRect.bottom + 16)}px`;
-        arrowClass = "absolute -top-2.5 left-10 size-5 bg-amber-400 rotate-45 rounded-xs border-t border-l border-amber-300";
+        arrowClass = "absolute -top-2.5 left-10 size-5 bg-zinc-900 rotate-45 rounded-xs border-t border-l border-amber-400";
       }
     } else if (step.position === "top") {
       popoverLeft = `${Math.max(16, Math.min(screenWidth - 390, targetRect.left + 10))}px`;
       popoverTop = `${Math.max(16, targetRect.top - 230)}px`;
-      arrowClass = "absolute -bottom-2.5 left-12 size-5 bg-amber-400 rotate-45 rounded-xs border-b border-r border-amber-300";
+      arrowClass = "absolute -bottom-2.5 left-12 size-5 bg-zinc-900 rotate-45 rounded-xs border-b border-r border-amber-400";
     }
   }
 
@@ -379,9 +417,9 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
         />
       )}
 
-      {/* BALANCED BEAUTIFUL TOOLTIP POPOVER BOX */}
+      {/* SOLID COLOR HIGH-CONTRAST READABLE TOOLTIP POPOVER BOX */}
       <div
-        className="fixed z-[100000] pointer-events-auto w-[calc(100vw-32px)] sm:w-[390px] bg-gradient-to-br from-amber-400 via-orange-500 to-amber-500 text-zinc-950 pt-5 px-5 sm:px-6 pb-3 sm:pb-3.5 rounded-3xl shadow-2xl border-2 border-amber-300 font-sans transition-all duration-150 ease-out"
+        className="fixed z-[100000] pointer-events-auto w-[calc(100vw-32px)] sm:w-[390px] bg-zinc-900 text-white pt-5 px-5 sm:px-6 pb-3 sm:pb-3.5 rounded-3xl shadow-2xl border-2 border-amber-400 font-sans transition-all duration-150 ease-out"
         style={{
           top: popoverTop,
           left: popoverLeft,
@@ -392,30 +430,35 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
 
         {/* Header */}
         <div className="flex items-start justify-between gap-3 mb-2.5">
-          <span className="bg-zinc-950 text-amber-300 text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full tracking-wider">
-            {currentStep + 1} DARI {TOUR_STEPS.length}
+          <span className="bg-amber-400 text-zinc-950 text-[10px] font-black uppercase px-2.5 py-0.5 rounded-full tracking-wider">
+            {currentStep + 1} {t.tour.stepCount} {tourSteps.length}
           </span>
         </div>
 
         {/* Content */}
-        <div className="space-y-1.5 mb-3.5">
-          <h3 className="text-base sm:text-lg font-black tracking-tight text-zinc-950 leading-tight">
-            {step.title}
-          </h3>
-          <p className="text-xs font-semibold text-zinc-900 leading-relaxed">
+        <div className="space-y-2 mb-3.5">
+          <div className="flex items-center gap-2">
+            <div className="size-7 rounded-xl bg-amber-400/20 text-amber-400 flex items-center justify-center shrink-0 border border-amber-400/30">
+              <StepIcon className="size-4" />
+            </div>
+            <h3 className="text-base sm:text-lg font-extrabold tracking-tight text-white leading-tight">
+              {step.title}
+            </h3>
+          </div>
+          <p className="text-xs sm:text-sm font-normal text-zinc-200 leading-relaxed pl-0.5">
             {step.description}
           </p>
         </div>
 
         {/* Footer Controls */}
-        <div className="flex items-center justify-between pt-2.5 border-t border-zinc-950/15">
+        <div className="flex items-center justify-between pt-2.5 border-t border-zinc-800">
           <div>
             {!isLastStep && (
               <button
                 onClick={handleClose}
-                className="text-xs font-bold text-zinc-900/80 hover:underline cursor-pointer"
+                className="text-xs font-semibold text-zinc-400 hover:text-white hover:underline cursor-pointer"
               >
-                Lewati Tur
+                {t.tour.skipTour}
               </button>
             )}
           </div>
@@ -424,9 +467,9 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
             <Button
               size="sm"
               onClick={handleNext}
-              className="bg-zinc-950 hover:bg-zinc-900 text-amber-300 font-extrabold text-xs rounded-2xl px-5 h-9 shadow-md cursor-pointer flex items-center gap-1.5"
+              className="bg-amber-400 hover:bg-amber-300 text-zinc-950 font-extrabold text-xs rounded-2xl px-5 h-9 shadow-md cursor-pointer flex items-center gap-1.5"
             >
-              <span>{isLastStep ? "Selesai" : "Lanjut"}</span>
+              <span>{isLastStep ? t.tour.finish : t.tour.next}</span>
               {!isLastStep && <ArrowRight className="size-3.5" />}
             </Button>
           )}

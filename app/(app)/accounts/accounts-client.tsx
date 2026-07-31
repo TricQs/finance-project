@@ -58,11 +58,14 @@ const ICON_MAP: Record<string, any> = {
   Building2,
 };
 
+import { useLanguage } from "@/lib/i18n/context";
+
 interface AccountsClientPageProps {
   initialAccounts: Account[];
 }
 
 export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps) {
+  const { t } = useLanguage();
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [showArchived, setShowArchived] = useState(false);
 
@@ -171,6 +174,24 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
     }
   }
 
+  async function handleConfirmBulkArchive(targetIsActive: boolean) {
+    setBulkLoading(true);
+    const res = await bulkArchiveAccounts(selectedIds, targetIsActive);
+    setBulkLoading(false);
+    setSelectedIds([]);
+
+    if ("error" in res) {
+      toast.error(res.error);
+    } else {
+      toast.success(
+        targetIsActive
+          ? "Akun berhasil diaktifkan kembali."
+          : "Akun berhasil diarsipkan."
+      );
+      refreshAccounts();
+    }
+  }
+
   // Buka detail rekening & muat riwayat transaksinya
   async function handleOpenDetails(acc: Account) {
     setSelectedAccount(acc);
@@ -194,11 +215,11 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
         <div className="absolute left-1/3 bottom-0 size-32 rounded-full bg-indigo-300/10 blur-2xl pointer-events-none" />
 
         <div className="relative z-10 flex flex-col gap-1">
-          <span className="text-sm font-medium text-white/80 uppercase tracking-wider">Total Kekayaan Bersih (Net Worth)</span>
+          <span className="text-sm font-medium text-white/80 uppercase tracking-wider">{t.accounts.totalNetWorth}</span>
           <h2 className="text-4xl font-extrabold tracking-tight tabular-nums">
             {formatCurrency(totalNetWorth)}
           </h2>
-          <p className="text-xs text-white/60 mt-1">Gabungan saldo dari seluruh akun dan dompet aktif</p>
+          <p className="text-xs text-white/60 mt-1">{t.accounts.totalNetWorthDesc}</p>
         </div>
       </div>
 
@@ -217,7 +238,7 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                 : "border-border hover:bg-muted"
               }`}
           >
-            {showArchived ? "Sembunyikan Arsip" : "Tampilkan Arsip"}
+            {t.accounts.showArchived}
           </Button>
 
           {displayedAccounts.length > 0 && (
@@ -229,7 +250,7 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                 className="size-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
               />
               <span className="text-xs font-semibold text-muted-foreground">
-                Pilih Semua  {selectedIds.length > 0 && `(${selectedIds.length} Terpilih)`}
+                {t.accounts.selectAll} {selectedIds.length > 0 && `(${selectedIds.length})`}
               </span>
             </div>
           )}
@@ -241,10 +262,10 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
             setAccountToEdit(null);
             setIsModalOpen(true);
           }}
-          className="rounded-2xl gap-2 shadow-sm cursor-pointer"
+          className="rounded-2xl gap-1.5 shadow-md cursor-pointer font-semibold"
         >
-          <Plus className="size-4.5" />
-          <span>Tambah Rekening</span>
+          <Plus className="size-4" />
+          <span>{t.accounts.addAccount}</span>
         </Button>
       </div>
 
@@ -359,7 +380,7 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                 </div>
 
                 <div className="mt-6 pt-4 border-t border-border/50 flex items-baseline justify-between">
-                  <span className="text-xs text-muted-foreground">Saldo</span>
+                  <span className="text-xs text-muted-foreground">{t.accounts.balance}</span>
                   <span className="text-xl font-extrabold tabular-nums text-foreground">
                     {formatCurrency(Number(acc.balance))}
                   </span>
@@ -480,6 +501,9 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
       {/* FLOAT BULK ACTIONS BAR UNTUK AKUN */}
       <BulkActionsBar
         selectedCount={selectedIds.length}
+        itemLabel="akun"
+        archiveLabel={showArchived ? "Aktifkan" : "Arsipkan"}
+        onArchiveSelected={() => handleConfirmBulkArchive(showArchived)}
         onClearSelection={() => setSelectedIds([])}
         onDeleteSelected={() => setIsBulkConfirmOpen(true)}
         loading={bulkLoading}

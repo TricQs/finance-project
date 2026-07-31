@@ -22,11 +22,15 @@ import { Progress } from "@/components/ui/progress";
 import { getInsightsData, FinancialInsightsData } from "@/lib/insights/actions";
 import { motion } from "framer-motion";
 
+import { useLanguage } from "@/lib/i18n/context";
+import { translateCategory } from "@/lib/i18n/dictionary";
+
 interface InsightsClientPageProps {
   initialData: FinancialInsightsData;
 }
 
 export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
+  const { t, language } = useLanguage();
   const [data, setData] = useState<FinancialInsightsData>(initialData);
   const [loading, setLoading] = useState(false);
 
@@ -40,32 +44,32 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
   // Configuration for Health Badge
   const HEALTH_CONFIG = {
     EXCELLENT: {
-      label: "SANGAT SEHAT",
+      label: t.insights.excellent,
       badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
       bgGradient: "from-emerald-500 to-teal-700",
       icon: ShieldCheck,
-      desc: "Keuangan Anda dalam kondisi luar biasa! Rasio tabungan Anda jauh di atas rata-rata.",
+      desc: t.insights.excellentDesc,
     },
     GOOD: {
-      label: "SEHAT",
+      label: t.insights.healthy,
       badgeClass: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400",
       bgGradient: "from-indigo-600 to-blue-700",
       icon: ShieldCheck,
-      desc: "Pengeluaran Anda terkontrol dengan baik. Pertahankan disiplin menabung ini!",
+      desc: t.insights.healthyDesc,
     },
     WARNING: {
-      label: "WASPADA",
+      label: t.insights.needsAttention,
       badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
       bgGradient: "from-amber-500 to-orange-600",
       icon: AlertTriangle,
-      desc: "Pengeluaran hampir mendekati total pemasukan. Pertimbangkan untuk memangkas kategori tersier.",
+      desc: t.insights.needsAttentionDesc,
     },
     CRITICAL: {
-      label: "PERLU PERHATIAN",
+      label: t.insights.needsAttention,
       badgeClass: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
       bgGradient: "from-red-600 to-rose-700",
       icon: AlertTriangle,
-      desc: "Pengeluaran Anda melebihi pemasukan bulan ini! Segera evaluasi pos belanja Anda.",
+      desc: t.insights.needsAttentionDesc,
     },
   }[data.healthStatus];
 
@@ -117,8 +121,8 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
               <span className="absolute text-lg font-black">{data.healthScore}</span>
             </div>
             <div className="flex flex-col">
-              <span className="text-xs text-white/70 font-medium uppercase tracking-wider">Skor Kesehatan</span>
-              <span className="text-base font-bold">Rasio Tabungan: {data.savingsRate}%</span>
+              <span className="text-xs text-white/70 font-medium uppercase tracking-wider">{t.insights.healthScore}</span>
+              <span className="text-base font-bold">{t.insights.savingsRate}: {data.savingsRate}%</span>
             </div>
           </div>
         </div>
@@ -128,15 +132,15 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
       <div className="flex items-center justify-between flex-wrap gap-3">
         <h2 className="text-lg font-bold text-foreground flex items-center gap-2">
           <Sparkles className="size-5 text-primary" />
-          <span>Analisis Arus Keuangan</span>
+          <span>{t.insights.flowAnalysis}</span>
         </h2>
 
         <div className="flex items-center gap-1.5 bg-muted p-1 rounded-2xl border border-border/40">
           {[
-            { id: "this_month", label: "Bulan Ini" },
-            { id: "last_3_months", label: "3 Bulan" },
-            { id: "this_year", label: "Tahun Ini" },
-            { id: "all", label: "Semua" },
+            { id: "this_month", label: t.insights.periodThisMonth },
+            { id: "last_3_months", label: t.insights.period3Months },
+            { id: "this_year", label: t.insights.periodThisYear },
+            { id: "all", label: t.insights.periodAll },
           ].map((item) => (
             <Button
               key={item.id}
@@ -161,7 +165,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
         {/* Total Income */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Pemasukan</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.insights.totalIncome}</span>
             <div className="size-9 rounded-2xl bg-emerald-500/10 text-emerald-500 flex items-center justify-center">
               <ArrowUpRight className="size-5" />
             </div>
@@ -174,7 +178,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
         {/* Total Expense */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Total Pengeluaran</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.insights.totalExpense}</span>
             <div className="size-9 rounded-2xl bg-red-500/10 text-red-500 flex items-center justify-center">
               <ArrowDownRight className="size-5" />
             </div>
@@ -187,7 +191,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
         {/* Net Savings */}
         <div className="p-5 rounded-3xl bg-background border border-border/50 shadow-xs flex flex-col justify-between gap-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Sisa Bersih (Net)</span>
+            <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{t.insights.netSavings}</span>
             <div className="size-9 rounded-2xl bg-indigo-500/10 text-indigo-500 flex items-center justify-center">
               <PiggyBank className="size-5" />
             </div>
@@ -205,15 +209,15 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <PieChartIcon className="size-5 text-indigo-500" />
-              <h3 className="text-base font-bold text-foreground">Kategori Pengeluaran Terbesar</h3>
+              <h3 className="text-base font-bold text-foreground">{t.insights.topExpenseCategory}</h3>
             </div>
-            <span className="text-xs text-muted-foreground">{data.categoryBreakdown.length} Kategori</span>
+            <span className="text-xs text-muted-foreground">{data.categoryBreakdown.length} {t.insights.categoryCount}</span>
           </div>
 
           {data.categoryBreakdown.length === 0 ? (
             <div className="py-12 text-center text-muted-foreground text-sm flex flex-col items-center justify-center gap-2">
               <PieChartIcon className="size-8 text-muted-foreground/40" />
-              <span>Belum ada transaksi pengeluaran pada periode ini.</span>
+              <span>{t.dashboard.noTransactions}</span>
             </div>
           ) : (
             <div className="space-y-4">
@@ -222,8 +226,8 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
                   <div className="flex items-center justify-between text-xs">
                     <span className="font-semibold text-foreground flex items-center gap-2">
                       <span className="size-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      {item.category}
-                      <span className="text-[10px] text-muted-foreground font-normal">({item.count} transaksi)</span>
+                      {translateCategory(item.category, language)}
+                      <span className="text-[10px] text-muted-foreground font-normal">({item.count} {t.insights.transactionCount})</span>
                     </span>
                     <div className="flex items-center gap-2 font-bold tabular-nums">
                       <span className="text-foreground">{formatCurrency(item.amount)}</span>
@@ -246,14 +250,14 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
                 <Flame className="size-5" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-sm font-bold text-foreground">Pengeluaran Rata-Rata Harian (Burn Rate)</h3>
-                <span className="text-xs text-muted-foreground">Laju belanja Anda per hari pada periode ini</span>
+                <h3 className="text-sm font-bold text-foreground">{t.insights.dailyBurnRate}</h3>
+                <span className="text-xs text-muted-foreground">{t.insights.dailyBurnDesc}</span>
               </div>
             </div>
             <div className="pt-1 flex items-baseline justify-between border-t border-border/40">
-              <span className="text-xs text-muted-foreground">Rata-rata Harian:</span>
+              <span className="text-xs text-muted-foreground">{t.insights.dailyAverage}:</span>
               <span className="text-2xl font-black text-amber-600 dark:text-amber-400 tabular-nums">
-                {formatCurrency(data.dailyBurnRate)} <span className="text-xs text-muted-foreground font-medium">/ hari</span>
+                {formatCurrency(data.dailyBurnRate)} <span className="text-xs text-muted-foreground font-medium">{t.insights.perDay}</span>
               </span>
             </div>
           </div>
@@ -265,12 +269,12 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
                 <BarChart2 className="size-5" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-sm font-bold text-foreground">Proyeksi Saldo Akhir Bulan</h3>
-                <span className="text-xs text-muted-foreground">Estimasi saldo bersih jika laju belanja bertahan</span>
+                <h3 className="text-sm font-bold text-foreground">{t.insights.endOfMonthProjection}</h3>
+                <span className="text-xs text-muted-foreground">{t.insights.projectionDesc}</span>
               </div>
             </div>
             <div className="pt-1 flex items-baseline justify-between border-t border-border/40">
-              <span className="text-xs text-muted-foreground">Estimasi Saldo:</span>
+              <span className="text-xs text-muted-foreground">{t.insights.estimatedBalance}:</span>
               <span className="text-2xl font-black text-emerald-600 dark:text-emerald-400 tabular-nums">
                 {formatCurrency(data.projectedMonthEndSavings)}
               </span>
@@ -282,7 +286,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
             <div className="p-5 rounded-3xl bg-indigo-500/5 border border-indigo-500/20 text-xs text-foreground flex items-center gap-3">
               <Sparkles className="size-6 text-indigo-500 shrink-0" />
               <p className="leading-relaxed">
-                Pengeluaran terbesar Anda didominasi oleh kategori <strong className="text-indigo-600 dark:text-indigo-400 font-bold">{data.topExpenseCategory}</strong>. Menekan 10% pengeluaran di kategori ini dapat menghemat saldo secara signifikan.
+                {t.insights.topCategoryHighlight.replace("{cat}", translateCategory(data.topExpenseCategory, language))}
               </p>
             </div>
           )}
@@ -293,28 +297,23 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
       <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-xs space-y-4">
         <div className="flex items-center gap-2">
           <Wallet className="size-5 text-primary" />
-          <h3 className="text-base font-bold text-foreground">Alokasi Distribusi Rekening & Dompet</h3>
+          <h3 className="text-base font-bold text-foreground">{t.insights.walletDistribution}</h3>
         </div>
 
         {data.walletDistribution.length === 0 ? (
-          <p className="text-xs text-muted-foreground">Belum ada akun dompet terdaftar.</p>
+          <p className="text-xs text-muted-foreground">{t.accounts.emptyState}</p>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 pt-1">
-            {data.walletDistribution.map((acc) => (
-              <div 
-                key={acc.id}
-                className="p-4 rounded-2xl border border-border/40 bg-muted/20 flex flex-col justify-between gap-3"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <span className="size-3 rounded-full shrink-0" style={{ backgroundColor: acc.color }} />
-                    <span className="text-xs font-bold text-foreground truncate max-w-[120px]">{acc.name}</span>
-                  </div>
-                  <span className="text-xs font-extrabold text-primary">{acc.percentage}%</span>
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            {data.walletDistribution.map((item) => (
+              <div key={item.name} className="p-4 rounded-2xl border border-border/40 bg-muted/30 space-y-2">
+                <div className="flex items-center justify-between text-xs font-bold">
+                  <span className="text-foreground truncate">{item.name}</span>
+                  <span className="text-primary">{item.percentage}%</span>
                 </div>
-                <div className="flex justify-between items-baseline pt-2 border-t border-border/30">
-                  <span className="text-[10px] text-muted-foreground uppercase font-semibold">Saldo</span>
-                  <span className="text-sm font-bold text-foreground tabular-nums">{formatCurrency(acc.balance)}</span>
+                <Progress value={item.percentage} className="h-1.5 rounded-full" />
+                <div className="flex items-center justify-between text-[11px] text-muted-foreground pt-1">
+                  <span>{t.accounts.balance}</span>
+                  <span className="font-bold text-foreground tabular-nums">{formatCurrency(item.balance)}</span>
                 </div>
               </div>
             ))}

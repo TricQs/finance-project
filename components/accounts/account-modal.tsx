@@ -60,12 +60,15 @@ interface AccountModalProps {
   onSuccess?: () => void;
 }
 
+import { useLanguage } from "@/lib/i18n/context";
+
 export function AccountModal({
   open,
   onOpenChange,
   accountToEdit = null,
   onSuccess,
 }: AccountModalProps) {
+  const { t } = useLanguage();
   const isEdit = !!accountToEdit;
 
   const [name, setName] = useState("");
@@ -138,10 +141,10 @@ export function AccountModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[460px] font-sans rounded-3xl border border-border bg-background p-6 shadow-2xl transition-all">
+      <DialogContent className="sm:max-w-[480px] rounded-3xl p-6 font-sans">
         <DialogHeader>
-          <DialogTitle className="font-heading text-lg font-semibold text-foreground">
-            {isEdit ? "Edit Rekening / Akun" : "Tambah Rekening Baru"}
+          <DialogTitle className="text-xl font-bold text-foreground">
+            {isEdit ? t.accountModal.editTitle : t.accountModal.addTitle}
           </DialogTitle>
         </DialogHeader>
 
@@ -149,15 +152,16 @@ export function AccountModal({
           {/* NAMA AKUN */}
           <div className="space-y-1.5">
             <Label htmlFor="account-name" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Nama Akun / Rekening
+              {t.accountModal.nameLabel}
             </Label>
             <Input
               id="account-name"
-              placeholder="Contoh: BCA Personal, Gopay Utama"
+              placeholder={t.accountModal.namePlaceholder}
               value={name}
               onChange={(e) => setName(e.target.value)}
               className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
               disabled={loading}
+              autoFocus
             />
           </div>
 
@@ -165,29 +169,29 @@ export function AccountModal({
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-1.5">
               <Label htmlFor="account-type" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Tipe
+                {t.accountModal.typeLabel}
               </Label>
               <Select
                 value={type}
-                onValueChange={(val) => setType(val as Account["type"])}
+                onValueChange={(val: any) => setType(val)}
                 disabled={loading}
               >
                 <SelectTrigger id="account-type" className="rounded-2xl border-2 border-border focus:ring-0">
-                  <SelectValue placeholder="Pilih Tipe" />
+                  <SelectValue placeholder={t.accountModal.typeLabel} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="bank">Bank / Rekening</SelectItem>
-                  <SelectItem value="ewallet">E-Wallet / Dompet Digital</SelectItem>
-                  <SelectItem value="cash">Uang Tunai</SelectItem>
-                  <SelectItem value="investment">Investasi</SelectItem>
-                  <SelectItem value="other">Lainnya</SelectItem>
+                  <SelectItem value="bank">Bank</SelectItem>
+                  <SelectItem value="ewallet">E-Wallet</SelectItem>
+                  <SelectItem value="cash">Cash</SelectItem>
+                  <SelectItem value="investment">Investment</SelectItem>
+                  <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
             </div>
 
             <div className="space-y-1.5">
               <Label htmlFor="account-currency" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Mata Uang
+                {t.accountModal.currencyLabel}
               </Label>
               <Select
                 value={currency}
@@ -195,7 +199,7 @@ export function AccountModal({
                 disabled={loading}
               >
                 <SelectTrigger id="account-currency" className="rounded-2xl border-2 border-border focus:ring-0">
-                  <SelectValue placeholder="Pilih Mata Uang" />
+                  <SelectValue placeholder={t.accountModal.currencyLabel} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="IDR">Rupiah (IDR)</SelectItem>
@@ -211,11 +215,11 @@ export function AccountModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label htmlFor="account-institution" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Nama Institusi
+                  {t.accountModal.institutionLabel}
                 </Label>
                 <Input
                   id="account-institution"
-                  placeholder="Contoh: BCA, Bank Mandiri, Gojek"
+                  placeholder={t.accountModal.institutionPlaceholder}
                   value={institution}
                   onChange={(e) => setInstitution(e.target.value)}
                   className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
@@ -225,11 +229,11 @@ export function AccountModal({
 
               <div className="space-y-1.5">
                 <Label htmlFor="account-number" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Nomor Rekening / ID
+                  {t.accountModal.accountNumberLabel}
                 </Label>
                 <Input
                   id="account-number"
-                  placeholder="Opsional"
+                  placeholder={t.accountModal.accountNumberPlaceholder}
                   value={accountNumber}
                   onChange={(e) => setAccountNumber(e.target.value)}
                   className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
@@ -243,7 +247,7 @@ export function AccountModal({
           {!isEdit && (
             <div className="space-y-1.5">
               <Label htmlFor="account-balance" className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                Saldo Awal
+                {t.accountModal.balanceLabel}
               </Label>
               <div className="relative">
                 <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">
@@ -270,7 +274,7 @@ export function AccountModal({
           {/* PILIHAN WARNA KARTU */}
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Warna Kartu Rekening
+              {t.accountModal.colorLabel}
             </Label>
             <div className="flex flex-wrap gap-2.5 pt-1">
               {ACCOUNT_COLORS.map((col) => (
@@ -290,7 +294,7 @@ export function AccountModal({
           {/* PILIHAN IKON */}
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Ikon Rekening
+              {t.accountModal.iconLabel}
             </Label>
             <div className="flex flex-wrap gap-2.5 pt-1">
               {ACCOUNT_ICONS.map((item) => {
@@ -301,10 +305,10 @@ export function AccountModal({
                     key={item.name}
                     type="button"
                     onClick={() => setIcon(item.name)}
-                    className={`size-10 rounded-2xl cursor-pointer border-2 transition-all flex items-center justify-center ${
+                    className={`size-9 rounded-xl flex items-center justify-center border cursor-pointer transition-all ${
                       isSelected
-                        ? "border-primary bg-primary/10 text-primary shadow-sm"
-                        : "border-border hover:border-muted-foreground text-muted-foreground"
+                        ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                        : "bg-muted/50 border-border text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     <IconComponent className="size-4.5" />
@@ -314,22 +318,24 @@ export function AccountModal({
             </div>
           </div>
 
-          <DialogFooter className="pt-3">
+          <DialogFooter className="pt-4 flex gap-2 sm:justify-end">
             <Button
               type="button"
               variant="outline"
               onClick={() => onOpenChange(false)}
-              className="rounded-2xl"
               disabled={loading}
+              className="rounded-2xl border-2 cursor-pointer"
             >
-              Batal
+              {t.accountModal.cancel}
             </Button>
             <Button
               type="submit"
-              className="rounded-2xl"
               disabled={loading}
+              className="rounded-2xl cursor-pointer"
             >
-              {loading ? "Menyimpan..." : isEdit ? "Simpan Perubahan" : "Buat Akun"}
+              {loading
+                ? (isEdit ? t.settings.saveChanges : t.accountModal.submitAdd)
+                : (isEdit ? t.accountModal.submitEdit : t.accountModal.submitAdd)}
             </Button>
           </DialogFooter>
         </form>
