@@ -1,13 +1,21 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { LogOut } from "lucide-react";
+import { LogOut, RotateCcw, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { useRouter } from "next/navigation";
 import { ThemeToggleCompact } from "@/components/layout/theme-toggle-compact";
 import { useLanguage } from "@/lib/i18n/context";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
+import { resetAllUserData, deleteUserAccount } from "@/lib/settings/actions";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function SettingsPage() {
   const router = useRouter();
@@ -16,6 +24,10 @@ export default function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const [userEmail, setUserEmail] = useState("");
   const [fullName, setFullName] = useState("");
+
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [isDeleteAccountConfirmOpen, setIsDeleteAccountConfirmOpen] = useState(false);
+  const [actionLoading, setActionLoading] = useState(false);
 
   useEffect(() => {
     async function loadUserData() {
@@ -58,6 +70,31 @@ export default function SettingsPage() {
     const supabase = createClient();
     await supabase.auth.signOut();
     window.location.href = "/";
+  };
+
+  const handleConfirmReset = async () => {
+    setActionLoading(true);
+    const res = await resetAllUserData();
+    setActionLoading(false);
+    setIsResetConfirmOpen(false);
+
+    if ("error" in res) {
+      toast.error(res.error);
+    } else {
+      toast.success("Seluruh data transaksi dan akun berhasil direset!");
+      router.push("/dashboard");
+    }
+  };
+
+  const handleConfirmDeleteAccount = async () => {
+    setActionLoading(true);
+    const res = await deleteUserAccount();
+    setActionLoading(false);
+    setIsDeleteAccountConfirmOpen(false);
+
+    if (res && "error" in res) {
+      toast.error(res.error);
+    }
   };
 
   const userInitial = (fullName || userEmail || "U").charAt(0).toUpperCase();
@@ -185,22 +222,115 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        {/* Sesi Keluar (Log out) - Zona Bahaya */}
-        <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/20 rounded-3xl p-6 sm:p-8 shadow-sm">
-          <h2 className="text-lg font-bold text-rose-600 dark:text-rose-400 mb-2">{t.settings.dangerZone}</h2>
-          <p className="text-rose-600/70 dark:text-rose-400/70 text-sm mb-5">
-            {t.settings.dangerDesc}
-          </p>
-          <button
-            onClick={handleLogout}
-            disabled={loading}
-            className="flex items-center gap-2 px-6 py-3 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-sm font-semibold shadow-sm shadow-rose-500/20 transition-all cursor-pointer"
-          >
-            <LogOut className="size-4" />
-            {loading ? t.settings.loggingOut : t.settings.logout}
-          </button>
+        {/* Zona Bahaya (Danger Zone) - Keluar, Reset Data, & Hapus Akun */}
+        <div className="bg-rose-50 dark:bg-rose-500/5 border border-rose-100 dark:border-rose-500/20 rounded-3xl p-6 sm:p-8 shadow-sm space-y-5">
+          <div>
+            <h2 className="text-lg font-bold text-rose-600 dark:text-rose-400 mb-1">{t.settings.dangerZone}</h2>
+            <p className="text-rose-600/70 dark:text-rose-400/70 text-sm">
+              {t.settings.dangerDesc}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 pt-2">
+            <button
+              onClick={handleLogout}
+              disabled={loading || actionLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm shadow-rose-500/20 transition-all cursor-pointer"
+            >
+              <LogOut className="size-4" />
+              {loading ? t.settings.loggingOut : t.settings.logout}
+            </button>
+
+            <button
+              onClick={() => setIsResetConfirmOpen(true)}
+              disabled={loading || actionLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-amber-500 hover:bg-amber-600 text-white rounded-xl text-xs font-bold shadow-sm shadow-amber-500/20 transition-all cursor-pointer"
+            >
+              <RotateCcw className="size-4" />
+              {language === "ja" ? "全データリセット (Reset Data)" : language === "en" ? "Reset All Data" : "Reset Pabrik (Kosongkan Data)"}
+            </button>
+
+            <button
+              onClick={() => setIsDeleteAccountConfirmOpen(true)}
+              disabled={loading || actionLoading}
+              className="flex items-center gap-2 px-5 py-2.5 bg-zinc-900 dark:bg-rose-950 text-rose-400 border border-rose-500/40 hover:bg-black text-xs font-bold rounded-xl shadow-sm transition-all cursor-pointer"
+            >
+              <Trash2 className="size-4 text-rose-400" />
+              {language === "ja" ? "アカウントを永久削除 (Delete Account)" : language === "en" ? "Delete Account Permanently" : "Hapus Akun Permanen"}
+            </button>
+          </div>
         </div>
       </div>
+
+      {/* DIALOG CONFIRMATION: RESET ALL DATA */}
+      <Dialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[420px] rounded-3xl font-sans p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-extrabold text-amber-600 flex items-center gap-2">
+              <RotateCcw className="size-5" />
+              {language === "ja" ? "全データリセットの確認" : language === "en" ? "Confirm Reset All Data" : "Konfirmasi Reset Pabrik"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "ja"
+              ? "すべての取引履歴、口座、予算、目標、負債データが削除されます。この操作は取り消せません。"
+              : language === "en"
+              ? "Are you sure you want to erase all transactions, accounts, budgets, and debt records? This action cannot be undone."
+              : "Apakah Anda yakin ingin menghapus seluruh histori transaksi, rekening, anggaran, dan catatan hutang? Tindakan ini tidak dapat dibatalkan."}
+          </p>
+          <DialogFooter className="gap-2 pt-3">
+            <button
+              onClick={() => setIsResetConfirmOpen(false)}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-xl text-xs font-bold border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            >
+              {language === "ja" ? "キャンセル" : language === "en" ? "Cancel" : "Batal"}
+            </button>
+            <button
+              onClick={handleConfirmReset}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-amber-500 hover:bg-amber-600 text-white shadow-sm transition"
+            >
+              {actionLoading ? "Resetting..." : language === "ja" ? "リセット実行" : language === "en" ? "Yes, Reset All" : "Ya, Reset Semua Data"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* DIALOG CONFIRMATION: DELETE ACCOUNT PERMANENTLY */}
+      <Dialog open={isDeleteAccountConfirmOpen} onOpenChange={setIsDeleteAccountConfirmOpen}>
+        <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[420px] rounded-3xl font-sans p-6">
+          <DialogHeader>
+            <DialogTitle className="text-lg font-extrabold text-rose-600 flex items-center gap-2">
+              <Trash2 className="size-5" />
+              {language === "ja" ? "アカウント永久削除の確認" : language === "en" ? "Confirm Permanent Account Deletion" : "Konfirmasi Hapus Akun Permanen"}
+            </DialogTitle>
+          </DialogHeader>
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            {language === "ja"
+              ? "アカウントとすべての関連データがSupabaseデータベースから永久に削除されます。復元はできません。"
+              : language === "en"
+              ? "Your account and all associated data will be permanently deleted from the database. You cannot restore this account."
+              : "Akun Anda beserta seluruh data di database Supabase akan dihapus secara permanen. Anda tidak akan dapat memulihkan akun ini lagi."}
+          </p>
+          <DialogFooter className="gap-2 pt-3">
+            <button
+              onClick={() => setIsDeleteAccountConfirmOpen(false)}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-xl text-xs font-bold border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 transition"
+            >
+              {language === "ja" ? "キャンセル" : language === "en" ? "Cancel" : "Batal"}
+            </button>
+            <button
+              onClick={handleConfirmDeleteAccount}
+              disabled={actionLoading}
+              className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white shadow-sm transition"
+            >
+              {actionLoading ? "Deleting..." : language === "ja" ? "アカウントを削除" : language === "en" ? "Delete My Account" : "Ya, Hapus Akun Saya"}
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

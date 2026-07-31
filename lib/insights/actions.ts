@@ -222,11 +222,19 @@ export async function getInsightsData(
 
   // 7. Health Score Calculation
   let healthScore = 70;
-  if (savingsRate >= 40) healthScore = 95;
-  else if (savingsRate >= 20) healthScore = 80;
-  else if (savingsRate >= 10) healthScore = 65;
-  else if (savingsRate > 0) healthScore = 50;
-  else healthScore = 30;
+  if (totalExpense === 0 && totalIncome === 0) {
+    healthScore = 80; // Clean/Reset initial state
+  } else if (savingsRate >= 40) {
+    healthScore = 95;
+  } else if (savingsRate >= 20) {
+    healthScore = 80;
+  } else if (savingsRate >= 10) {
+    healthScore = 65;
+  } else if (savingsRate > 0) {
+    healthScore = 50;
+  } else {
+    healthScore = 30;
+  }
 
   let healthStatus: FinancialInsightsData["healthStatus"] = "GOOD";
   if (healthScore >= 85) healthStatus = "EXCELLENT";

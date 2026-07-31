@@ -279,7 +279,7 @@ export function TransactionModal({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[480px] font-sans rounded-3xl border border-border bg-background p-6 shadow-2xl transition-all">
+      <DialogContent className="w-[calc(100vw-1.5rem)] sm:max-w-[480px] font-sans rounded-3xl border border-border bg-background p-4 sm:p-6 shadow-2xl">
         <DialogHeader>
           <DialogTitle className="font-heading text-lg font-semibold text-foreground">
             {isEdit ? t.transactionModal.editTitle : t.transactionModal.addTitle}

@@ -383,18 +383,18 @@ export function AppSidebar({
       </aside>
 
       {/* MOBILE BOTTOM NAVIGATION BAR */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-slate-200/60 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 p-2 backdrop-blur-xl md:hidden font-sans">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-between border-t border-slate-200/60 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 px-1 py-2 backdrop-blur-xl md:hidden font-sans">
         {MOBILE_PRIMARY_NAV.map(({ label, href, icon: Icon }) => {
           const isActive = pathname === href || pathname?.startsWith(`${href}/`);
           const translatedLabel =
             href === "/dashboard"
-              ? t.nav.dashboard
+              ? "Dashboard"
               : href === "/accounts"
-              ? t.nav.accounts
+              ? (language === "ja" ? "口座" : language === "en" ? "Accounts" : "Rekening")
               : href === "/transactions"
-              ? t.nav.transactions
+              ? (language === "ja" ? "履歴" : language === "en" ? "History" : "Riwayat")
               : href === "/insights"
-              ? t.nav.insights
+              ? (language === "ja" ? "分析" : language === "en" ? "Insights" : "Analisis")
               : label;
 
           return (
@@ -405,23 +405,23 @@ export function AppSidebar({
               id={href === "/accounts" ? "tour-accounts-link" : undefined}
               data-tour={label.toLowerCase()}
               className={cn(
-                "flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-all min-h-[44px] justify-center",
+                "w-1/5 shrink-0 flex flex-col items-center gap-1 rounded-xl py-1 text-[10px] font-semibold transition-colors min-h-[44px] justify-center text-center",
                 isActive
                   ? "text-[#4f46e5] font-bold"
                   : "text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white"
               )}
             >
-              <Icon className={cn("size-5", isActive && "text-[#4f46e5]")} />
-              <span>{translatedLabel}</span>
+              <Icon className={cn("size-5 shrink-0", isActive && "text-[#4f46e5]")} />
+              <span className="truncate w-full px-0.5">{translatedLabel}</span>
             </Link>
           );
         })}
 
         {/* Menu "Lainnya" untuk item navigasi tersisa di HP */}
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white outline-none min-h-[44px] justify-center cursor-pointer">
-            <MoreHorizontal className="size-5" />
-            <span>{language === "ja" ? "その他" : language === "en" ? "More" : "Lainnya"}</span>
+          <DropdownMenuTrigger className="w-1/5 shrink-0 flex flex-col items-center gap-1 rounded-xl py-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white outline-none min-h-[44px] justify-center cursor-pointer text-center">
+            <MoreHorizontal className="size-5 shrink-0" />
+            <span className="truncate w-full px-0.5">{language === "ja" ? "その他" : language === "en" ? "More" : "Lainnya"}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl p-1 mb-2 font-sans">
             {MOBILE_SECONDARY_NAV.map(({ label, href, icon: Icon }) => {

@@ -16,7 +16,8 @@ import {
   ArrowRightLeft,
   Calendar,
   AlertCircle,
-  HelpCircle
+  HelpCircle,
+  ChevronDown
 } from "lucide-react";
 import { formatCurrency } from "@/lib/format-currency";
 import { Button } from "@/components/ui/button";
@@ -329,14 +330,17 @@ export function DashboardClientPage({
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs font-semibold text-zinc-400">{t.dashboard.year}:</span>
-              <select
-                value={selectedYear}
-                onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
-                className="px-3 py-1.5 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-bold bg-background text-foreground outline-none cursor-pointer"
-              >
-                <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
-                <option value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</option>
-              </select>
+              <div className="relative inline-flex items-center">
+                <select
+                  value={selectedYear}
+                  onChange={(e) => setSelectedYear(parseInt(e.target.value, 10))}
+                  className="appearance-none pl-3.5 pr-7 py-1 rounded-xl border border-zinc-200 dark:border-zinc-800 text-xs font-extrabold bg-background text-foreground outline-none cursor-pointer text-center"
+                >
+                  <option value={new Date().getFullYear()}>{new Date().getFullYear()}</option>
+                  <option value={new Date().getFullYear() - 1}>{new Date().getFullYear() - 1}</option>
+                </select>
+                <ChevronDown className="size-3.5 absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400 pointer-events-none" />
+              </div>
             </div>
           </div>
 
