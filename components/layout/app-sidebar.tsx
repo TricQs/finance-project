@@ -14,7 +14,8 @@ import {
   MoreHorizontal,
   PanelLeftClose,
   PanelLeft,
-  Search
+  Search,
+  ArrowRightLeft
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -63,6 +64,7 @@ type MenuItem = {
 // Menu Items (Sesuai 21st.dev: Dashboard = LayoutGrid, Updates = Clock, Insights = SlidersHorizontal, Message = MessageSquare, Customers = Users)
 const MENU_ITEMS: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
+  { label: "Transactions", href: "/transactions", icon: ArrowRightLeft },
   { label: "Updates", href: "/updates", icon: Clock },
   { label: "Insights", href: "/insights", icon: SlidersHorizontal },
   { label: "Message", href: "/messages", icon: MessageSquare, badge: "24" },
@@ -77,9 +79,9 @@ const STORE_ITEMS: MenuItem[] = [
 
 const MOBILE_PRIMARY_NAV = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
+  { label: "Transactions", href: "/transactions", icon: ArrowRightLeft },
   { label: "Updates", href: "/updates", icon: Clock },
   { label: "Insights", href: "/insights", icon: SlidersHorizontal },
-  { label: "Message", href: "/messages", icon: MessageSquare },
 ] as const;
 
 const MOBILE_SECONDARY_NAV = [
