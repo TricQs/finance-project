@@ -25,7 +25,7 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
   return (
     <div className={`flex items-center ${config.gap} select-none ${className}`}>
       <div 
-        className="relative rounded-2xl overflow-hidden shadow-md border border-emerald-500/20 shrink-0 bg-zinc-950 flex items-center justify-center transition-transform hover:scale-105"
+        className="relative rounded-full overflow-hidden shadow-md border border-emerald-500/20 shrink-0 bg-zinc-950 flex items-center justify-center transition-transform hover:scale-105"
         style={{
           width: config.img,
           height: config.img,
@@ -36,7 +36,7 @@ export function Logo({ size = "md", showText = true, className = "" }: LogoProps
           alt="Uangku Logo"
           width={config.img}
           height={config.img}
-          className="object-cover size-full"
+          className="object-cover size-full rounded-full"
           priority
         />
       </div>

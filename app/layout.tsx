@@ -33,7 +33,10 @@ export const metadata: Metadata = {
   description:
     "Aplikasi manajemen keuangan pribadi. Catat pemasukan, pengeluaran, tabungan, dan investasi.",
   icons: {
-    icon: "/finance_logo.png",
+    icon: [
+      { url: "/finance_logo.png", type: "image/png" },
+      { url: "/favicon.ico", sizes: "any" },
+    ],
     shortcut: "/finance_logo.png",
     apple: "/finance_logo.png",
   },

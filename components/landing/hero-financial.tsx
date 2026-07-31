@@ -25,7 +25,7 @@ export function HeroFinancial() {
               alt="Uangku Logo"
               width={28}
               height={28}
-              className="rounded-lg shrink-0"
+              className="rounded-full shrink-0"
               priority
             />
             <span className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white font-sans">
