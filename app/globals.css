@@ -111,11 +111,8 @@ body, input, button, select, textarea, h1, h2, h3, h4, h5, h6, p, a, span {
 
 .animate-page-entrance {
   opacity: 0;
-  filter: blur(14px);
-  transform: translateZ(0);
-  backface-visibility: hidden;
-  will-change: opacity, transform, filter;
-  animation: blurFadeUp 0.35s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  will-change: opacity;
+  animation: pureFadeIn 0.12s ease-out forwards;
 }
 
 .animate-element {

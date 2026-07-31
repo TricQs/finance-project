@@ -1,197 +1,201 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
-import type { Budget } from "@/types";
+import { revalidatePath } from "next/cache";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+export interface BudgetCategoryItem {
+  id: string;
+  category: string;
+  amount: number; // Limit anggaran
+  spent: number; // Akumulasi pengeluaran bulan ini
+  remaining: number; // Sisa anggaran (amount - spent)
+  percentage: number; // Persentase (spent / amount * 100)
+  status: "SAFE" | "WARNING" | "EXCEEDED";
+  color: string;
+}
 
-export type UnifiedBudget = Budget & {
-  spent: number;
+export interface BudgetsSummary {
+  totalBudget: number;
+  totalSpent: number;
+  totalRemaining: number;
+  overallPercentage: number;
+  budgets: BudgetCategoryItem[];
+}
+
+export type ActionResult<T> = { success: T } | { error: string };
+
+const CATEGORY_COLORS: Record<string, string> = {
+  "Makanan & Minuman": "#f59e0b",
+  "Transportasi": "#3b82f6",
+  "Belanja": "#ec4899",
+  "Hiburan": "#8b5cf6",
+  "Tagihan & Utilitas": "#ef4444",
+  "Pendidikan": "#10b981",
+  "Kesehatan": "#06b6d4",
+  "Pajak & Finansial": "#64748b",
+  "Lainnya": "#a1a1aa",
 };
 
-export async function getBudgets(month: number, year: number): Promise<UnifiedBudget[]> {
+export async function getBudgets(): Promise<BudgetsSummary> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return [];
 
-  // 1. Ambil anggaran di bulan & tahun terpilih
-  const { data: budgetsData, error: budgetError } = await supabase
+  if (!user) {
+    return {
+      totalBudget: 0,
+      totalSpent: 0,
+      totalRemaining: 0,
+      overallPercentage: 0,
+      budgets: [],
+    };
+  }
+
+  // 1. Ambil daftar anggaran kategori
+  const { data: budgetRows, error: bError } = await supabase
     .from("budgets")
     .select("*")
     .eq("user_id", user.id)
-    .eq("month", month)
-    .eq("year", year);
+    .order("created_at", { ascending: true });
 
-  if (budgetError) {
-    console.error("Gagal mengambil anggaran:", budgetError.message);
-    return [];
+  if (bError || !budgetRows) {
+    console.error("Gagal mengambil data anggaran:", bError?.message);
+    return {
+      totalBudget: 0,
+      totalSpent: 0,
+      totalRemaining: 0,
+      overallPercentage: 0,
+      budgets: [],
+    };
   }
 
-  // 2. Ambil total pengeluaran aktual per kategori di bulan ini
-  const startStr = `${year}-${month.toString().padStart(2, "0")}-01`;
-  const end = new Date(year, month, 0); // Hari terakhir bulan tersebut
-  const endStr = `${year}-${month.toString().padStart(2, "0")}-${end.getDate().toString().padStart(2, "0")}`;
+  // 2. Hitung total pengeluaran per kategori untuk bulan berjalan ini
+  const now = new Date();
+  const firstDayOfMonth = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().split("T")[0];
 
-  const { data: expensesData, error: expenseError } = await supabase
+  const { data: expenses, error: eError } = await supabase
     .from("transactions")
-    .select("amount, category")
+    .select("category, amount")
     .eq("user_id", user.id)
     .eq("type", "expense")
-    .gte("date", startStr)
-    .lte("date", endStr)
+    .gte("date", firstDayOfMonth)
     .is("deleted_at", null);
 
-  if (expenseError) {
-    console.error("Gagal mengambil data pengeluaran anggaran:", expenseError.message);
+  const categorySpentMap: Record<string, number> = {};
+  if (expenses) {
+    expenses.forEach((tx) => {
+      categorySpentMap[tx.category] = (categorySpentMap[tx.category] || 0) + Number(tx.amount);
+    });
   }
 
-  // Hitung total pengeluaran per kategori
-  const expenseMap = new Map<string, number>();
-  expensesData?.forEach((ex) => {
-    const cur = expenseMap.get(ex.category) || 0;
-    expenseMap.set(ex.category, cur + Number(ex.amount));
+  // 3. Gabungkan data batas anggaran dengan realisasi pengeluaran
+  let totalBudget = 0;
+  let totalSpent = 0;
+
+  const budgets: BudgetCategoryItem[] = budgetRows.map((b) => {
+    const limit = Number(b.amount);
+    const spent = categorySpentMap[b.category] || 0;
+    const remaining = limit - spent;
+    const percentage = limit > 0 ? Math.round((spent / limit) * 100) : 0;
+
+    totalBudget += limit;
+    totalSpent += spent;
+
+    let status: BudgetCategoryItem["status"] = "SAFE";
+    if (percentage >= 100) {
+      status = "EXCEEDED";
+    } else if (percentage >= 70) {
+      status = "WARNING";
+    }
+
+    return {
+      id: b.id,
+      category: b.category,
+      amount: limit,
+      spent,
+      remaining,
+      percentage,
+      status,
+      color: CATEGORY_COLORS[b.category] || "#6366f1",
+    };
   });
 
-  // 3. Gabungkan anggaran dan jumlah pengeluarannya
-  return budgetsData.map((bg) => ({
-    ...bg,
-    spent: expenseMap.get(bg.category) || 0,
-  })) as UnifiedBudget[];
+  const totalRemaining = totalBudget - totalSpent;
+  const overallPercentage = totalBudget > 0 ? Math.round((totalSpent / totalBudget) * 100) : 0;
+
+  return {
+    totalBudget,
+    totalSpent,
+    totalRemaining,
+    overallPercentage,
+    budgets,
+  };
 }
 
-export async function createOrUpdateBudget(
+export async function upsertBudget(
   category: string,
-  amount: number,
-  period: "monthly" | "yearly",
-  month: number,
-  year: number
-): Promise<ActionResult<Budget>> {
+  amount: number
+): Promise<ActionResult<{ success: boolean }>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Pengguna tidak terautentikasi" };
 
-  // Upsert anggaran berdasarkan primary key unik (user_id, category, period, month, year)
-  const { data, error } = await supabase
+  if (!user) return { error: "Pengguna tidak terautentikasi" };
+  if (!category) return { error: "Kategori harus dipilih" };
+  if (amount <= 0) return { error: "Batas anggaran harus lebih dari 0" };
+
+  // Check if budget for category already exists for user
+  const { data: existing } = await supabase
     .from("budgets")
-    .upsert({
-      user_id: user.id,
-      category,
-      amount: Number(amount),
-      period,
-      month,
-      year,
-      updated_at: new Date().toISOString(),
-    }, {
-      onConflict: "user_id,category,period,month,year"
-    })
-    .select()
+    .select("id")
+    .eq("user_id", user.id)
+    .eq("category", category)
     .single();
+
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  let error;
+  if (existing) {
+    const { error: updateError } = await supabase
+      .from("budgets")
+      .update({ 
+        amount, 
+        period: "monthly",
+        year: currentYear,
+        month: currentMonth
+      })
+      .eq("id", existing.id);
+    error = updateError;
+  } else {
+    const { error: insertError } = await supabase
+      .from("budgets")
+      .insert([
+        {
+          user_id: user.id,
+          category,
+          amount,
+          period: "monthly",
+          year: currentYear,
+          month: currentMonth,
+        },
+      ]);
+    error = insertError;
+  }
 
   if (error) {
     console.error("Gagal menyimpan anggaran:", error.message);
-    return { error: "Gagal menyimpan limit anggaran." };
+    return { error: `Gagal menyimpan: ${error.message}` };
   }
 
-  revalidatePath("/budgets");
   revalidatePath("/dashboard");
-  return { success: data as Budget };
-}
-
-export async function copyPreviousMonthBudget(
-  currentMonth: number,
-  currentYear: number
-): Promise<ActionResult<UnifiedBudget[]>> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return { error: "Pengguna tidak terautentikasi" };
-
-  // Hitung bulan lalu
-  let prevMonth = currentMonth - 1;
-  let prevYear = currentYear;
-  if (prevMonth === 0) {
-    prevMonth = 12;
-    prevYear -= 1;
-  }
-
-  // Ambil anggaran bulan lalu
-  const { data: prevBudgets, error: fetchError } = await supabase
-    .from("budgets")
-    .select("*")
-    .eq("user_id", user.id)
-    .eq("month", prevMonth)
-    .eq("year", prevYear);
-
-  if (fetchError) {
-    console.error("Gagal mengambil anggaran bulan lalu:", fetchError.message);
-    return { error: "Gagal mengambil data anggaran bulan lalu." };
-  }
-
-  if (!prevBudgets || prevBudgets.length === 0) {
-    return { error: "Tidak ditemukan data anggaran pada bulan sebelumnya." };
-  }
-
-  // Salin ke bulan ini menggunakan upsert
-  const newBudgets = prevBudgets.map((bg) => ({
-    user_id: user.id,
-    category: bg.category,
-    amount: Number(bg.amount),
-    period: bg.period,
-    month: currentMonth,
-    year: currentYear,
-    updated_at: new Date().toISOString(),
-  }));
-
-  const { error: upsertError } = await supabase
-    .from("budgets")
-    .upsert(newBudgets, {
-      onConflict: "user_id,category,period,month,year"
-    });
-
-  if (upsertError) {
-    console.error("Gagal menyalin anggaran:", upsertError.message);
-    return { error: "Gagal menyimpan salinan anggaran." };
-  }
-
   revalidatePath("/budgets");
-  revalidatePath("/dashboard");
-  
-  const updatedBudgets = await getBudgets(currentMonth, currentYear);
-  return { success: updatedBudgets };
+  return { success: { success: true } };
 }
 
-export async function getSuggestedBudget(category: string): Promise<number> {
+export async function deleteBudget(id: string): Promise<ActionResult<{ success: boolean }>> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return 0;
 
-  // Hitung tanggal 90 hari yang lalu
-  const ninetyDaysAgo = new Date();
-  ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-  const ninetyDaysAgoStr = ninetyDaysAgo.toISOString().split("T")[0];
-
-  const { data, error } = await supabase
-    .from("transactions")
-    .select("amount")
-    .eq("user_id", user.id)
-    .eq("type", "expense")
-    .eq("category", category)
-    .gte("date", ninetyDaysAgoStr)
-    .is("deleted_at", null);
-
-  if (error) {
-    console.error("Gagal mengambil pengeluaran historis:", error.message);
-    return 0;
-  }
-
-  const totalSpent = data?.reduce((sum, tx) => sum + Number(tx.amount), 0) || 0;
-  // Bagi 3 untuk rata-rata bulanan
-  return Number((totalSpent / 3).toFixed(0));
-}
-
-export async function deleteBudget(id: string): Promise<ActionResult> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Pengguna tidak terautentikasi" };
 
   const { error } = await supabase
@@ -202,10 +206,10 @@ export async function deleteBudget(id: string): Promise<ActionResult> {
 
   if (error) {
     console.error("Gagal menghapus anggaran:", error.message);
-    return { error: "Gagal menghapus limit anggaran." };
+    return { error: "Gagal menghapus batas anggaran." };
   }
 
-  revalidatePath("/budgets");
   revalidatePath("/dashboard");
-  return { success: true };
+  revalidatePath("/budgets");
+  return { success: { success: true } };
 }

@@ -42,11 +42,20 @@ export async function createAccount(
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Pengguna tidak terautentikasi" };
 
+  const initialBalance = Number(data.balance) || 0;
+
   const { data: newAccount, error } = await supabase
     .from("accounts")
     .insert([
       {
-        ...data,
+        name: data.name,
+        type: data.type,
+        institution: data.institution || null,
+        account_number: data.account_number || null,
+        currency: data.currency || "IDR",
+        color: data.color,
+        icon: data.icon,
+        balance: initialBalance,
         user_id: user.id,
         is_active: true,
       },
@@ -57,28 +66,6 @@ export async function createAccount(
   if (error) {
     console.error("Gagal membuat akun:", error.message);
     return { error: "Gagal membuat akun baru." };
-  }
-
-  // Jika akun dibuat dengan saldo awal, catat sebagai transaksi khusus "Saldo Awal"
-  if (Number(data.balance) > 0) {
-    const { error: txError } = await supabase
-      .from("transactions")
-      .insert([
-        {
-          user_id: user.id,
-          account_id: newAccount.id,
-          type: "income",
-          amount: Number(data.balance),
-          category: "Saldo Awal",
-          description: `Saldo awal untuk akun ${data.name}`,
-          date: new Date().toISOString().split("T")[0],
-          is_recurring: false,
-        },
-      ]);
-
-    if (txError) {
-      console.error("Gagal mencatat transaksi saldo awal:", txError.message);
-    }
   }
 
   revalidatePath("/dashboard");
@@ -113,70 +100,73 @@ export async function updateAccount(
   return { success: updatedAccount as Account };
 }
 
-export async function deleteAccount(id: string): Promise<ActionResult<{ archived: boolean }>> {
+export async function deleteAccount(id: string): Promise<ActionResult<{ success: boolean }>> {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return { error: "Pengguna tidak terautentikasi" };
 
-  // 1. Cek apakah ada transaksi yang berkaitan dengan akun ini
-  const { count: txCount, error: txError } = await supabase
-    .from("transactions")
-    .select("*", { count: "exact", head: true })
-    .eq("account_id", id)
+  // Hard delete permanen langsung dari Database (Cascade delete transaksi terkait)
+  const { error: deleteError } = await supabase
+    .from("accounts")
+    .delete()
+    .eq("id", id)
     .eq("user_id", user.id);
 
-  if (txError) {
-    console.error("Gagal mengecek transaksi terkait akun:", txError.message);
-    return { error: "Terjadi kesalahan keamanan saat memeriksa keterkaitan transaksi." };
+  if (deleteError) {
+    console.error("Gagal menghapus akun permanen:", deleteError.message);
+    return { error: "Gagal menghapus akun secara permanen dari Database." };
   }
 
-  // 2. Cek apakah ada transfer yang menggunakan akun ini
-  const { data: transfers, error: tfError } = await supabase
-    .from("transfers")
-    .select("id")
-    .or(`from_account_id.eq.${id},to_account_id.eq.${id}`)
-    .eq("user_id", user.id)
-    .limit(1);
+  revalidatePath("/dashboard");
+  revalidatePath("/accounts");
+  return { success: true };
+}
 
-  if (tfError) {
-    console.error("Gagal mengecek transfer terkait akun:", tfError.message);
-    return { error: "Terjadi kesalahan saat memeriksa keterkaitan transfer." };
+export async function bulkDeleteAccounts(ids: string[]): Promise<ActionResult<{ success: boolean }>> {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Pengguna tidak terautentikasi" };
+
+  if (!ids || ids.length === 0) return { success: true };
+
+  const { error } = await supabase
+    .from("accounts")
+    .delete()
+    .in("id", ids)
+    .eq("user_id", user.id);
+
+  if (error) {
+    console.error("Gagal menghapus massal akun:", error.message);
+    return { error: "Gagal menghapus beberapa akun sekaligus." };
   }
 
-  const hasRelations = (txCount && txCount > 0) || (transfers && transfers.length > 0);
+  revalidatePath("/dashboard");
+  revalidatePath("/accounts");
+  return { success: true };
+}
 
-  if (hasRelations) {
-    // Soft delete (Arsipkan) jika ada histori keuangan
-    const { error: archiveError } = await supabase
-      .from("accounts")
-      .update({ is_active: false })
-      .eq("id", id)
-      .eq("user_id", user.id);
+export async function bulkArchiveAccounts(ids: string[], is_active: boolean): Promise<ActionResult<{ success: boolean }>> {
+  const supabase = await createClient();
 
-    if (archiveError) {
-      console.error("Gagal mengarsipkan akun:", archiveError.message);
-      return { error: "Gagal mengarsipkan akun." };
-    }
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Pengguna tidak terautentikasi" };
 
-    revalidatePath("/dashboard");
-    revalidatePath("/accounts");
-    return { success: { archived: true } };
-  } else {
-    // Hard delete permanen jika akun bersih dari histori keuangan
-    const { error: deleteError } = await supabase
-      .from("accounts")
-      .delete()
-      .eq("id", id)
-      .eq("user_id", user.id);
+  if (!ids || ids.length === 0) return { success: true };
 
-    if (deleteError) {
-      console.error("Gagal menghapus akun permanen:", deleteError.message);
-      return { error: "Gagal menghapus akun secara permanen." };
-    }
+  const { error } = await supabase
+    .from("accounts")
+    .update({ is_active })
+    .in("id", ids)
+    .eq("user_id", user.id);
 
-    revalidatePath("/dashboard");
-    revalidatePath("/accounts");
-    return { success: { archived: false } };
+  if (error) {
+    console.error("Gagal mengubah status arsip massal akun:", error.message);
+    return { error: "Gagal memperbarui status beberapa akun." };
   }
+
+  revalidatePath("/dashboard");
+  revalidatePath("/accounts");
+  return { success: true };
 }

@@ -132,17 +132,26 @@ AFTER INSERT ON public.transfers
 FOR EACH ROW
 EXECUTE FUNCTION update_account_balances_on_transfer();
 
--- 7. Add Storage Bucket for Receipts
-INSERT INTO storage.buckets (id, name, public) VALUES ('receipts', 'receipts', false)
-ON CONFLICT (id) DO NOTHING;
+-- 8. Create Budgets Table
+CREATE TABLE IF NOT EXISTS public.budgets (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL,
+    category TEXT NOT NULL,
+    amount NUMERIC NOT NULL,
+    period TEXT DEFAULT 'monthly',
+    year INT DEFAULT extract(year from current_date),
+    month INT DEFAULT extract(month from current_date),
+    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
+    CONSTRAINT unique_user_category_budget UNIQUE(user_id, category)
+);
 
--- Storage Policies for Receipts
-DROP POLICY IF EXISTS "Users can view own receipts" ON storage.objects;
-DROP POLICY IF EXISTS "Users can insert own receipts" ON storage.objects;
-DROP POLICY IF EXISTS "Users can update own receipts" ON storage.objects;
-DROP POLICY IF EXISTS "Users can delete own receipts" ON storage.objects;
+ALTER TABLE public.budgets ENABLE ROW LEVEL SECURITY;
+DROP POLICY IF EXISTS "Users can view own budgets" ON public.budgets;
+DROP POLICY IF EXISTS "Users can insert own budgets" ON public.budgets;
+DROP POLICY IF EXISTS "Users can update own budgets" ON public.budgets;
+DROP POLICY IF EXISTS "Users can delete own budgets" ON public.budgets;
 
-CREATE POLICY "Users can view own receipts" ON storage.objects FOR SELECT USING (bucket_id = 'receipts' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
-CREATE POLICY "Users can insert own receipts" ON storage.objects FOR INSERT WITH CHECK (bucket_id = 'receipts' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
-CREATE POLICY "Users can update own receipts" ON storage.objects FOR UPDATE USING (bucket_id = 'receipts' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
-CREATE POLICY "Users can delete own receipts" ON storage.objects FOR DELETE USING (bucket_id = 'receipts' AND auth.uid()::text = (string_to_array(name, '/'))[1]);
+CREATE POLICY "Users can view own budgets" ON public.budgets FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Users can insert own budgets" ON public.budgets FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "Users can update own budgets" ON public.budgets FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "Users can delete own budgets" ON public.budgets FOR DELETE USING (auth.uid() = user_id);

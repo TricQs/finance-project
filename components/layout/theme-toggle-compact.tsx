@@ -23,7 +23,7 @@ export function ThemeToggleCompact() {
       type="button"
       onClick={() => setTheme(isDark ? "light" : "dark")}
       aria-label={`Ubah ke tema ${isDark ? "terang" : "gelap"}`}
-      className="neu-raised-sm neu-interactive neu-transition flex size-10 shrink-0 items-center justify-center rounded-2xl text-muted-foreground hover:text-foreground"
+      className="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background text-muted-foreground hover:text-foreground transition-colors cursor-pointer shadow-xs"
     >
       {isDark ? <Sun className="size-4.5" /> : <Moon className="size-4.5" />}
     </button>

@@ -2,22 +2,11 @@ import { getBudgets } from "@/lib/budgets/actions";
 import { BudgetsClientPage } from "./budgets-client";
 
 export const metadata = {
-  title: "Anggaran Keuangan — Uangku",
-  description: "Atur limit anggaran pengeluaran bulanan Anda agar keuangan tetap sehat.",
+  title: "Anggaran Bulanan — Uangku",
+  description: "Tetapkan dan kontrol batas anggaran belanja bulanan per kategori.",
 };
 
 export default async function BudgetsPage() {
-  const now = new Date();
-  const currentMonth = now.getMonth() + 1; // 1-indexed
-  const currentYear = now.getFullYear();
-
-  const initialBudgets = await getBudgets(currentMonth, currentYear);
-
-  return (
-    <BudgetsClientPage 
-      initialBudgets={initialBudgets} 
-      initialMonth={currentMonth}
-      initialYear={currentYear}
-    />
-  );
+  const initialSummary = await getBudgets();
+  return <BudgetsClientPage initialSummary={initialSummary} />;
 }

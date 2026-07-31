@@ -15,7 +15,10 @@ import {
   PanelLeftClose,
   PanelLeft,
   Search,
-  ArrowRightLeft
+  ArrowRightLeft,
+  Wallet,
+  PiggyBank,
+  HelpCircle
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
@@ -29,27 +32,44 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Brand Logo Badges untuk Store (Amazon, Shopee, Walmart) persis seperti 21st.dev
-function AmazonIcon({ className }: { className?: string }) {
-  return (
-    <div className={cn("w-5 h-5 rounded-md bg-black text-white flex items-center justify-center font-bold text-[11px] leading-none shrink-0 shadow-xs select-none", className)}>
-      a
-    </div>
-  );
-}
-
+// Circular Authentic Brand Logo Badges untuk E-Commerce Indonesia (Shopee, Tokopedia, Blibli, Lazada)
 function ShopeeIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-5 h-5 rounded-md bg-[#ee4d2d] text-white flex items-center justify-center font-bold text-[11px] leading-none shrink-0 shadow-xs select-none", className)}>
-      S
+    <div className={cn("w-6 h-6 rounded-full bg-[#ee4d2d] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <line x1="3" y1="6" x2="21" y2="6"/>
+        <path d="M16 10a4 4 0 0 1-8 0"/>
+      </svg>
     </div>
   );
 }
 
-function WalmartIcon({ className }: { className?: string }) {
+function TokopediaIcon({ className }: { className?: string }) {
   return (
-    <div className={cn("w-5 h-5 rounded-md bg-[#0071dc] text-[#ffc220] flex items-center justify-center font-bold text-[12px] leading-none shrink-0 shadow-xs select-none", className)}>
-      ✳
+    <div className={cn("w-6 h-6 rounded-full bg-[#03ac0e] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" className="w-3.5 h-3.5">
+        <path d="M6 2L3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/>
+        <circle cx="12" cy="13" r="2.5"/>
+      </svg>
+    </div>
+  );
+}
+
+function BlibliIcon({ className }: { className?: string }) {
+  return (
+    <div className={cn("w-6 h-6 rounded-full bg-[#0095da] text-white flex items-center justify-center font-black text-[13px] leading-none shrink-0 shadow-xs select-none italic font-sans pl-0.5", className)}>
+      b
+    </div>
+  );
+}
+
+function LazadaIcon({ className }: { className?: string }) {
+  return (
+    <div className={cn("w-6 h-6 rounded-full bg-gradient-to-tr from-[#6b1b7f] to-[#e61376] text-white flex items-center justify-center shrink-0 shadow-xs select-none p-1", className)}>
+      <svg viewBox="0 0 24 24" fill="currentColor" className="w-3.5 h-3.5">
+        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+      </svg>
     </div>
   );
 }
@@ -64,31 +84,32 @@ type MenuItem = {
 // Menu Items (Sesuai 21st.dev: Dashboard = LayoutGrid, Updates = Clock, Insights = SlidersHorizontal, Message = MessageSquare, Customers = Users)
 const MENU_ITEMS: MenuItem[] = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
+  { label: "Accounts", href: "/accounts", icon: Wallet },
   { label: "Transactions", href: "/transactions", icon: ArrowRightLeft },
-  { label: "Updates", href: "/updates", icon: Clock },
   { label: "Insights", href: "/insights", icon: SlidersHorizontal },
-  { label: "Message", href: "/messages", icon: MessageSquare, badge: "24" },
-  { label: "Customers", href: "/customers", icon: Users },
+  { label: "Budgets", href: "/budgets", icon: PiggyBank },
 ];
 
 const STORE_ITEMS: MenuItem[] = [
-  { label: "Amazon", href: "/store/amazon", icon: AmazonIcon },
   { label: "Shopee", href: "/store/shopee", icon: ShopeeIcon },
-  { label: "Walmart", href: "/store/walmart", icon: WalmartIcon },
+  { label: "Tokopedia", href: "/store/tokopedia", icon: TokopediaIcon },
+  { label: "Blibli", href: "/store/blibli", icon: BlibliIcon },
+  { label: "Lazada", href: "/store/lazada", icon: LazadaIcon },
 ];
 
 const MOBILE_PRIMARY_NAV = [
   { label: "Dashboard", href: "/dashboard", icon: LayoutGrid },
+  { label: "Accounts", href: "/accounts", icon: Wallet },
   { label: "Transactions", href: "/transactions", icon: ArrowRightLeft },
-  { label: "Updates", href: "/updates", icon: Clock },
   { label: "Insights", href: "/insights", icon: SlidersHorizontal },
 ] as const;
 
 const MOBILE_SECONDARY_NAV = [
   { label: "Customers", href: "/customers", icon: Users },
-  { label: "Amazon", href: "/store/amazon", icon: AmazonIcon },
   { label: "Shopee", href: "/store/shopee", icon: ShopeeIcon },
-  { label: "Walmart", href: "/store/walmart", icon: WalmartIcon },
+  { label: "Tokopedia", href: "/store/tokopedia", icon: TokopediaIcon },
+  { label: "Blibli", href: "/store/blibli", icon: BlibliIcon },
+  { label: "Lazada", href: "/store/lazada", icon: LazadaIcon },
   { label: "Pengaturan", href: "/settings", icon: Settings },
 ] as const;
 
@@ -150,11 +171,11 @@ export function AppSidebar({
                   title="Klik untuk Buka Sidebar"
                   className="relative group flex items-center justify-center p-1 rounded-full hover:scale-105 transition-all cursor-pointer"
                 >
-                  <div className="w-10 h-10 rounded-full border-2 border-[#c9901a] bg-[#f5ecd0] flex items-center justify-center shadow-md group-hover:border-indigo-500 group-hover:bg-indigo-50 dark:group-hover:bg-indigo-950 transition-all">
+                  <div className="size-10 rounded-2xl flex items-center justify-center transition-all">
                     {logoHovered ? (
-                      <PanelLeft className="size-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
+                      <PanelLeft className="size-5 text-emerald-500 animate-pulse" />
                     ) : (
-                      <span className="font-serif font-bold text-[#b8860b] text-base">U</span>
+                      <Logo size="sm" showText={false} />
                     )}
                   </div>
                 </button>
@@ -196,7 +217,7 @@ export function AppSidebar({
           </div>
 
           {/* Row 4: MENU Nav Items List dengan Icon 21st.dev & Active Styling Soft Indigo Pill */}
-          <nav className="flex flex-col gap-1">
+          <nav id="tour-sidebar-nav" className="flex flex-col gap-1">
             {MENU_ITEMS.map(({ label, href, icon: Icon, badge }) => {
               const isActive =
                 pathname === href || pathname?.startsWith(`${href}/`);
@@ -205,6 +226,8 @@ export function AppSidebar({
                 <Link
                   key={href}
                   href={href}
+                  prefetch={true}
+                  data-tour={label.toLowerCase()}
                   title={isCollapsed ? label : undefined}
                   className={cn(
                     "flex items-center justify-between rounded-2xl text-sm font-medium transition-all cursor-pointer",
@@ -270,6 +293,7 @@ export function AppSidebar({
         <div className="flex flex-col gap-2 pt-3 border-t-2 border-slate-200 dark:border-zinc-800 shrink-0">
           <Link
             href="/settings"
+            prefetch={true}
             title={isCollapsed ? "Pengaturan" : undefined}
             className={cn(
               "flex items-center gap-3 rounded-2xl text-sm font-medium transition-all cursor-pointer",
@@ -308,9 +332,11 @@ export function AppSidebar({
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align={isCollapsed ? "center" : "start"} side="top" className="w-56 rounded-2xl font-sans">
-              <DropdownMenuItem className="cursor-pointer">
-                <Settings className="size-4 mr-2" />
-                Profil & Pengaturan
+              <DropdownMenuItem className="p-0 rounded-xl cursor-pointer" asChild>
+                <Link href="/settings" prefetch={true} className="flex items-center w-full px-2 py-1.5 text-sm font-medium">
+                  <Settings className="size-4 mr-2" />
+                  <span>Profil & Pengaturan</span>
+                </Link>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -339,6 +365,8 @@ export function AppSidebar({
             <Link
               key={href}
               href={href}
+              prefetch={true}
+              data-tour={label.toLowerCase()}
               className={cn(
                 "flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold transition-all min-h-[44px] justify-center",
                 isActive

@@ -1,19 +1,19 @@
 "use client";
 
 import { useState } from "react";
-import { 
-  Wallet, 
-  CreditCard, 
-  Banknote, 
-  PiggyBank, 
-  Briefcase, 
-  Coins, 
-  Building2, 
-  Plus, 
-  MoreVertical, 
-  Edit2, 
-  Archive, 
-  Trash2, 
+import {
+  Wallet,
+  CreditCard,
+  Banknote,
+  PiggyBank,
+  Briefcase,
+  Coins,
+  Building2,
+  Plus,
+  MoreVertical,
+  Edit2,
+  Archive,
+  Trash2,
   ArrowLeftRight,
   Eye,
   Info
@@ -21,20 +21,28 @@ import {
 import { formatCurrency } from "@/lib/format-currency";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { 
-  DropdownMenu, 
-  DropdownMenuContent, 
-  DropdownMenuItem, 
-  DropdownMenuTrigger 
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
 } from "@/components/ui/dropdown-menu";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { AccountModal } from "@/components/accounts/account-modal";
-import { getAccounts, deleteAccount, updateAccount } from "@/lib/accounts/actions";
+import { ConfirmModal } from "@/components/ui/confirm-modal";
+import { BulkActionsBar } from "@/components/transactions/bulk-actions-bar";
+import {
+  getAccounts,
+  deleteAccount,
+  updateAccount,
+  bulkDeleteAccounts,
+  bulkArchiveAccounts
+} from "@/lib/accounts/actions";
 import { getTransactions, UnifiedTransaction } from "@/lib/transactions/actions";
 import { toast } from "sonner";
 import { motion } from "framer-motion";
@@ -57,7 +65,7 @@ interface AccountsClientPageProps {
 export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps) {
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [showArchived, setShowArchived] = useState(false);
-  
+
   // Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [accountToEdit, setAccountToEdit] = useState<Account | null>(null);
@@ -72,12 +80,37 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
     .filter(acc => acc.is_active)
     .reduce((sum, acc) => sum + Number(acc.balance), 0);
 
-  // Filter akun sesuai dengan opsi arsip
-  const displayedAccounts = accounts.filter(acc => showArchived ? true : acc.is_active);
+  // Filter akun: Jika showArchived true -> Tampilkan HANYA akun diarsip (!is_active). Jika false -> Tampilkan HANYA akun aktif (is_active).
+  const displayedAccounts = accounts.filter(acc => showArchived ? !acc.is_active : acc.is_active);
+
+  // Checkbox selection states
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkLoading, setBulkLoading] = useState(false);
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
+
+  const allIdsOnPage = displayedAccounts.map((a) => a.id);
+  const isAllSelected = allIdsOnPage.length > 0 && allIdsOnPage.every((id) => selectedIds.includes(id));
+
+  function handleSelectAll(checked: boolean) {
+    if (checked) {
+      setSelectedIds(allIdsOnPage);
+    } else {
+      setSelectedIds([]);
+    }
+  }
+
+  function handleSelectRow(id: string, checked: boolean) {
+    if (checked) {
+      setSelectedIds((prev) => [...prev, id]);
+    } else {
+      setSelectedIds((prev) => prev.filter((item) => item !== id));
+    }
+  }
 
   async function refreshAccounts() {
     const data = await getAccounts(true);
     setAccounts(data);
+    setSelectedIds([]);
   }
 
   // Handle edit klik
@@ -98,19 +131,42 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
     }
   }
 
-  // Handle hapus rekening
-  async function handleDelete(acc: Account) {
-    if (!confirm(`Apakah Anda yakin ingin menghapus akun ${acc.name}?`)) return;
+  // Delete modal state
+  const [accountToDelete, setAccountToDelete] = useState<Account | null>(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
 
-    const res = await deleteAccount(acc.id);
+  // Handle hapus rekening
+  function handleDeleteClick(acc: Account) {
+    setAccountToDelete(acc);
+  }
+
+  async function handleConfirmDelete() {
+    if (!accountToDelete) return;
+    setDeleteLoading(true);
+
+    const res = await deleteAccount(accountToDelete.id);
+    setDeleteLoading(false);
+    setAccountToDelete(null);
+
     if ("error" in res) {
       toast.error(res.error);
     } else {
-      if (res.success.archived) {
-        toast.info("Akun memiliki riwayat transaksi. Akun otomatis diarsipkan demi keamanan data histori.");
-      } else {
-        toast.success("Akun berhasil dihapus permanen.");
-      }
+      toast.success("Akun berhasil dihapus permanen dari Database.");
+      refreshAccounts();
+    }
+  }
+
+  async function handleConfirmBulkDelete() {
+    setIsBulkConfirmOpen(false);
+    setBulkLoading(true);
+    const res = await bulkDeleteAccounts(selectedIds);
+    setBulkLoading(false);
+    setSelectedIds([]);
+
+    if ("error" in res) {
+      toast.error(res.error);
+    } else {
+      toast.success("Akun massal berhasil dihapus permanen dari Database.");
       refreshAccounts();
     }
   }
@@ -127,7 +183,7 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
   return (
     <div className="flex flex-col gap-6 pt-2 font-sans">
       {/* HEADER BANNER: NET WORTH */}
-      <div 
+      <div
         className="relative overflow-hidden rounded-3xl p-6 text-white shadow-lg"
         style={{
           background: "linear-gradient(135deg, var(--auth-primary, #6366f1), #4f46e5)",
@@ -148,22 +204,39 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
 
       {/* TOOLBAR */}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-3">
           <Button
             variant="outline"
             size="sm"
-            onClick={() => setShowArchived(!showArchived)}
-            className={`rounded-2xl border-2 cursor-pointer transition-all ${
-              showArchived 
-                ? "bg-primary/10 border-primary text-primary hover:bg-primary/20" 
+            onClick={() => {
+              setShowArchived(!showArchived);
+              setSelectedIds([]);
+            }}
+            className={`rounded-2xl border-2 cursor-pointer transition-all ${showArchived
+                ? "bg-primary/10 border-primary text-primary hover:bg-primary/20"
                 : "border-border hover:bg-muted"
-            }`}
+              }`}
           >
             {showArchived ? "Sembunyikan Arsip" : "Tampilkan Arsip"}
           </Button>
+
+          {displayedAccounts.length > 0 && (
+            <div className="flex items-center gap-2 pl-2">
+              <input
+                type="checkbox"
+                checked={isAllSelected}
+                onChange={(e) => handleSelectAll(e.target.checked)}
+                className="size-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
+              />
+              <span className="text-xs font-semibold text-muted-foreground">
+                Pilih Semua  {selectedIds.length > 0 && `(${selectedIds.length} Terpilih)`}
+              </span>
+            </div>
+          )}
         </div>
 
-        <Button 
+        <Button
+          id="tour-add-account"
           onClick={() => {
             setAccountToEdit(null);
             setIsModalOpen(true);
@@ -181,49 +254,66 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
           <div className="size-16 rounded-2xl bg-muted flex items-center justify-center text-muted-foreground mb-4">
             <Wallet className="size-8" />
           </div>
-          <h3 className="text-lg font-bold text-foreground mb-1">Belum Ada Akun Terdaftar</h3>
+          <h3 className="text-lg font-bold text-foreground mb-1">
+            {showArchived ? "Tidak Ada Akun di Arsip" : "Belum Ada Akun Terdaftar"}
+          </h3>
           <p className="text-sm text-muted-foreground max-w-sm mb-6">
-            Catat rekening bank, dompet digital, atau uang tunai Anda untuk mulai melacak keuangan secara akurat.
+            {showArchived
+              ? "Seluruh akun Anda yang diarsipkan akan muncul di sini."
+              : "Catat rekening bank, dompet digital, atau uang tunai Anda untuk mulai melacak keuangan secara akurat."}
           </p>
-          <Button 
-            onClick={() => {
-              setAccountToEdit(null);
-              setIsModalOpen(true);
-            }}
-            className="rounded-2xl"
-          >
-            Buat Rekening Pertama
-          </Button>
+          {!showArchived && (
+            <Button
+              onClick={() => {
+                setAccountToEdit(null);
+                setIsModalOpen(true);
+              }}
+              className="rounded-2xl"
+            >
+              Buat Rekening Pertama
+            </Button>
+          )}
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {displayedAccounts.map((acc) => {
             const IconComp = ICON_MAP[acc.icon] || Wallet;
+            const isSelected = selectedIds.includes(acc.id);
             return (
               <motion.div
                 key={acc.id}
                 layoutId={acc.id}
                 whileHover={{ y: -4 }}
                 transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                className={`relative overflow-hidden rounded-3xl border border-border/40 p-5 cursor-pointer shadow-sm ${
-                  acc.is_active 
-                    ? "neu-raised-lg bg-background hover:shadow-md" 
-                    : "bg-muted/40 border-muted opacity-70"
-                }`}
+                className={`relative overflow-hidden rounded-3xl border border-border/40 p-5 cursor-pointer shadow-sm ${isSelected
+                    ? "neu-pressed-sm border-primary/50 bg-primary/5"
+                    : acc.is_active
+                      ? "neu-raised-lg bg-background hover:shadow-md"
+                      : "bg-muted/40 border-muted opacity-70"
+                  }`}
                 onClick={() => handleOpenDetails(acc)}
               >
                 {/* Accent top gradient color strip */}
-                <div 
-                  className="absolute left-0 top-0 right-0 h-2 pointer-events-none" 
+                <div
+                  className="absolute left-0 top-0 right-0 h-2 pointer-events-none"
                   style={{ backgroundColor: acc.color }}
                 />
 
                 <div className="flex items-start justify-between gap-4 mt-2">
-                  <div 
-                    className="size-11 rounded-2xl flex items-center justify-center text-white"
-                    style={{ backgroundColor: acc.color }}
-                  >
-                    <IconComp className="size-5.5" />
+                  <div className="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      checked={isSelected}
+                      onClick={(e) => e.stopPropagation()}
+                      onChange={(e) => handleSelectRow(acc.id, e.target.checked)}
+                      className="size-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer shrink-0"
+                    />
+                    <div
+                      className="size-11 rounded-2xl flex items-center justify-center text-white shrink-0"
+                      style={{ backgroundColor: acc.color }}
+                    >
+                      <IconComp className="size-5.5" />
+                    </div>
                   </div>
 
                   <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
@@ -239,15 +329,15 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                       <DropdownMenuContent align="end" className="rounded-xl">
                         <DropdownMenuItem onClick={() => handleEdit(acc)} className="gap-2">
                           <Edit2 className="size-3.5" />
-                          <span>Ubah Rekening</span>
+                          <span>Ubah</span>
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleToggleArchive(acc)} className="gap-2">
                           <Archive className="size-3.5" />
                           <span>{acc.is_active ? "Arsip" : "Aktifkan"}</span>
                         </DropdownMenuItem>
-                        <DropdownMenuItem onClick={() => handleDelete(acc)} className="text-red-500 hover:text-red-600 focus:text-red-500 gap-2">
+                        <DropdownMenuItem onClick={() => handleDeleteClick(acc)} className="text-red-500 hover:text-red-600 focus:text-red-500 gap-2">
                           <Trash2 className="size-3.5" />
-                          <span>Hapus Rekening</span>
+                          <span>Hapus</span>
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -294,7 +384,7 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
           {selectedAccount && (
             <>
               <DialogHeader className="border-b border-border pb-4 flex flex-row items-center gap-3">
-                <div 
+                <div
                   className="size-11 rounded-2xl flex items-center justify-center text-white"
                   style={{ backgroundColor: selectedAccount.color }}
                 >
@@ -343,11 +433,11 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                     {txHistory.map((tx) => {
                       const isIncome = tx.type === "income";
                       const isTransfer = tx.type === "transfer";
-                      
+
                       // Cari tanda nominal
                       let sign = "-";
                       let colorClass = "text-red-500 dark:text-red-400";
-                      
+
                       if (isIncome) {
                         sign = "+";
                         colorClass = "text-emerald-500 dark:text-emerald-400";
@@ -359,13 +449,13 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                       }
 
                       return (
-                        <div 
-                          key={tx.id} 
+                        <div
+                          key={tx.id}
                           className="flex items-center justify-between p-3 rounded-2xl hover:bg-muted/40 border border-border/30 transition-all text-xs"
                         >
                           <div className="flex flex-col text-left gap-0.5">
                             <span className="font-bold text-foreground text-sm">
-                              {isTransfer 
+                              {isTransfer
                                 ? `${tx.from_account_name} ➔ ${tx.to_account_name}`
                                 : tx.category
                               }
@@ -387,6 +477,35 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
           )}
         </DialogContent>
       </Dialog>
+      {/* FLOAT BULK ACTIONS BAR UNTUK AKUN */}
+      <BulkActionsBar
+        selectedCount={selectedIds.length}
+        onClearSelection={() => setSelectedIds([])}
+        onDeleteSelected={() => setIsBulkConfirmOpen(true)}
+        loading={bulkLoading}
+      />
+
+      {/* MODAL KONFIRMASI HAPUS SINGLE */}
+      <ConfirmModal
+        open={!!accountToDelete}
+        onOpenChange={(open) => { if (!open) setAccountToDelete(null); }}
+        title="Hapus Permanen dari Database"
+        description={`PERHATIAN: Menghapusnya sekarang akan MENGHAPUS PERMANEN akun ${accountToDelete?.name ? `"${accountToDelete.name}"` : ""} dan seluruh historinya dari Database.`}
+        confirmText="Hapus Permanen"
+        loading={deleteLoading}
+        onConfirm={handleConfirmDelete}
+      />
+
+      {/* MODAL KONFIRMASI HAPUS MASAL (BULK) */}
+      <ConfirmModal
+        open={isBulkConfirmOpen}
+        onOpenChange={setIsBulkConfirmOpen}
+        title="Hapus Banyak Akun Permanen"
+        description={`PERHATIAN: Menghapusnya sekarang akan MENGHAPUS PERMANEN ${selectedIds.length} akun yang dipilih dan seluruh historinya dari Database.`}
+        confirmText={`Hapus ${selectedIds.length} Akun`}
+        loading={bulkLoading}
+        onConfirm={handleConfirmBulkDelete}
+      />
     </div>
   );
 }

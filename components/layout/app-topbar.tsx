@@ -1,7 +1,8 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { Bell, Plus, Search } from "lucide-react";
+import { Bell, Plus, Search, HelpCircle } from "lucide-react";
+import Link from "next/link";
 
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,15 @@ export function AppTopbar({
             className="w-36 bg-transparent text-xs sm:text-sm text-foreground outline-none placeholder:text-muted-foreground lg:w-56"
           />
         </div>
+
+        <button
+          type="button"
+          onClick={() => window.dispatchEvent(new CustomEvent("open-uangku-tour"))}
+          title="Panduan Aplikasi"
+          className="flex size-9 sm:size-10 shrink-0 items-center justify-center rounded-2xl border border-border/60 bg-background text-muted-foreground hover:text-primary hover:border-primary/50 transition-all cursor-pointer shadow-xs"
+        >
+          <HelpCircle className="size-4 sm:size-4.5" />
+        </button>
 
         <button
           type="button"

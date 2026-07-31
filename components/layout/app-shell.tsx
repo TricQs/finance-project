@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { PageTransition } from "@/components/layout/page-transition";
+import { OnboardingTour } from "@/components/shared/onboarding-tour";
 
 type AppShellProps = {
   children: React.ReactNode;
@@ -55,6 +56,9 @@ export function AppShell({
           <PageTransition>{children}</PageTransition>
         </main>
       </div>
+
+      {/* GLOBAL ONBOARDING TOUR OVERLAY */}
+      <OnboardingTour />
     </div>
   );
 }

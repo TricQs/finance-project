@@ -95,10 +95,10 @@ export function TransactionModal({
   const [deleteOldReceipt, setDeleteOldReceipt] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  // Ambil list akun terupdate
+  // Ambil list akun terupdate (termasuk yang diarsipkan agar transaksi lama tetap menampilkan nama akunnya)
   useEffect(() => {
     if (open) {
-      getAccounts().then(setAccounts);
+      getAccounts(true).then(setAccounts);
     }
   }, [open]);
 
@@ -112,7 +112,7 @@ export function TransactionModal({
       if (transactionToEdit.type === "transfer") {
         setFromAccountId(transactionToEdit.from_account_id || "");
         setToAccountId(transactionToEdit.to_account_id || "");
-        setTransferAmount(transactionToEdit.amount.toString());
+        setTransferAmount(transactionToEdit.amount.toLocaleString("en-US"));
         setAccountId("");
         setAmount("");
         setCategory("");
@@ -121,7 +121,7 @@ export function TransactionModal({
         setExistingReceiptPath(null);
       } else {
         setAccountId(transactionToEdit.account_id || "");
-        setAmount(transactionToEdit.amount.toString());
+        setAmount(transactionToEdit.amount.toLocaleString("en-US"));
         setCategory(transactionToEdit.category);
         setIsRecurring(transactionToEdit.is_recurring || false);
         setRecurringInterval(transactionToEdit.recurring_interval || "monthly");
@@ -191,10 +191,10 @@ export function TransactionModal({
       if (!fromAccountId) return toast.error("Akun asal harus dipilih");
       if (!toAccountId) return toast.error("Akun tujuan harus dipilih");
       if (fromAccountId === toAccountId) return toast.error("Akun asal dan tujuan tidak boleh sama");
-      if (!transferAmount || Number(transferAmount) <= 0) return toast.error("Jumlah transfer harus lebih dari 0");
+      if (!transferAmount || Number(transferAmount.replace(/,/g, "")) <= 0) return toast.error("Jumlah transfer harus lebih dari 0");
     } else {
       if (!accountId) return toast.error("Rekening akun harus dipilih");
-      if (!amount || Number(amount) <= 0) return toast.error("Nominal jumlah harus lebih dari 0");
+      if (!amount || Number(amount.replace(/,/g, "")) <= 0) return toast.error("Nominal jumlah harus lebih dari 0");
       if (!category) return toast.error("Kategori harus dipilih");
     }
 
@@ -218,7 +218,7 @@ export function TransactionModal({
         const payload = {
           from_account_id: fromAccountId,
           to_account_id: toAccountId,
-          amount: Number(transferAmount),
+          amount: Number(transferAmount.replace(/,/g, "")),
           description: description.trim() || null,
           date,
         };
@@ -237,7 +237,7 @@ export function TransactionModal({
         const payload = {
           account_id: accountId,
           type: activeTab,
-          amount: Number(amount),
+          amount: Number(amount.replace(/,/g, "")),
           category,
           description: description.trim() || null,
           date,
@@ -288,10 +288,10 @@ export function TransactionModal({
           onValueChange={(val) => {
             if (!isEdit) setActiveTab(val as any);
           }}
-          className="w-full pt-1"
+          className="w-full pt-1 flex flex-col"
         >
           {!isEdit && (
-            <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1">
+            <TabsList className="grid w-full grid-cols-3 rounded-2xl bg-muted p-1 h-auto">
               <TabsTrigger value="expense" className="rounded-xl gap-1.5 cursor-pointer text-xs font-semibold py-2">
                 <TrendingDown className="size-3.5 text-red-500" />
                 Pengeluaran
@@ -384,10 +384,15 @@ export function TransactionModal({
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">IDR</span>
                   <Input
-                    type="number"
+                    type="text"
+                    inputMode="numeric"
                     placeholder="0"
                     value={transferAmount}
-                    onChange={(e) => setTransferAmount(e.target.value)}
+                    onChange={(e) => {
+                      const numOnly = e.target.value.replace(/[^0-9]/g, "");
+                      if (!numOnly) setTransferAmount("");
+                      else setTransferAmount(parseInt(numOnly, 10).toLocaleString("en-US"));
+                    }}
                     className="pl-14 rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
                     disabled={loading}
                   />
@@ -570,9 +575,14 @@ function ExpenseIncomeFormFields({
             <SelectContent className="rounded-xl">
               {accounts.map((acc) => (
                 <SelectItem key={acc.id} value={acc.id}>
-                  {acc.name}
+                  {acc.name} {!acc.is_active && "(Diarsipkan)"}
                 </SelectItem>
               ))}
+              {accountId && !accounts.some((a) => a.id === accountId) && (
+                <SelectItem value={accountId}>
+                  Akun Terhapus ({accountId.substring(0, 8)}...)
+                </SelectItem>
+              )}
             </SelectContent>
           </Select>
         </div>
@@ -603,10 +613,15 @@ function ExpenseIncomeFormFields({
         <div className="relative">
           <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">IDR</span>
           <Input
-            type="number"
+            type="text"
+            inputMode="numeric"
             placeholder="0"
             value={amount}
-            onChange={(e) => setAmount(e.target.value)}
+            onChange={(e) => {
+              const numOnly = e.target.value.replace(/[^0-9]/g, "");
+              if (!numOnly) setAmount("");
+              else setAmount(parseInt(numOnly, 10).toLocaleString("en-US"));
+            }}
             className="pl-14 rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
             disabled={loading}
           />

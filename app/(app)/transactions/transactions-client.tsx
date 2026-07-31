@@ -1,16 +1,16 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { 
-  ArrowRightLeft, 
-  TrendingDown, 
-  TrendingUp, 
-  Plus, 
-  Search, 
-  Download, 
-  Edit3, 
-  Trash2, 
-  X, 
+import {
+  ArrowRightLeft,
+  TrendingDown,
+  TrendingUp,
+  Plus,
+  Search,
+  Download,
+  Edit3,
+  Trash2,
+  X,
   FileText,
   Filter,
   Calendar,
@@ -20,26 +20,27 @@ import { formatCurrency } from "@/lib/format-currency";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Dialog, 
-  DialogContent, 
-  DialogHeader, 
-  DialogTitle 
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { TransactionModal } from "@/components/transactions/transaction-modal";
 import { BulkActionsBar } from "@/components/transactions/bulk-actions-bar";
-import { 
-  getTransactions, 
-  deleteTransaction, 
-  deleteTransfer, 
+import { ConfirmModal } from "@/components/ui/confirm-modal";
+import {
+  getTransactions,
+  deleteTransaction,
+  deleteTransfer,
   bulkDeleteTransactions,
   getReceiptSignedUrl,
   UnifiedTransaction
@@ -135,7 +136,7 @@ export function TransactionsClientPage({
   // Seleksi semua row di halaman saat ini
   const allIdsOnPage = transactions.map((t) => t.id);
   const isAllSelected = allIdsOnPage.length > 0 && allIdsOnPage.every((id) => selectedIds.includes(id));
-  
+
   function handleSelectAll(checked: boolean) {
     if (checked) {
       setSelectedIds(allIdsOnPage);
@@ -150,16 +151,29 @@ export function TransactionsClientPage({
     setIsModalOpen(true);
   }
 
-  // Handle Hapus Klik
-  async function handleDelete(tx: UnifiedTransaction) {
-    if (!confirm("Apakah Anda yakin ingin menghapus catatan transaksi ini?")) return;
+  // Confirm modal states
+  const [txToDelete, setTxToDelete] = useState<UnifiedTransaction | null>(null);
+  const [singleDeleteLoading, setSingleDeleteLoading] = useState(false);
+  const [isBulkConfirmOpen, setIsBulkConfirmOpen] = useState(false);
+
+  // Handle Hapus Klik (Single)
+  function handleDeleteClick(tx: UnifiedTransaction) {
+    setTxToDelete(tx);
+  }
+
+  async function handleConfirmSingleDelete() {
+    if (!txToDelete) return;
+    setSingleDeleteLoading(true);
 
     let res;
-    if (tx.type === "transfer") {
-      res = await deleteTransfer(tx.id);
+    if (txToDelete.type === "transfer") {
+      res = await deleteTransfer(txToDelete.id);
     } else {
-      res = await deleteTransaction(tx.id);
+      res = await deleteTransaction(txToDelete.id);
     }
+
+    setSingleDeleteLoading(false);
+    setTxToDelete(null);
 
     if (res && "error" in res) {
       toast.error(res.error);
@@ -170,8 +184,12 @@ export function TransactionsClientPage({
   }
 
   // Handle Bulk Delete
-  async function handleBulkDelete() {
-    if (!confirm(`Apakah Anda yakin ingin menghapus ${selectedIds.length} transaksi ini sekaligus?`)) return;
+  function handleBulkDeleteClick() {
+    setIsBulkConfirmOpen(true);
+  }
+
+  async function handleConfirmBulkDelete() {
+    setIsBulkConfirmOpen(false);
     setBulkLoading(true);
     const res = await bulkDeleteTransactions(selectedIds);
     setBulkLoading(false);
@@ -200,9 +218,9 @@ export function TransactionsClientPage({
       t.description || ""
     ]);
 
-    const csvContent = "data:text/csv;charset=utf-8," 
+    const csvContent = "data:text/csv;charset=utf-8,"
       + [headers.join(","), ...rows.map(e => e.map(val => `"${val}"`).join(","))].join("\n");
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     link.setAttribute("href", encodedUri);
@@ -344,7 +362,7 @@ export function TransactionsClientPage({
         <h3 className="font-heading text-base font-bold text-foreground">
           Daftar Transaksi ({transactions.length})
         </h3>
-        <Button 
+        <Button
           onClick={() => {
             setTxToEdit(null);
             setIsModalOpen(true);
@@ -377,7 +395,9 @@ export function TransactionsClientPage({
               onChange={(e) => handleSelectAll(e.target.checked)}
               className="size-4.5 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
             />
-            <span className="text-xs font-semibold text-muted-foreground">Pilih Semua Halaman Ini</span>
+            <span className="text-xs font-semibold text-muted-foreground">
+              Pilih Semua  {selectedIds.length > 0 && `(${selectedIds.length} Terpilih)`}
+            </span>
           </div>
 
           {/* GROUPS LIST */}
@@ -415,9 +435,8 @@ export function TransactionsClientPage({
                     return (
                       <div
                         key={tx.id}
-                        className={`neu-transition flex items-center justify-between p-4 rounded-3xl border border-border/30 bg-background ${
-                          isSelected ? "neu-pressed-sm border-primary/50" : "neu-raised-sm"
-                        }`}
+                        className={`neu-transition flex items-center justify-between p-4 rounded-3xl border border-border/30 bg-background ${isSelected ? "neu-pressed-sm border-primary/50" : "neu-raised-sm"
+                          }`}
                       >
                         <div className="flex items-center gap-4 min-w-0">
                           {/* CHECKBOX */}
@@ -429,7 +448,7 @@ export function TransactionsClientPage({
                           />
 
                           {/* ICON */}
-                          <div 
+                          <div
                             className="size-11 rounded-2xl flex items-center justify-center text-white shrink-0"
                             style={{ backgroundColor: tx.account_color || "#6366f1" }}
                           >
@@ -440,7 +459,7 @@ export function TransactionsClientPage({
                           <div className="flex flex-col text-left min-w-0">
                             <div className="flex items-center gap-2">
                               <span className="text-sm font-bold text-foreground truncate">
-                                {isTransfer 
+                                {isTransfer
                                   ? `${tx.from_account_name} ➔ ${tx.to_account_name}`
                                   : tx.category
                                 }
@@ -452,7 +471,7 @@ export function TransactionsClientPage({
                               )}
                             </div>
                             <span className="text-xs text-muted-foreground truncate mt-0.5">
-                              {isTransfer 
+                              {isTransfer
                                 ? "Transfer Keuangan"
                                 : tx.account_name
                               }
@@ -492,7 +511,7 @@ export function TransactionsClientPage({
                             <Button
                               size="sm"
                               variant="ghost"
-                              onClick={() => handleDelete(tx)}
+                              onClick={() => handleDeleteClick(tx)}
                               className="size-8 p-0 rounded-xl hover:bg-muted text-red-500 hover:text-red-600 hover:bg-red-50/10"
                               title="Hapus"
                             >
@@ -514,7 +533,7 @@ export function TransactionsClientPage({
       <BulkActionsBar
         selectedCount={selectedIds.length}
         onClearSelection={() => setSelectedIds([])}
-        onDeleteSelected={handleBulkDelete}
+        onDeleteSelected={handleBulkDeleteClick}
         loading={bulkLoading}
       />
 
@@ -546,6 +565,28 @@ export function TransactionsClientPage({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* MODAL KONFIRMASI HAPUS SINGLE */}
+      <ConfirmModal
+        open={!!txToDelete}
+        onOpenChange={(open) => { if (!open) setTxToDelete(null); }}
+        title="Hapus Catatan Transaksi"
+        description="Apakah Anda yakin ingin menghapus catatan transaksi ini? Tindakan ini akan secara otomatis mengupdate saldo akun terkait."
+        confirmText="Ya, Hapus Transaksi"
+        loading={singleDeleteLoading}
+        onConfirm={handleConfirmSingleDelete}
+      />
+
+      {/* MODAL KONFIRMASI HAPUS MASAL (BULK) */}
+      <ConfirmModal
+        open={isBulkConfirmOpen}
+        onOpenChange={setIsBulkConfirmOpen}
+        title="Hapus Banyak Transaksi Sekaligus"
+        description={`Apakah Anda yakin ingin menghapus ${selectedIds.length} transaksi yang dipilih sekaligus? Tindakan ini tidak dapat dibatalkan.`}
+        confirmText={`Ya, Hapus ${selectedIds.length} Transaksi`}
+        loading={bulkLoading}
+        onConfirm={handleConfirmBulkDelete}
+      />
     </div>
   );
 }

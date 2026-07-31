@@ -84,7 +84,7 @@ export function AccountModal({
       setType(accountToEdit.type);
       setInstitution(accountToEdit.institution || "");
       setAccountNumber(accountToEdit.account_number || "");
-      setBalance(accountToEdit.balance.toString());
+      setBalance(accountToEdit.balance.toLocaleString("en-US"));
       setCurrency(accountToEdit.currency);
       setColor(accountToEdit.color);
       setIcon(accountToEdit.icon);
@@ -113,7 +113,7 @@ export function AccountModal({
       type,
       institution: institution.trim() || null,
       account_number: accountNumber.trim() || null,
-      balance: isEdit ? Number(balance) : Number(balance) || 0,
+      balance: isEdit ? Number(balance.replace(/,/g, "")) : Number(balance.replace(/,/g, "")) || 0,
       currency,
       color,
       icon,
@@ -251,10 +251,15 @@ export function AccountModal({
                 </span>
                 <Input
                   id="account-balance"
-                  type="number"
+                  type="text"
+                  inputMode="numeric"
                   placeholder="0"
                   value={balance}
-                  onChange={(e) => setBalance(e.target.value)}
+                  onChange={(e) => {
+                    const numOnly = e.target.value.replace(/[^0-9]/g, "");
+                    if (!numOnly) setBalance("");
+                    else setBalance(parseInt(numOnly, 10).toLocaleString("en-US"));
+                  }}
                   className="pl-14 rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
                   disabled={loading}
                 />

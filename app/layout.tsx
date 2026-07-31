@@ -32,6 +32,11 @@ export const metadata: Metadata = {
   title: "Uangku — Kelola semua keuanganmu dalam satu tempat",
   description:
     "Aplikasi manajemen keuangan pribadi. Catat pemasukan, pengeluaran, tabungan, dan investasi.",
+  icons: {
+    icon: "/finance_logo.png",
+    shortcut: "/finance_logo.png",
+    apple: "/finance_logo.png",
+  },
 };
 
 export default function RootLayout({
