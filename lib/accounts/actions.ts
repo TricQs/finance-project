@@ -100,7 +100,7 @@ export async function updateAccount(
   return { success: updatedAccount as Account };
 }
 
-export async function deleteAccount(id: string): Promise<ActionResult<{ success: boolean }>> {
+export async function deleteAccount(id: string): Promise<ActionResult<boolean>> {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -123,7 +123,7 @@ export async function deleteAccount(id: string): Promise<ActionResult<{ success:
   return { success: true };
 }
 
-export async function bulkDeleteAccounts(ids: string[]): Promise<ActionResult<{ success: boolean }>> {
+export async function bulkDeleteAccounts(ids: string[]): Promise<ActionResult<boolean>> {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
@@ -147,7 +147,7 @@ export async function bulkDeleteAccounts(ids: string[]): Promise<ActionResult<{ 
   return { success: true };
 }
 
-export async function bulkArchiveAccounts(ids: string[], is_active: boolean): Promise<ActionResult<{ success: boolean }>> {
+export async function bulkArchiveAccounts(ids: string[], is_active: boolean): Promise<ActionResult<boolean>> {
   const supabase = await createClient();
 
   const { data: { user } } = await supabase.auth.getUser();
