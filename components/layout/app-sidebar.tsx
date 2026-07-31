@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   LayoutGrid,
   Clock,
@@ -128,6 +128,7 @@ export function AppSidebar({
   onToggleSidebar,
 }: AppSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
   const [logoHovered, setLogoHovered] = useState(false);
 
   return (
@@ -331,11 +332,12 @@ export function AppSidebar({
               )}
             </DropdownMenuTrigger>
             <DropdownMenuContent align={isCollapsed ? "center" : "start"} side="top" className="w-56 rounded-2xl font-sans">
-              <DropdownMenuItem className="p-0 rounded-xl cursor-pointer" asChild>
-                <Link href="/settings" prefetch={true} className="flex items-center w-full px-2 py-1.5 text-sm font-medium">
-                  <Settings className="size-4 mr-2" />
-                  <span>Profil & Pengaturan</span>
-                </Link>
+              <DropdownMenuItem
+                className="cursor-pointer text-sm font-medium flex items-center"
+                onClick={() => router.push("/settings")}
+              >
+                <Settings className="size-4 mr-2" />
+                <span>Profil & Pengaturan</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
