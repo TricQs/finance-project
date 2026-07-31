@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ArrowLeft, CheckCircle2, Mail, Lock } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { sendResetPasswordEmail } from "@/lib/auth/actions";
 
 export default function ResetPasswordPage() {
   const router = useRouter();
@@ -36,18 +37,12 @@ export default function ResetPasswordPage() {
     setError("");
     setLoading(true);
 
-    const supabase = createClient();
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(
-      email,
-      {
-        redirectTo: `${window.location.origin}/reset-password`,
-      }
-    );
+    const res = await sendResetPasswordEmail(email);
 
     setLoading(false);
 
-    if (resetError) {
-      setError(resetError.message || "Gagal mengirim email reset password. Coba lagi.");
+    if ("error" in res) {
+      setError(res.error);
       return;
     }
 

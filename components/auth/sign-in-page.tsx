@@ -107,7 +107,7 @@ export function SignInPage({ initialError }: { initialError?: string }) {
 
     try {
       if (mode === "signin") {
-        const res = await signIn(email, password);
+        const res = await signIn(email, password, rememberMe);
         if (res && "error" in res) {
           setErrorMsg(res.error);
         }

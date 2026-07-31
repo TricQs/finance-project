@@ -465,14 +465,14 @@ export function DashboardClientPage({
                   return (
                     <tr key={tx.id} className="hover:bg-zinc-50 dark:hover:bg-zinc-800/40 transition">
                       <td className="py-3.5 px-4 font-semibold text-zinc-900 dark:text-white max-w-[200px] truncate">
-                        {isTransfer ? `${tx.from_account_name} ➔ ${tx.to_account_name}` : translateCategory(tx.category, language)}
+                        {isTransfer ? `${tx.from_account_name || t.dashboard.deletedAccount} ➔ ${tx.to_account_name || t.dashboard.deletedAccount}` : translateCategory(tx.category, language)}
                         {tx.description && <span className="text-zinc-400 font-normal block text-[11px] truncate">{tx.description}</span>}
                       </td>
                       <td className="py-3.5 px-4 text-zinc-500 font-medium">
                         {tx.date}
                       </td>
                       <td className="py-3.5 px-4 text-zinc-500">
-                        {isTransfer ? "Transfer" : tx.account_name}
+                        {isTransfer ? (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer") : (tx.account_name || t.dashboard.deletedAccount)}
                       </td>
                       <td className="py-3.5 px-4">
                         <Badge

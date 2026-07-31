@@ -131,7 +131,7 @@ export function AppSidebar({
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [logoHovered, setLogoHovered] = useState(false);
 
   const MENU_ITEMS: MenuItem[] = [
@@ -153,7 +153,7 @@ export function AppSidebar({
       >
         {/* Top Section */}
         <div className="flex flex-col gap-2 overflow-y-auto scrollbar-none flex-1 pr-0.5">
-          {/* Row 1: Logo & Close Button (Tutup Sidebar di KANAN Logo Uangku; Pas Tutup, Logo di-hover jadi tombol BUKA) */}
+          {/* Row 1: Logo & Close Button */}
           <div className="flex items-center justify-between h-11 px-1">
             {!isCollapsed ? (
               <>
@@ -172,7 +172,6 @@ export function AppSidebar({
                 )}
               </>
             ) : (
-              /* Pas Sidebar Tutup: Logo Koin pas di-hover berubah jadi tombol Buka Sidebar */
               <div className="w-full flex justify-center">
                 <button
                   type="button"
@@ -194,7 +193,7 @@ export function AppSidebar({
             )}
           </div>
 
-          {/* Row 2: Search Bar / Icon (Tinggi h-10 Presisi Tanpa Loncatan Y-axis) */}
+          {/* Row 2: Search Bar */}
           <div className="h-10 flex items-center my-0.5">
             {!isCollapsed ? (
               <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 text-xs font-medium text-slate-500 dark:text-zinc-400">
@@ -227,12 +226,24 @@ export function AppSidebar({
             )}
           </div>
 
-          {/* Row 4: MENU Nav Items List dengan Icon 21st.dev & Active Styling Soft Indigo Pill */}
+          {/* Row 4: MENU Nav Items */}
           <nav id="tour-sidebar-nav" className="flex flex-col gap-1">
             {MENU_ITEMS.map(({ label, href, icon: Icon, badge }) => {
               const isActive =
                 pathname === href || pathname?.startsWith(`${href}/`);
               const isAccounts = href === "/accounts";
+              const translatedLabel =
+                href === "/dashboard"
+                  ? t.nav.dashboard
+                  : href === "/accounts"
+                  ? t.nav.accounts
+                  : href === "/transactions"
+                  ? t.nav.transactions
+                  : href === "/insights"
+                  ? t.nav.insights
+                  : href === "/budgets"
+                  ? t.nav.budgets
+                  : label;
 
               return (
                 <Link
@@ -241,7 +252,7 @@ export function AppSidebar({
                   prefetch={true}
                   id={isAccounts ? "tour-accounts-link" : undefined}
                   data-tour={label.toLowerCase()}
-                  title={isCollapsed ? label : undefined}
+                  title={isCollapsed ? translatedLabel : undefined}
                   className={cn(
                     "flex items-center justify-between rounded-2xl text-sm font-medium transition-all cursor-pointer",
                     isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5",
@@ -252,7 +263,7 @@ export function AppSidebar({
                 >
                   <div className="flex items-center gap-3">
                     <Icon className="size-4.5 shrink-0" />
-                    {!isCollapsed && <span className="truncate">{label}</span>}
+                    {!isCollapsed && <span className="truncate">{translatedLabel}</span>}
                   </div>
 
                   {!isCollapsed && badge && (
@@ -375,6 +386,17 @@ export function AppSidebar({
       <nav className="fixed bottom-0 left-0 right-0 z-40 flex items-center justify-around border-t border-slate-200/60 dark:border-zinc-800 bg-white/90 dark:bg-zinc-950/90 p-2 backdrop-blur-xl md:hidden font-sans">
         {MOBILE_PRIMARY_NAV.map(({ label, href, icon: Icon }) => {
           const isActive = pathname === href || pathname?.startsWith(`${href}/`);
+          const translatedLabel =
+            href === "/dashboard"
+              ? t.nav.dashboard
+              : href === "/accounts"
+              ? t.nav.accounts
+              : href === "/transactions"
+              ? t.nav.transactions
+              : href === "/insights"
+              ? t.nav.insights
+              : label;
+
           return (
             <Link
               key={href}
@@ -390,7 +412,7 @@ export function AppSidebar({
               )}
             >
               <Icon className={cn("size-5", isActive && "text-[#4f46e5]")} />
-              <span>{label}</span>
+              <span>{translatedLabel}</span>
             </Link>
           );
         })}
@@ -399,16 +421,17 @@ export function AppSidebar({
         <DropdownMenu>
           <DropdownMenuTrigger className="flex flex-col items-center gap-1 rounded-xl px-3 py-1.5 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white outline-none min-h-[44px] justify-center cursor-pointer">
             <MoreHorizontal className="size-5" />
-            <span>Lainnya</span>
+            <span>{language === "ja" ? "その他" : language === "en" ? "More" : "Lainnya"}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl p-1 mb-2 font-sans">
             {MOBILE_SECONDARY_NAV.map(({ label, href, icon: Icon }) => {
               const isActive = pathname === href || pathname?.startsWith(`${href}/`);
+              const translatedLabel = href === "/settings" ? t.nav.settings : label;
               return (
                 <DropdownMenuItem key={href} className="p-0 rounded-xl cursor-pointer">
                   <Link href={href} className={cn("flex items-center gap-2.5 w-full px-3 py-2.5", isActive && "text-[#4f46e5] font-bold")}>
                     <Icon className="size-4.5" />
-                    <span>{label}</span>
+                    <span>{translatedLabel}</span>
                   </Link>
                 </DropdownMenuItem>
               );

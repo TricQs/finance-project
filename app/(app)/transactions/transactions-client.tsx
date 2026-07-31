@@ -501,14 +501,14 @@ export function TransactionsClientPage({
                               )}
                               {isAccountDeleted && (
                                 <Badge variant="destructive" className="text-[9px] uppercase font-extrabold px-1.5 py-0 bg-rose-500/10 text-rose-500 border-rose-500/20">
-                                  Akun Terhapus
+                                  {t.dashboard.deletedAccount}
                                 </Badge>
                               )}
                             </div>
                             <span className={`text-xs truncate mt-0.5 ${isAccountDeleted ? "text-rose-500 font-semibold" : "text-muted-foreground"}`}>
                               {isTransfer
-                                ? "Transfer Keuangan"
-                                : (tx.account_name || "Akun Terhapus")
+                                ? (language === "ja" ? "口座間振替" : language === "en" ? "Account Transfer" : "Transfer Keuangan")
+                                : (tx.account_name || t.dashboard.deletedAccount)
                               }
                               {tx.description && ` • ${tx.description}`}
                             </span>
