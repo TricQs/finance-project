@@ -143,7 +143,7 @@ export function DashboardClientPage({
       result = result.filter(
         (tx) =>
           tx.category.toLowerCase().includes(q) ||
-          tx.account_name.toLowerCase().includes(q) ||
+          (tx.account_name && tx.account_name.toLowerCase().includes(q)) ||
           (tx.description && tx.description.toLowerCase().includes(q))
       );
     }
