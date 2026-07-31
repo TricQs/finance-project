@@ -373,6 +373,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
             } else if (currentStep === 4) {
               const realBtn = document.querySelector("#tour-add-account") as HTMLElement;
               if (realBtn) realBtn.click();
+              handleClose();
             }
           }}
         />
