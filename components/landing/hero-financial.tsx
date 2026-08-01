@@ -6,7 +6,6 @@ import Image from "next/image";
 import { ChevronRight } from "lucide-react";
 import { ThemeToggleCompact } from "@/components/layout/theme-toggle-compact";
 import AboutUsSection from "@/components/ui/about-us-section";
-import InkReveal from "@/components/ui/ink-reveal";
 
 import { useSystemLanguage } from "@/lib/i18n/use-system-language";
 
@@ -60,12 +59,8 @@ export function HeroFinancial() {
 
   return (
     <section className="min-h-screen bg-[#f7f9fc] dark:bg-zinc-950 text-[#1e293b] dark:text-zinc-100 relative overflow-hidden flex flex-col items-center font-sans transition-colors duration-300">
-      {/* Background Hero Photo - Fades in only after canvas mask initializes to prevent hard-refresh flash */}
-      <div className={`absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center transition-opacity duration-300 pointer-events-none ${isMounted ? "opacity-80 dark:opacity-75" : "opacity-80 md:opacity-0"}`} />
-
-      {/* Ink Reveal Dynamic Interactive Mask - Desktop only (hidden on mobile for instant crisp background) */}
-      <InkReveal maskColor={[247, 249, 252]} brushSize={160} lifetime={850} rStart={30} rVary={0.1} stampStep={8} maxStamps={200} className="z-[1] hidden md:block dark:hidden pointer-events-auto" />
-      <InkReveal maskColor={[9, 9, 11]} brushSize={160} lifetime={850} rStart={30} rVary={0.1} stampStep={8} maxStamps={200} className="z-[1] hidden md:dark:block pointer-events-auto" />
+      {/* Background Hero Photo - Static & Crisp across Mobile and Desktop */}
+      <div className="absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center opacity-40 dark:opacity-40 pointer-events-none" />
 
       {/* Sticky Top Header Navbar - Fixed at top overlay */}
       <header
