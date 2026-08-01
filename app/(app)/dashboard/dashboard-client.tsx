@@ -30,6 +30,7 @@ import Link from "next/link";
 
 import { useLanguage } from "@/lib/i18n/context";
 import { translateCategory } from "@/lib/i18n/dictionary";
+import { AnnualExpenseChart } from "@/components/dashboard/annual-expense-chart";
 
 interface DashboardClientProps {
   userName: string;
@@ -320,8 +321,8 @@ export function DashboardClientPage({
       {/* ROW 2: BAR CHART OVERVIEW & CATEGORY BREAKDOWN */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Expenses Chart (2 cols) */}
-        <div id="tour-chart" className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs flex flex-col justify-between">
-          <div className="flex items-center justify-between mb-4">
+        <div id="tour-chart" className="lg:col-span-2 p-6 rounded-3xl bg-white dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800 shadow-xs flex flex-col">
+          <div className="flex items-center justify-between mb-2">
             <div>
               <h2 className="text-base font-bold text-zinc-900 dark:text-white">
                 {t.dashboard.expenseChartTitle} {selectedYear}
@@ -346,30 +347,11 @@ export function DashboardClientPage({
             </div>
           </div>
 
-          {/* Bar Chart */}
-          <div className="h-48 flex items-end justify-between gap-1.5 sm:gap-2 pt-6 px-1">
-            {barChartData.map((bar) => (
-              <div key={bar.month} className="flex-1 flex flex-col items-center gap-2 group relative">
-                {bar.amount > 0 && (
-                  <span className="absolute -top-8 bg-indigo-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-md shadow-md opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none whitespace-nowrap z-10">
-                    {formatCurrency(bar.amount)}
-                  </span>
-                )}
-                <div
-                  className={`w-full rounded-t-lg transition-all ${bar.amount === 0
-                    ? "bg-zinc-100 dark:bg-zinc-800/50 min-h-[4px]"
-                    : bar.isCurrentMonth
-                      ? "bg-indigo-600 shadow-md shadow-indigo-500/30"
-                      : "bg-indigo-500/80 group-hover:bg-indigo-600"
-                    }`}
-                  style={{ height: bar.heightPct }}
-                />
-                <span className={`text-[11px] font-semibold ${bar.isCurrentMonth ? "text-indigo-600 dark:text-indigo-400 font-bold" : "text-zinc-400"}`}>
-                  {bar.month}
-                </span>
-              </div>
-            ))}
-          </div>
+          {/* Recharts Area Chart */}
+          <AnnualExpenseChart
+            transactions={allYearTransactions}
+            selectedYear={selectedYear}
+          />
         </div>
 
         {/* Category Breakdown (1 col) */}
