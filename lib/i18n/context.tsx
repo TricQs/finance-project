@@ -13,14 +13,14 @@ interface LanguageContextType {
 const LanguageContext = createContext<LanguageContextType | undefined>(undefined);
 
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
-  const [language, setLanguageState] = useState<Language>("id");
+  const [language, setLanguageState] = useState<Language>("en");
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
     // 1. Check localStorage saved preference
     const saved = localStorage.getItem("uangku_lang") as Language | null;
-    if (saved && (saved === "id" || saved === "en" || saved === "ja")) {
+    if (saved === "id" || saved === "en" || saved === "ja") {
       setLanguageState(saved);
       return;
     }
@@ -33,7 +33,7 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
       } else if (browserLang.startsWith("ja")) {
         setLanguageState("ja");
       } else {
-        // Any other country (e.g., Iceland, France, Germany) defaults to English
+        // Any other country/language defaults to English
         setLanguageState("en");
       }
     }

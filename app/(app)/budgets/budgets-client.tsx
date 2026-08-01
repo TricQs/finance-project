@@ -30,7 +30,7 @@ interface BudgetsClientPageProps {
 }
 
 export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [summary, setSummary] = useState<BudgetsSummary>(initialSummary);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [budgetToEdit, setBudgetToEdit] = useState<BudgetCategoryItem | null>(null);
@@ -79,8 +79,8 @@ export function BudgetsClientPage({ initialSummary }: BudgetsClientPageProps) {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-xl">
             <div className="flex items-center gap-2">
-              <Badge className="bg-white/20 text-white hover:bg-white/30 border-none backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold tracking-wider">
-                MONTHLY BUDGET TRACKER
+              <Badge className="bg-white/20 text-white hover:bg-white/30 border-none backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold tracking-wider uppercase">
+                {language === "ja" ? "月間予算トラッカー" : language === "en" ? "MONTHLY BUDGET TRACKER" : "PEMANTAU ANGGARAN BULANAN"}
               </Badge>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">

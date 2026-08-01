@@ -65,7 +65,7 @@ interface AccountsClientPageProps {
 }
 
 export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [accounts, setAccounts] = useState<Account[]>(initialAccounts);
   const [showArchived, setShowArchived] = useState(false);
 
@@ -276,12 +276,14 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
             <Wallet className="size-8" />
           </div>
           <h3 className="text-lg font-bold text-foreground mb-1">
-            {showArchived ? "Tidak Ada Akun di Arsip" : "Belum Ada Akun Terdaftar"}
+            {showArchived
+              ? (language === "ja" ? "アーカイブ済みの口座はありません" : language === "en" ? "No Archived Accounts" : "Tidak Ada Akun di Arsip")
+              : (language === "ja" ? "登録されている口座はありません" : language === "en" ? "No Accounts Registered Yet" : "Belum Ada Akun Terdaftar")}
           </h3>
           <p className="text-sm text-muted-foreground max-w-sm mb-6">
             {showArchived
-              ? "Seluruh akun Anda yang diarsipkan akan muncul di sini."
-              : "Catat rekening bank, dompet digital, atau uang tunai Anda untuk mulai melacak keuangan secara akurat."}
+              ? (language === "ja" ? "アーカイブされた口座がここに表示されます。" : language === "en" ? "All your archived accounts will appear here." : "Seluruh akun Anda yang diarsipkan akan muncul di sini.")
+              : (language === "ja" ? "正確な家計追跡を始めるために、銀行口座、電子マネー、または手元現金を登録してください。" : language === "en" ? "Record your bank accounts, digital wallets, or cash to start tracking your finances accurately." : "Catat rekening bank, dompet digital, atau uang tunai Anda untuk mulai melacak keuangan secara akurat.")}
           </p>
           {!showArchived && (
             <Button
@@ -289,9 +291,9 @@ export function AccountsClientPage({ initialAccounts }: AccountsClientPageProps)
                 setAccountToEdit(null);
                 setIsModalOpen(true);
               }}
-              className="rounded-2xl"
+              className="rounded-2xl cursor-pointer"
             >
-              Buat Rekening Pertama
+              {language === "ja" ? "最初の口座を作成" : language === "en" ? "Create First Account" : "Buat Rekening Pertama"}
             </Button>
           )}
         </div>

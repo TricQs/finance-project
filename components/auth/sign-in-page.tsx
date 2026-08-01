@@ -121,7 +121,7 @@ export function SignInPage({ initialError }: { initialError?: string }) {
       }
     } catch (err: any) {
       if (err.message && err.message.includes("NEXT_REDIRECT")) {
-        setSuccessMsg("Login successful! Redirecting...");
+        setSuccessMsg("Berhasil! Mengalihkan ke dashboard...");
       } else {
         setErrorMsg(err.message || "Terjadi kesalahan. Silakan coba lagi.");
       }

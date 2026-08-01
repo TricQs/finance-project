@@ -61,11 +61,11 @@ export function HeroFinancial() {
   return (
     <section className="min-h-screen bg-[#f7f9fc] dark:bg-zinc-950 text-[#1e293b] dark:text-zinc-100 relative overflow-hidden flex flex-col items-center font-sans transition-colors duration-300">
       {/* Background Hero Photo - Fades in only after canvas mask initializes to prevent hard-refresh flash */}
-      <div className={`absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center transition-opacity duration-300 pointer-events-none ${isMounted ? "opacity-40 dark:opacity-40" : "opacity-40 md:opacity-0"}`} />
+      <div className={`absolute inset-0 z-0 bg-[url('https://images.unsplash.com/photo-1597200381847-30ec200eeb9a?q=80&w=1074&auto=format&fit=crop')] bg-cover bg-center transition-opacity duration-300 pointer-events-none ${isMounted ? "opacity-80 dark:opacity-75" : "opacity-80 md:opacity-0"}`} />
 
       {/* Ink Reveal Dynamic Interactive Mask - Desktop only (hidden on mobile for instant crisp background) */}
-      <InkReveal maskColor={[247, 249, 252]} brushSize={120} lifetime={500} stampStep={10} maxStamps={100} className="z-[1] hidden md:block dark:hidden pointer-events-auto" />
-      <InkReveal maskColor={[9, 9, 11]} brushSize={120} lifetime={500} stampStep={10} maxStamps={100} className="z-[1] hidden md:dark:block pointer-events-auto" />
+      <InkReveal maskColor={[247, 249, 252]} brushSize={160} lifetime={850} rStart={30} rVary={0.1} stampStep={8} maxStamps={200} className="z-[1] hidden md:block dark:hidden pointer-events-auto" />
+      <InkReveal maskColor={[9, 9, 11]} brushSize={160} lifetime={850} rStart={30} rVary={0.1} stampStep={8} maxStamps={200} className="z-[1] hidden md:dark:block pointer-events-auto" />
 
       {/* Sticky Top Header Navbar - Fixed at top overlay */}
       <header
@@ -110,11 +110,11 @@ export function HeroFinancial() {
         </div>
       </header>
 
-      {/* Hero Content Section - Generously padded to position content lower down from top navbar */}
-      <div className="relative z-10 text-center min-h-[calc(100dvh-4rem)] sm:min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center pt-28 sm:pt-44 lg:pt-48 pb-16 sm:pb-24 px-4 gap-5 sm:gap-6 max-w-6xl mx-auto font-sans w-full">
-        {/* Announcement Pill - Slightly thicker border & shadow */}
+      {/* Hero Content Section - Fixed flow height on mobile to prevent URL bar collapse layout shifts */}
+      <div className="relative z-10 text-center min-h-0 sm:min-h-[calc(100vh-5rem)] flex flex-col items-center justify-center pt-28 sm:pt-44 lg:pt-48 pb-16 sm:pb-24 px-4 gap-5 sm:gap-6 max-w-6xl mx-auto font-sans w-full">
+        {/* Announcement Pill - No border with thick wide-spread glowing shadow */}
         <div
-          className="animate-fade-only bg-white dark:bg-zinc-900/95 text-black dark:text-white px-3.5 py-1.5 rounded-full inline-flex items-center gap-2.5 shadow-xl shadow-blue-500/20 border-2 border-slate-300/80 dark:border-zinc-700/90 font-sans"
+          className="animate-fade-only bg-white dark:bg-zinc-900/95 text-black dark:text-white px-4 py-2 rounded-full inline-flex items-center gap-2.5 shadow-[0_12px_40px_-4px_rgba(59,130,246,0.35)] dark:shadow-[0_12px_40px_-4px_rgba(59,130,246,0.25)] border-0 font-sans"
           style={{ animationDelay: "150ms" }}
         >
           <span className="bg-gradient-to-r from-blue-500 to-blue-400 text-white px-2.5 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider">

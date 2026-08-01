@@ -21,7 +21,7 @@ import {
 import { upsertBudget, BudgetCategoryItem } from "@/lib/budgets/actions";
 import { toast } from "sonner";
 import { useLanguage } from "@/lib/i18n/context";
-import { translateCategory } from "@/lib/i18n/dictionary";
+import { translateCategory, getEnglishCategoryKey } from "@/lib/i18n/dictionary";
 
 const BUDGET_CATEGORIES = [
   "Makanan & Minuman",
@@ -77,7 +77,7 @@ export function BudgetModal({
     }
 
     setLoading(true);
-    const res = await upsertBudget(category, rawNum);
+    const res = await upsertBudget(getEnglishCategoryKey(category), rawNum);
     setLoading(false);
 
     if ("error" in res) {
@@ -110,7 +110,9 @@ export function BudgetModal({
               disabled={loading || !!budgetToEdit}
             >
               <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0 w-full">
-                <SelectValue placeholder={t.budgetModal.categoryLabel} />
+                <SelectValue placeholder={t.budgetModal.categoryLabel}>
+                  {category ? translateCategory(category, language) : t.budgetModal.categoryLabel}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent className="rounded-xl">
                 {BUDGET_CATEGORIES.map((cat) => (
@@ -131,7 +133,7 @@ export function BudgetModal({
               id="budget-amount"
               type="text"
               inputMode="numeric"
-              placeholder={t.budgetModal.limitPlaceholder}
+              placeholder={language === "ja" ? "例: 200,000" : language === "en" ? "Example: 2,000,000" : "Contoh: 2,000,000"}
               value={amount}
               onChange={(e) => {
                 const raw = e.target.value.replace(/[^0-9]/g, "");

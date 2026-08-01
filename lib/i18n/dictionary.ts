@@ -3,6 +3,12 @@ export type Language = "id" | "en" | "ja";
 export const CATEGORY_MAP: Record<string, { id: string; en: string; ja: string }> = {
   "Makanan & Minuman": { id: "Makanan & Minuman", en: "Food & Beverages", ja: "食費・飲料" },
   "Gaji & Pendapatan": { id: "Gaji & Pendapatan", en: "Salary & Income", ja: "給与・収入" },
+  "Gaji & Upah": { id: "Gaji & Upah", en: "Salary & Wages", ja: "給与・手当" },
+  "Investasi & Deviden": { id: "Investasi & Deviden", en: "Investment & Dividends", ja: "投資・配当" },
+  "Transfer Masuk": { id: "Transfer Masuk", en: "Incoming Transfer", ja: "振込入金" },
+  "Pengembalian Uang": { id: "Pengembalian Uang", en: "Refund & Cashback", ja: "返金・リファンド" },
+  "Hadiah & Bonus": { id: "Hadiah & Bonus", en: "Gifts & Bonus", ja: "贈答・ボーナス" },
+  "Usaha / Sampingan": { id: "Usaha / Sampingan", en: "Side Business", ja: "副業・事業" },
   "Transportasi": { id: "Transportasi", en: "Transportation", ja: "交通費" },
   "Belanja": { id: "Belanja", en: "Shopping", ja: "買い物" },
   "Tagihan & Utilitas": { id: "Tagihan & Utilitas", en: "Bills & Utilities", ja: "光熱費・支払い" },
@@ -10,13 +16,32 @@ export const CATEGORY_MAP: Record<string, { id: string; en: string; ja: string }
   "Kesehatan": { id: "Kesehatan", en: "Health & Medical", ja: "医療・健康" },
   "Pendidikan": { id: "Pendidikan", en: "Education", ja: "教育" },
   "Investasi": { id: "Investasi", en: "Investment", ja: "投資" },
+  "Pajak & Finansial": { id: "Pajak & Finansial", en: "Taxes & Financial", ja: "税金・金融" },
+  "Hutang & Piutang": { id: "Hutang & Piutang", en: "Debts & Receivables", ja: "負債・債権" },
+  "Asuransi": { id: "Asuransi", en: "Insurance", ja: "保険" },
+  "Hadiah & Donasi": { id: "Hadiah & Donasi", en: "Gifts & Donations", ja: "贈答・寄付" },
   "Lainnya": { id: "Lainnya", en: "Others", ja: "その他" },
 };
+
+export function getEnglishCategoryKey(cat: string): string {
+  if (!cat) return cat;
+  for (const [key, map] of Object.entries(CATEGORY_MAP)) {
+    if (key === cat || map.id === cat || map.en === cat || map.ja === cat) {
+      return map.en;
+    }
+  }
+  return cat;
+}
 
 export function translateCategory(cat: string, lang: Language): string {
   if (!cat) return cat;
   if (CATEGORY_MAP[cat]) {
-    return CATEGORY_MAP[cat][lang];
+    return CATEGORY_MAP[cat][lang] || cat;
+  }
+  for (const [key, map] of Object.entries(CATEGORY_MAP)) {
+    if (map.en === cat || map.id === cat || map.ja === cat || key === cat) {
+      return map[lang] || cat;
+    }
   }
   return cat;
 }
@@ -40,6 +65,7 @@ export const translations = {
       evening: "Selamat Sore",
       night: "Selamat Malam",
     },
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"],
     // Dashboard Page
     dashboard: {
       subtitle: "Ringkasan otomatis arus kas, saldo dompet, dan histori transaksi riil Anda.",
@@ -72,7 +98,7 @@ export const translations = {
     accounts: {
       title: "Kelola Rekening & Dompet",
       subtitle: "Kelola saldo rekening bank, e-wallet, dan kas tunai Anda.",
-      totalNetWorth: "TOTAL KEKAYAAN BERSIH (NET WORTH)",
+      totalNetWorth: "TOTAL KEKAYAAN BERSIH",
       totalNetWorthDesc: "Gabungan saldo dari seluruh akun dan dompet aktif",
       addAccount: "Tambah Rekening",
       showArchived: "Tampilkan Arsip",
@@ -269,6 +295,7 @@ export const translations = {
       evening: "Good evening",
       night: "Good night",
     },
+    monthsShort: ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"],
     // Dashboard Page
     dashboard: {
       subtitle: "Real-time summary of cash flows, wallet balances, and transaction history.",
@@ -498,6 +525,7 @@ export const translations = {
       evening: "こんばんは",
       night: "おやすみなさい",
     },
+    monthsShort: ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"],
     // Dashboard Page
     dashboard: {
       subtitle: "キャッシュフロー、ウォレット残高、取引履歴のリアルタイム概要。",

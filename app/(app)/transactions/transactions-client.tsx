@@ -215,17 +215,15 @@ export function TransactionsClientPage({
 
     const headers = language === "en"
       ? ["Date", "Type", "Category", "Amount", "Account", "Description"]
-      : language === "ja"
-      ? ["日付", "タイプ", "カテゴリー", "金額", "口座", "説明"]
       : ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
 
     const rows = transactions.map((t) => {
       const cleanDate = (t.date || "").split("T")[0];
       const translatedType = t.type === "expense"
-        ? (language === "ja" ? "支出" : language === "en" ? "Expense" : "Pengeluaran")
+        ? (language === "en" ? "Expense" : "Pengeluaran")
         : t.type === "income"
-        ? (language === "ja" ? "収入" : language === "en" ? "Income" : "Pemasukan")
-        : (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer");
+        ? (language === "en" ? "Income" : "Pemasukan")
+        : (language === "en" ? "Transfer" : "Transfer");
 
       const translatedCat = translateCategory(t.category, language);
 
@@ -507,7 +505,7 @@ export function TransactionsClientPage({
                             </div>
                             <span className={`text-xs truncate mt-0.5 ${isAccountDeleted ? "text-rose-500 font-semibold" : "text-muted-foreground"}`}>
                               {isTransfer
-                                ? (language === "ja" ? "口座間振替" : language === "en" ? "Account Transfer" : "Transfer Keuangan")
+                                ? (language === "en" ? "Account Transfer" : "Transfer Keuangan")
                                 : (tx.account_name || t.dashboard.deletedAccount)
                               }
                               {tx.description && ` • ${tx.description}`}

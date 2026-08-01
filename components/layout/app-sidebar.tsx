@@ -361,7 +361,7 @@ export function AppSidebar({
                 onClick={() => router.push("/settings")}
               >
                 <Settings className="size-4 mr-2" />
-                <span>Profil & Pengaturan</span>
+                <span>{language === "ja" ? "プロフィール・設定" : language === "en" ? "Profile & Settings" : "Profil & Pengaturan"}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -375,7 +375,7 @@ export function AppSidebar({
                 }}
               >
                 <LogOut className="size-4 mr-2" />
-                Keluar
+                {t.settings.logout}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -388,13 +388,13 @@ export function AppSidebar({
           const isActive = pathname === href || pathname?.startsWith(`${href}/`);
           const translatedLabel =
             href === "/dashboard"
-              ? "Dashboard"
+              ? t.nav.dashboard
               : href === "/accounts"
-              ? (language === "ja" ? "口座" : language === "en" ? "Accounts" : "Rekening")
+              ? t.nav.accounts
               : href === "/transactions"
-              ? (language === "ja" ? "履歴" : language === "en" ? "History" : "Riwayat")
+              ? t.nav.transactions
               : href === "/insights"
-              ? (language === "ja" ? "分析" : language === "en" ? "Insights" : "Analisis")
+              ? t.nav.insights
               : label;
 
           return (
@@ -421,7 +421,7 @@ export function AppSidebar({
         <DropdownMenu>
           <DropdownMenuTrigger className="w-1/5 shrink-0 flex flex-col items-center gap-1 rounded-xl py-1 text-[10px] font-semibold text-slate-500 dark:text-zinc-400 hover:text-slate-900 dark:hover:text-white outline-none min-h-[44px] justify-center cursor-pointer text-center">
             <MoreHorizontal className="size-5 shrink-0" />
-            <span className="truncate w-full px-0.5">{language === "ja" ? "その他" : language === "en" ? "More" : "Lainnya"}</span>
+            <span className="truncate w-full px-0.5">{language === "en" ? "More" : "Lainnya"}</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl p-1 mb-2 font-sans">
             {MOBILE_SECONDARY_NAV.map(({ label, href, icon: Icon }) => {

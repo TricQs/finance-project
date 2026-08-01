@@ -68,7 +68,7 @@ export function AccountModal({
   accountToEdit = null,
   onSuccess,
 }: AccountModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isEdit = !!accountToEdit;
 
   const [name, setName] = useState("");
@@ -180,11 +180,11 @@ export function AccountModal({
                   <SelectValue placeholder={t.accountModal.typeLabel} />
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
-                  <SelectItem value="bank">Bank</SelectItem>
-                  <SelectItem value="ewallet">E-Wallet</SelectItem>
-                  <SelectItem value="cash">Cash</SelectItem>
-                  <SelectItem value="investment">Investment</SelectItem>
-                  <SelectItem value="other">Other</SelectItem>
+                  <SelectItem value="bank">{language === "ja" ? "銀行 (Bank)" : language === "en" ? "Bank" : "Bank"}</SelectItem>
+                  <SelectItem value="ewallet">{language === "ja" ? "電子マネー (E-Wallet)" : language === "en" ? "E-Wallet" : "E-Wallet"}</SelectItem>
+                  <SelectItem value="cash">{language === "ja" ? "手元現金 (Cash)" : language === "en" ? "Cash" : "Tunai / Cash"}</SelectItem>
+                  <SelectItem value="investment">{language === "ja" ? "投資口座 (Investment)" : language === "en" ? "Investment" : "Investasi"}</SelectItem>
+                  <SelectItem value="other">{language === "ja" ? "その他 (Other)" : language === "en" ? "Other" : "Lainnya"}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -203,7 +203,9 @@ export function AccountModal({
                 </SelectTrigger>
                 <SelectContent className="rounded-xl">
                   <SelectItem value="IDR">Rupiah (IDR)</SelectItem>
-                  <SelectItem value="USD">Dollar (USD)</SelectItem>
+                  <SelectItem value="USD">US Dollar (USD)</SelectItem>
+                  <SelectItem value="JPY">Japanese Yen (JPY / ￥)</SelectItem>
+                  <SelectItem value="EUR">Euro (EUR)</SelectItem>
                   <SelectItem value="SGD">Singapore Dollar (SGD)</SelectItem>
                 </SelectContent>
               </Select>

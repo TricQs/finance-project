@@ -41,37 +41,51 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
     setLoading(false);
   }
 
+  const hasNoData = data.totalIncome === 0 && data.totalExpense === 0;
+
   // Configuration for Health Badge
-  const HEALTH_CONFIG = {
-    EXCELLENT: {
-      label: t.insights.excellent,
-      badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
-      bgGradient: "from-emerald-500 to-teal-700",
-      icon: ShieldCheck,
-      desc: t.insights.excellentDesc,
-    },
-    GOOD: {
-      label: t.insights.healthy,
-      badgeClass: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400",
-      bgGradient: "from-indigo-600 to-blue-700",
-      icon: ShieldCheck,
-      desc: t.insights.healthyDesc,
-    },
-    WARNING: {
-      label: t.insights.needsAttention,
-      badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
-      bgGradient: "from-amber-500 to-orange-600",
-      icon: AlertTriangle,
-      desc: t.insights.needsAttentionDesc,
-    },
-    CRITICAL: {
-      label: t.insights.needsAttention,
-      badgeClass: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
-      bgGradient: "from-red-600 to-rose-700",
-      icon: AlertTriangle,
-      desc: t.insights.needsAttentionDesc,
-    },
-  }[data.healthStatus];
+  const HEALTH_CONFIG = hasNoData
+    ? {
+        label: language === "ja" ? "データなし (NO DATA)" : language === "en" ? "NO DATA YET" : "BELUM ADA DATA",
+        badgeClass: "bg-slate-500/10 text-slate-400 border-slate-500/20",
+        bgGradient: "from-slate-800 via-indigo-950 to-slate-900",
+        icon: AlertTriangle,
+        desc: language === "ja"
+          ? "分析する取引履歴がまだありません。取引を記録すると家計の健康度スコアが計算されます。"
+          : language === "en"
+          ? "No transaction history recorded yet. Start recording transactions to see your financial health score."
+          : "Belum ada histori transaksi untuk dianalisis. Mulai catat transaksi untuk melihat skor kesehatan keuangan Anda.",
+      }
+    : {
+        EXCELLENT: {
+          label: t.insights.excellent,
+          badgeClass: "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 dark:text-emerald-400",
+          bgGradient: "from-emerald-500 to-teal-700",
+          icon: ShieldCheck,
+          desc: t.insights.excellentDesc,
+        },
+        GOOD: {
+          label: t.insights.healthy,
+          badgeClass: "bg-indigo-500/10 text-indigo-600 border-indigo-500/20 dark:text-indigo-400",
+          bgGradient: "from-indigo-600 to-blue-700",
+          icon: ShieldCheck,
+          desc: t.insights.healthyDesc,
+        },
+        WARNING: {
+          label: t.insights.needsAttention,
+          badgeClass: "bg-amber-500/10 text-amber-600 border-amber-500/20 dark:text-amber-400",
+          bgGradient: "from-amber-500 to-orange-600",
+          icon: AlertTriangle,
+          desc: t.insights.needsAttentionDesc,
+        },
+        CRITICAL: {
+          label: t.insights.needsAttention,
+          badgeClass: "bg-red-500/10 text-red-600 border-red-500/20 dark:text-red-400",
+          bgGradient: "from-red-600 to-rose-700",
+          icon: AlertTriangle,
+          desc: t.insights.needsAttentionDesc,
+        },
+      }[data.healthStatus];
 
   const HealthIcon = HEALTH_CONFIG.icon;
 
@@ -86,12 +100,12 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
         <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div className="flex flex-col gap-2 max-w-xl">
             <div className="flex items-center gap-2">
-              <Badge className="bg-white/20 text-white hover:bg-white/30 border-none backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold tracking-wider">
-                FINANCIAL INSIGHTS & HEALTH
+              <Badge className="bg-white/20 text-white hover:bg-white/30 border-none backdrop-blur-md rounded-full px-3 py-1 text-xs font-semibold tracking-wider uppercase">
+                {language === "ja" ? "財務の洞察と健康度" : language === "en" ? "FINANCIAL INSIGHTS & HEALTH" : "ANALISIS & KESEHATAN KEUANGAN"}
               </Badge>
             </div>
             <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Kondisi Keuangan: {HEALTH_CONFIG.label}
+              {language === "ja" ? "家計の状況: " : language === "en" ? "Financial Condition: " : "Kondisi Keuangan: "}{HEALTH_CONFIG.label}
             </h1>
             <p className="text-sm text-white/80 leading-relaxed">
               {HEALTH_CONFIG.desc}
@@ -110,7 +124,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
                 />
                 <path
                   className="text-white"
-                  strokeDasharray={`${data.healthScore}, 100`}
+                  strokeDasharray={`${hasNoData ? 0 : data.healthScore}, 100`}
                   strokeWidth="3.5"
                   strokeLinecap="round"
                   stroke="currentColor"
@@ -118,7 +132,7 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
                   d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
               </svg>
-              <span className="absolute text-lg font-black">{data.healthScore}</span>
+              <span className="absolute text-lg font-black">{hasNoData ? "--" : data.healthScore}</span>
             </div>
             <div className="flex flex-col">
               <span className="text-xs text-white/70 font-medium uppercase tracking-wider">{t.insights.healthScore}</span>

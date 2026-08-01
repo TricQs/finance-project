@@ -50,92 +50,37 @@ export async function signUp(
     return { error: parsed.error.issues[0]?.message ?? "Input tidak valid" };
   }
 
-  function getAppUrl() {
-    if (process.env.NEXT_PUBLIC_APP_URL) {
-      return process.env.NEXT_PUBLIC_APP_URL;
-    }
-    if (process.env.VERCEL_URL) {
-      return `https://${process.env.VERCEL_URL}`;
-    }
-    return "http://localhost:3000";
-  }
-
   const adminClient = createAdminClient();
-  const baseUrl = getAppUrl();
-  const { data: linkData, error: linkError } =
-    await adminClient.auth.admin.generateLink({
-      type: "signup",
+
+  // 1. Create and auto-confirm user with password using admin API
+  const { data: userData, error: createError } =
+    await adminClient.auth.admin.createUser({
       email: parsed.data.email,
       password: parsed.data.password,
-      options: {
-        data: { full_name: parsed.data.fullName },
-        redirectTo: `${baseUrl}/auth/callback`,
-      },
-    });
-
-  if (linkError) {
-    if (
-      linkError.message.toLowerCase().includes("already registered") ||
-      linkError.code === "email_exists"
-    ) {
-      return { error: "Email ini sudah terdaftar. Coba masuk." };
-    }
-    return { error: "Gagal mendaftar. Silakan coba lagi." };
-  }
-
-  // 1. Auto-confirm user so they can log in instantly without email delivery blocks!
-  if (linkData?.user?.id) {
-    await adminClient.auth.admin.updateUserById(linkData.user.id, {
       email_confirm: true,
+      user_metadata: { full_name: parsed.data.fullName },
     });
-  }
 
-  // 2. Fire-and-forget background email with cleaned SMTP password
-  const rawLink = linkData?.properties?.action_link ?? "";
-  if (rawLink) {
-    try {
-      const supabaseUrl = new URL(rawLink);
-      const tokenHash = supabaseUrl.searchParams.get("token");
-      const type = supabaseUrl.searchParams.get("type");
-      const confirmUrl = `${baseUrl}/auth/callback?token_hash=${tokenHash}&type=${type}`;
-      const { subject, html } = confirmEmailTemplate(
-        parsed.data.fullName,
-        confirmUrl,
-      );
-
-      const cleanPass = (process.env.SMTP_PASS || "").replace(/\s+/g, "");
-      const mailTransporter = (await import("nodemailer")).default.createTransport({
-        host: process.env.SMTP_HOST || "smtp.gmail.com",
-        port: Number(process.env.SMTP_PORT) || 465,
-        secure: true,
-        auth: {
-          user: process.env.SMTP_USER,
-          pass: cleanPass,
-        },
-      });
-
-      mailTransporter.sendMail({
-        from: `"Uangku" <${process.env.SMTP_USER}>`,
-        to: parsed.data.email,
-        subject,
-        html,
-      }).catch((err) => {
-        console.error("Background mail notification error:", err);
-      });
-    } catch (emailError) {
-      console.error("Email setup error:", emailError);
+  if (createError) {
+    if (
+      createError.message.toLowerCase().includes("already registered") ||
+      createError.message.toLowerCase().includes("already exists") ||
+      createError.code === "email_exists"
+    ) {
+      return { error: "Email ini sudah terdaftar. Silakan masuk." };
     }
+    return { error: createError.message || "Gagal mendaftar. Silakan coba lagi." };
   }
 
-  // 3. Automatically sign in the user & redirect to dashboard!
+  // 2. Automatically log in the user and establish session cookie
   const supabase = await createClient();
-  const { error: signInErr } = await supabase.auth.signInWithPassword({
+  const { error: signInError } = await supabase.auth.signInWithPassword({
     email: parsed.data.email,
     password: parsed.data.password,
   });
 
-  if (signInErr) {
-    return { success: "Akun berhasil dibuat! Silakan masuk." };
+  if (signInError) {
+    return { error: "Akun berhasil dibuat, silakan masuk secara manual." };
   }
 
   redirect("/dashboard");
@@ -143,10 +88,12 @@ export async function signUp(
 
 export async function sendResetPasswordEmail(
   email: string,
+  lang: string = "en"
 ): Promise<ActionResult> {
+  const isId = lang === "id";
   const parsedEmail = email.trim().toLowerCase();
   if (!parsedEmail || !parsedEmail.includes("@")) {
-    return { error: "Alamat email tidak valid." };
+    return { error: isId ? "Alamat email tidak valid." : "Invalid email address." };
   }
 
   function getAppUrl() {
@@ -171,7 +118,7 @@ export async function sendResetPasswordEmail(
   });
 
   if (error || !linkData?.properties?.action_link) {
-    return { error: "Email ini belum terdaftar di sistem." };
+    return { error: lang === "id" ? "Email ini belum terdaftar di sistem." : "This email is not registered in our system." };
   }
 
   const rawLink = linkData.properties.action_link;
@@ -194,19 +141,32 @@ export async function sendResetPasswordEmail(
       },
     });
 
+    const subject = isId ? "Reset Password Akun - Uangku" : "Reset Your Password - Uangku";
+    const title = isId ? "Reset Password Uangku" : "Reset Your Uangku Password";
+    const greeting = isId
+      ? "Halo, kamu menerima email ini karena ada permintaan reset password untuk akun Uangku kamu."
+      : "Hello, you are receiving this email because a password reset request was made for your Uangku account.";
+    const instruction = isId
+      ? "Klik tombol di bawah ini untuk membuat password baru:"
+      : "Click the button below to create a new password:";
+    const buttonText = isId ? "Reset Password Saya" : "Reset My Password";
+    const footer = isId
+      ? "Jika kamu tidak meminta reset password, abaikan saja email ini."
+      : "If you did not request a password reset, please ignore this email.";
+
     await mailTransporter.sendMail({
       from: `"Uangku Support" <${process.env.SMTP_USER}>`,
       to: parsedEmail,
-      subject: "Reset Password Account - Uangku",
+      subject,
       html: `
         <div style="font-family: sans-serif; max-width: 500px; margin: 0 auto; padding: 24px; border: 1px solid #e4e4e7; border-radius: 16px; background-color: #ffffff;">
-          <h2 style="color: #4f46e5; margin-bottom: 8px;">Reset Password Uangku</h2>
-          <p style="color: #3f3f46; font-size: 14px;">Halo, kamu menerima email ini karena ada permintaan reset password untuk akun Uangku kamu.</p>
-          <p style="color: #3f3f46; font-size: 14px;">Klik tombol di bawah ini untuk membuat password baru:</p>
+          <h2 style="color: #4f46e5; margin-bottom: 8px;">${title}</h2>
+          <p style="color: #3f3f46; font-size: 14px;">${greeting}</p>
+          <p style="color: #3f3f46; font-size: 14px;">${instruction}</p>
           <div style="margin: 24px 0;">
-            <a href="${recoveryUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 14px;">Reset Password Saya</a>
+            <a href="${recoveryUrl}" style="display: inline-block; padding: 12px 24px; background-color: #4f46e5; color: #ffffff; text-decoration: none; border-radius: 12px; font-weight: bold; font-size: 14px;">${buttonText}</a>
           </div>
-          <p style="color: #71717a; font-size: 12px;">Jika kamu tidak meminta reset password, abaikan saja email ini.</p>
+          <p style="color: #71717a; font-size: 12px;">${footer}</p>
         </div>
       `,
     });
@@ -214,7 +174,7 @@ export async function sendResetPasswordEmail(
     console.error("Reset password mail error:", err);
   }
 
-  return { success: `Tautan reset password telah dikirim ke ${parsedEmail}` };
+  return { success: isId ? `Tautan reset password telah dikirim ke ${parsedEmail}` : `Password reset link has been sent to ${parsedEmail}` };
 }
 
 export async function signOut() {

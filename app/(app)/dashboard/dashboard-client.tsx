@@ -83,7 +83,11 @@ export function DashboardClientPage({
   const monthlySavings = thisMonthIncome - thisMonthExpense;
 
   // 3. Bar Chart Data (12 Bulan untuk Tahun Terpilih)
-  const monthNames = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
+  const monthNames = language === "ja" 
+    ? ["1月", "2月", "3月", "4月", "5月", "6月", "7月", "8月", "9月", "10月", "11月", "12月"]
+    : language === "en"
+    ? ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
+    : ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
 
   const { barChartData, totalYearExpense } = useMemo(() => {
     const monthlyTotals = new Array(12).fill(0);
@@ -165,17 +169,15 @@ export function DashboardClientPage({
 
     const headers = language === "en"
       ? ["Date", "Type", "Category", "Amount", "Account", "Description"]
-      : language === "ja"
-      ? ["日付", "タイプ", "カテゴリー", "金額", "口座", "説明"]
       : ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
 
     const rows = allYearTransactions.map((t) => {
       const cleanDate = (t.date || "").split("T")[0];
       const translatedType = t.type === "expense"
-        ? (language === "ja" ? "支出" : language === "en" ? "Expense" : "Pengeluaran")
+        ? (language === "en" ? "Expense" : "Pengeluaran")
         : t.type === "income"
-        ? (language === "ja" ? "収入" : language === "en" ? "Income" : "Pemasukan")
-        : (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer");
+        ? (language === "en" ? "Income" : "Pemasukan")
+        : (language === "en" ? "Transfer" : "Transfer");
 
       const translatedCat = translateCategory(t.category, language);
 
@@ -476,7 +478,7 @@ export function DashboardClientPage({
                         {tx.date}
                       </td>
                       <td className="py-3.5 px-4 text-zinc-500">
-                        {isTransfer ? (language === "ja" ? "振替" : language === "en" ? "Transfer" : "Transfer") : (tx.account_name || t.dashboard.deletedAccount)}
+                        {isTransfer ? "Transfer" : (tx.account_name || t.dashboard.deletedAccount)}
                       </td>
                       <td className="py-3.5 px-4">
                         <Badge

@@ -56,7 +56,7 @@ const INCOME_CATEGORIES = [
 ];
 
 import { useLanguage } from "@/lib/i18n/context";
-import { translateCategory } from "@/lib/i18n/dictionary";
+import { translateCategory, getEnglishCategoryKey } from "@/lib/i18n/dictionary";
 
 interface TransactionModalProps {
   open: boolean;
@@ -71,7 +71,7 @@ export function TransactionModal({
   transactionToEdit = null,
   onSuccess,
 }: TransactionModalProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const isEdit = !!transactionToEdit;
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -242,7 +242,7 @@ export function TransactionModal({
           account_id: accountId,
           type: activeTab,
           amount: Number(amount.replace(/,/g, "")),
-          category,
+          category: getEnglishCategoryKey(category),
           description: description.trim() || null,
           date,
           is_recurring: isRecurring,
@@ -346,21 +346,23 @@ export function TransactionModal({
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Akun Asal (Sumber)
+                    {language === "ja" ? "出金元口座" : language === "en" ? "SOURCE ACCOUNT" : "AKUN ASAL (SUMBER)"}
                   </Label>
                   {(() => {
                     const selectedFrom = accounts.find((a) => a.id === fromAccountId);
+                    const placeholder = language === "ja" ? "口座を選択" : language === "en" ? "Select Account" : "Pilih Akun";
+                    const deletedStr = language === "ja" ? "削除された口座" : language === "en" ? "Deleted Account" : "Akun Terhapus";
                     return (
                       <Select value={fromAccountId} onValueChange={(val) => setFromAccountId(val ?? "")} disabled={loading}>
                         <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                          <SelectValue placeholder="Pilih Akun">
-                            {selectedFrom ? selectedFrom.name : (fromAccountId ? "Akun Terhapus" : "Pilih Akun")}
+                          <SelectValue placeholder={placeholder}>
+                            {selectedFrom ? selectedFrom.name : (fromAccountId ? deletedStr : placeholder)}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                           {accounts.map((acc) => (
                             <SelectItem key={acc.id} value={acc.id}>
-                              {acc.name} {!acc.is_active && "(Diarsipkan)"}
+                              {acc.name} {!acc.is_active && `(${t.accounts.archivedTab})`}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -371,21 +373,23 @@ export function TransactionModal({
 
                 <div className="space-y-1.5">
                   <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                    Akun Tujuan (Penerima)
+                    {language === "ja" ? "入金先口座" : language === "en" ? "DESTINATION ACCOUNT" : "AKUN TUJUAN (PENERIMA)"}
                   </Label>
                   {(() => {
                     const selectedTo = accounts.find((a) => a.id === toAccountId);
+                    const placeholder = language === "ja" ? "口座を選択" : language === "en" ? "Select Account" : "Pilih Akun";
+                    const deletedStr = language === "ja" ? "削除された口座" : language === "en" ? "Deleted Account" : "Akun Terhapus";
                     return (
                       <Select value={toAccountId} onValueChange={(val) => setToAccountId(val ?? "")} disabled={loading}>
                         <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                          <SelectValue placeholder="Pilih Akun">
-                            {selectedTo ? selectedTo.name : (toAccountId ? "Akun Terhapus" : "Pilih Akun")}
+                          <SelectValue placeholder={placeholder}>
+                            {selectedTo ? selectedTo.name : (toAccountId ? deletedStr : placeholder)}
                           </SelectValue>
                         </SelectTrigger>
                         <SelectContent className="rounded-xl">
                           {accounts.map((acc) => (
                             <SelectItem key={acc.id} value={acc.id}>
-                              {acc.name} {!acc.is_active && "(Diarsipkan)"}
+                              {acc.name} {!acc.is_active && `(${t.accounts.archivedTab})`}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -397,7 +401,7 @@ export function TransactionModal({
 
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Nominal Transfer
+                  {language === "ja" ? "振込金額" : language === "en" ? "TRANSFER AMOUNT" : "NOMINAL TRANSFER"}
                 </Label>
                 <div className="relative">
                   <span className="absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-muted-foreground">IDR</span>
@@ -422,7 +426,7 @@ export function TransactionModal({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5 col-span-2 sm:col-span-1">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Tanggal
+                  {language === "ja" ? "日付" : language === "en" ? "DATE" : "TANGGAL"}
                 </Label>
                 <div className="relative">
                   <Calendar className="absolute left-3.5 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
@@ -447,7 +451,7 @@ export function TransactionModal({
                     disabled={loading}
                   />
                   <Label htmlFor="is-recurring" className="text-sm font-medium cursor-pointer">
-                    Transaksi Berulang
+                    {language === "ja" ? "定期的な取引" : language === "en" ? "Recurring Transaction" : "Transaksi Berulang"}
                   </Label>
                 </div>
               )}
@@ -457,17 +461,17 @@ export function TransactionModal({
             {activeTab !== "transfer" && isRecurring && (
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Interval Perulangan
+                  {language === "ja" ? "繰り返し間隔" : language === "en" ? "RECURRING INTERVAL" : "INTERVAL PERULANGAN"}
                 </Label>
                 <Select value={recurringInterval} onValueChange={(val) => setRecurringInterval(val ?? "monthly")} disabled={loading}>
                   <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-                    <SelectValue placeholder="Pilih Interval" />
+                    <SelectValue placeholder={language === "ja" ? "間隔を選択" : language === "en" ? "Select Interval" : "Pilih Interval"} />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="daily">Harian</SelectItem>
-                    <SelectItem value="weekly">Mingguan</SelectItem>
-                    <SelectItem value="monthly">Bulanan</SelectItem>
-                    <SelectItem value="yearly">Tahunan</SelectItem>
+                    <SelectItem value="daily">{language === "ja" ? "毎日" : language === "en" ? "Daily" : "Harian"}</SelectItem>
+                    <SelectItem value="weekly">{language === "ja" ? "毎週" : language === "en" ? "Weekly" : "Mingguan"}</SelectItem>
+                    <SelectItem value="monthly">{language === "ja" ? "毎月" : language === "en" ? "Monthly" : "Bulanan"}</SelectItem>
+                    <SelectItem value="yearly">{language === "ja" ? "毎年" : language === "en" ? "Yearly" : "Tahunan"}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -620,7 +624,9 @@ function ExpenseIncomeFormFields({
           </Label>
           <Select value={category} onValueChange={(val) => setCategory(val ?? "")} disabled={loading}>
             <SelectTrigger className="rounded-2xl border-2 border-border focus:ring-0">
-              <SelectValue placeholder={t.transactionModal.categoryLabel} />
+              <SelectValue placeholder={t.transactionModal.categoryLabel}>
+                {category ? translateCategory(category, language) : t.transactionModal.categoryLabel}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent className="rounded-xl">
               {categories.map((cat) => (

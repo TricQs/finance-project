@@ -93,31 +93,19 @@ export default function InkReveal({
       seed: number,
       alpha: number
     ) => {
-      const g = ctx.createRadialGradient(
-        x, y, r * gradientInnerRadius,
-        x, y, r
-      );
-      g.addColorStop(0, `rgba(0,0,0,${gradientStops[0] * alpha})`);
-      g.addColorStop(0.5, `rgba(0,0,0,${gradientStops[1] * alpha})`);
-      g.addColorStop(1, `rgba(0,0,0,${gradientStops[2] * alpha})`);
+      // Ultra-smooth, feather-soft radial gradient reveal (no smoky/jagged wobble)
+      const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+      g.addColorStop(0, `rgba(0,0,0,${alpha})`);
+      g.addColorStop(0.35, `rgba(0,0,0,${alpha * 0.65})`);
+      g.addColorStop(0.75, `rgba(0,0,0,${alpha * 0.2})`);
+      g.addColorStop(1, `rgba(0,0,0,0)`);
       ctx.fillStyle = g;
 
       ctx.beginPath();
-      for (let i = 0; i <= segments; i++) {
-        const a = (i / segments) * Math.PI * 2;
-        const wob =
-          0.78 +
-          wobble[0] * Math.sin(a * 3 + seed) +
-          wobble[1] * Math.sin(a * 5 + seed * 2.1) +
-          wobble[2] * Math.sin(a * 7 + seed * 0.7);
-        const px = x + Math.cos(a) * r * wob;
-        const py = y + Math.sin(a) * r * wob;
-        i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py);
-      }
-      ctx.closePath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
       ctx.fill();
     },
-    [segments, wobble, gradientInnerRadius, gradientStops]
+    []
   );
 
   const addStamp = useCallback(

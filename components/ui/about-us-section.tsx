@@ -190,13 +190,13 @@ export default function AboutUsSection() {
       ref={sectionRef}
       className="w-full pt-20 pb-12 sm:pb-16 px-4 relative font-sans transition-colors duration-300 scroll-mt-10"
     >
-      {/* Decorative background elements */}
+      {/* Decorative background elements - Desktop only parallax to prevent mobile scroll layout shifts */}
       <motion.div
-        className="absolute top-20 left-10 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"
+        className="hidden md:block absolute top-20 left-10 w-64 h-64 rounded-full bg-indigo-500/10 blur-3xl pointer-events-none"
         style={{ y: y1, rotate: rotate1 }}
       />
       <motion.div
-        className="absolute bottom-20 right-10 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"
+        className="hidden md:block absolute bottom-20 right-10 w-80 h-80 rounded-full bg-blue-500/10 blur-3xl pointer-events-none"
         style={{ y: y2, rotate: rotate2 }}
       />
       <motion.div
