@@ -8,10 +8,10 @@ export const metadata: Metadata = {
 };
 
 interface AuthPageProps {
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; verified?: string }>;
 }
 
 export default async function AuthPage({ searchParams }: AuthPageProps) {
-  const { error } = await searchParams;
-  return <SignInPage initialError={error} />;
+  const { error, verified } = await searchParams;
+  return <SignInPage initialError={error} initialVerified={verified === "true"} />;
 }

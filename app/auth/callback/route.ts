@@ -41,6 +41,11 @@ export async function GET(request: Request) {
       return NextResponse.redirect(`${redirectBase}/reset-password`);
     }
 
+    // Email verification for signup
+    if (type === "signup" || type === "email") {
+      return NextResponse.redirect(`${redirectBase}/auth?verified=true`);
+    }
+
     return NextResponse.redirect(`${redirectBase}/dashboard`);
   }
 
