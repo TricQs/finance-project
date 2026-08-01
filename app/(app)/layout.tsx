@@ -25,6 +25,7 @@ export default async function AppLayout({
 
   return (
     <AppShell
+      userId={user.id}
       userName={profile?.full_name || user.email?.split("@")[0]}
       userEmail={user.email ?? ""}
       avatarUrl={profile?.avatar_url ?? undefined}

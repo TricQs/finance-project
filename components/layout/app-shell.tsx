@@ -8,6 +8,7 @@ import { OnboardingTour } from "@/components/shared/onboarding-tour";
 
 type AppShellProps = {
   children: React.ReactNode;
+  userId?: string;
   userName?: string;
   userEmail?: string;
   avatarUrl?: string;
@@ -15,6 +16,7 @@ type AppShellProps = {
 
 export function AppShell({
   children,
+  userId,
   userName,
   userEmail,
   avatarUrl,
@@ -58,7 +60,7 @@ export function AppShell({
       </div>
 
       {/* GLOBAL ONBOARDING TOUR OVERLAY */}
-      <OnboardingTour />
+      <OnboardingTour userId={userId} />
     </div>
   );
 }

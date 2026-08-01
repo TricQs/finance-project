@@ -30,11 +30,12 @@ interface TourStep {
 }
 
 interface OnboardingTourProps {
+  userId?: string;
   forceOpen?: boolean;
   onClose?: () => void;
 }
 
-export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourProps) {
+export function OnboardingTour({ userId, forceOpen = false, onClose }: OnboardingTourProps) {
   const { t } = useLanguage();
   const [mounted, setMounted] = useState(false);
   const [open, setOpen] = useState(false);
@@ -52,6 +53,8 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   const pathname = usePathname();
   const animFrameIdRef = useRef<number | null>(null);
   const scrolledStepRef = useRef<number | null>(null);
+
+  const storageKey = userId ? `uangku_onboarding_completed_${userId}` : "uangku_onboarding_completed";
 
   const tourSteps: TourStep[] = [
     {
@@ -118,7 +121,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
       return;
     }
 
-    const hasCompleted = localStorage.getItem("uangku_onboarding_completed");
+    const hasCompleted = localStorage.getItem(storageKey);
     if (!hasCompleted) {
       const timer = setTimeout(() => {
         scrollToContainerTop();
@@ -127,7 +130,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
       }, 500);
       return () => clearTimeout(timer);
     }
-  }, [forceOpen, scrollToContainerTop]);
+  }, [forceOpen, scrollToContainerTop, storageKey]);
 
   // Transition to step 5 when user reaches /accounts page
   useEffect(() => {
@@ -280,7 +283,7 @@ export function OnboardingTour({ forceOpen = false, onClose }: OnboardingTourPro
   }, [open, currentStep]);
 
   function handleClose() {
-    localStorage.setItem("uangku_onboarding_completed", "true");
+    localStorage.setItem(storageKey, "true");
     setOpen(false);
     setCurrentStep(0);
     scrolledStepRef.current = null;
