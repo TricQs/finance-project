@@ -187,5 +187,5 @@ Bebas digunakan dan dimodifikasi untuk pembelajaran.
 ---
 
 <p align="center">
-  Dikembangkan oleh <a href="https://github.com/">Developer Portfolio</a>
+  Dikembangkan oleh <a href="https://github.com/TricQs">Developer Portfolio</a>
 </p>
