@@ -104,7 +104,7 @@ const MOBILE_PRIMARY_NAV = [
 ] as const;
 
 const MOBILE_SECONDARY_NAV = [
-  { label: "Customers", href: "/customers", icon: Users },
+  { label: "Budgets", href: "/budgets", icon: PiggyBank },
   { label: "Shopee", href: "/store/shopee", icon: ShopeeIcon },
   { label: "Tokopedia", href: "/store/tokopedia", icon: TokopediaIcon },
   { label: "Blibli", href: "/store/blibli", icon: BlibliIcon },
@@ -426,7 +426,12 @@ export function AppSidebar({
           <DropdownMenuContent align="end" side="top" className="w-52 rounded-2xl p-1 mb-2 font-sans">
             {MOBILE_SECONDARY_NAV.map(({ label, href, icon: Icon }) => {
               const isActive = pathname === href || pathname?.startsWith(`${href}/`);
-              const translatedLabel = href === "/settings" ? t.nav.settings : label;
+              const translatedLabel =
+                href === "/budgets"
+                  ? t.nav.budgets
+                  : href === "/settings"
+                  ? t.nav.settings
+                  : label;
               return (
                 <DropdownMenuItem key={href} className="p-0 rounded-xl cursor-pointer">
                   <Link href={href} className={cn("flex items-center gap-2.5 w-full px-3 py-2.5", isActive && "text-[#4f46e5] font-bold")}>

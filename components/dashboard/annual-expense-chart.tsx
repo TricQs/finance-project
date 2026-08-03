@@ -160,11 +160,10 @@ export function AnnualExpenseChart({ transactions, selectedYear }: AnnualExpense
                   </span>
                   {change !== 0 && (
                     <span
-                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${
-                        (stage.key === 'expense' ? change <= 0 : change >= 0)
+                      className={`inline-flex items-center gap-0.5 text-[10px] font-semibold ${(stage.key === 'expense' ? change <= 0 : change >= 0)
                           ? 'text-emerald-500'
                           : 'text-rose-500'
-                      }`}
+                        }`}
                     >
                       {change >= 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}
                       {Math.abs(change)}%
@@ -228,7 +227,7 @@ export function AnnualExpenseChart({ transactions, selectedYear }: AnnualExpense
 
           <Area
             dataKey="income"
-            type="natural"
+            type="monotone"
             fill="url(#fillIncome)"
             fillOpacity={0.4}
             stroke="var(--color-income)"
@@ -243,7 +242,7 @@ export function AnnualExpenseChart({ transactions, selectedYear }: AnnualExpense
           />
           <Area
             dataKey="expense"
-            type="natural"
+            type="monotone"
             fill="url(#fillExpense)"
             fillOpacity={0.4}
             stroke="var(--color-expense)"
@@ -258,7 +257,7 @@ export function AnnualExpenseChart({ transactions, selectedYear }: AnnualExpense
           />
           <Area
             dataKey="savings"
-            type="natural"
+            type="monotone"
             fill="url(#fillSavings)"
             fillOpacity={0.3}
             stroke="var(--color-savings)"
