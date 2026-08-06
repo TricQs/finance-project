@@ -164,21 +164,28 @@ export function DashboardClientPage({
   // Export CSV (Translates headers & values dynamically & formats clean YYYY-MM-DD for Excel)
   function handleExportCSV() {
     if (allYearTransactions.length === 0) {
-      toast.error("Belum ada data transaksi untuk diekspor");
+      const msg = language === "ja" 
+        ? "出力する取引データがまだありません" 
+        : language === "en" 
+        ? "No transaction data to export yet" 
+        : "Belum ada data transaksi untuk diekspor";
+      toast.error(msg);
       return;
     }
 
-    const headers = language === "en"
+    const headers = language === "ja"
+      ? ["日付", "種別", "カテゴリ", "金額", "口座", "メモ"]
+      : language === "en"
       ? ["Date", "Type", "Category", "Amount", "Account", "Description"]
       : ["Tanggal", "Tipe", "Kategori", "Jumlah", "Rekening", "Keterangan"];
 
     const rows = allYearTransactions.map((t) => {
       const cleanDate = (t.date || "").split("T")[0];
       const translatedType = t.type === "expense"
-        ? (language === "en" ? "Expense" : "Pengeluaran")
+        ? (language === "ja" ? "支出" : language === "en" ? "Expense" : "Pengeluaran")
         : t.type === "income"
-        ? (language === "en" ? "Income" : "Pemasukan")
-        : (language === "en" ? "Transfer" : "Transfer");
+        ? (language === "ja" ? "収入" : language === "en" ? "Income" : "Pemasukan")
+        : (language === "ja" ? "振込" : language === "en" ? "Transfer" : "Transfer");
 
       const translatedCat = translateCategory(t.category, language);
 
@@ -205,7 +212,13 @@ export function DashboardClientPage({
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
-    toast.success("File CSV berhasil diunduh!");
+
+    const successMsg = language === "ja" 
+      ? "CSVファイルのダウンロードが完了しました！" 
+      : language === "en" 
+      ? "CSV file downloaded successfully!" 
+      : "File CSV berhasil diunduh!";
+    toast.success(successMsg);
   }
 
   return (
