@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { formatCurrency } from "@/lib/format-currency";
 import type { Transaction, Transfer } from "@/types";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+type ActionResult<T = unknown> = { error: string } | { success: T };
 
 export type UnifiedTransaction = {
   id: string;
@@ -53,8 +53,8 @@ export async function getTransactions(filters: TransactionFilters = {}): Promise
     accountMap.set(acc.id, { name: acc.name, color: acc.color });
   });
 
-  let transactions: any[] = [];
-  let transfers: any[] = [];
+  let transactions: Transaction[] = [];
+  let transfers: Transfer[] = [];
 
   // 1. QUERY TABEL TRANSACTIONS (Pemasukan & Pengeluaran)
   if (!filters.type || filters.type === "income" || filters.type === "expense") {
@@ -315,7 +315,7 @@ export async function updateTransaction(
     if (oldTx) oldReceiptUrl = oldTx.receipt_url;
   }
 
-  const updatePayload: any = { ...data };
+  const updatePayload: Record<string, unknown> = { ...data };
   if (data.amount !== undefined) updatePayload.amount = Number(data.amount);
   if (newReceiptPath) updatePayload.receipt_url = newReceiptPath;
   else if (deleteOldReceipt) updatePayload.receipt_url = null;

@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Account } from "@/types";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+type ActionResult<T = unknown> = { error: string } | { success: T };
 
 export async function getAccounts(includeArchived = false): Promise<Account[]> {
   const supabase = await createClient();

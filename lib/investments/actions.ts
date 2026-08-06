@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createTransaction } from "@/lib/transactions/actions";
 import type { Investment } from "@/types";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+type ActionResult<T = unknown> = { error: string } | { success: T };
 
 export async function getInvestments(): Promise<Investment[]> {
   const supabase = await createClient();
@@ -172,7 +172,7 @@ export async function recordSell(
   const isSoldOut = remainingQty === 0;
 
   // 2. Update portofolio investasi
-  const updatePayload: any = {
+  const updatePayload: Record<string, unknown> = {
     quantity: remainingQty,
     is_sold: isSoldOut,
     updated_at: new Date().toISOString(),

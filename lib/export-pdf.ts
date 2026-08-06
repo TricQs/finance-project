@@ -217,7 +217,7 @@ export function generateFinancialReportPDF({
   });
 
   // Footer on all pages
-  const totalPages = (doc as any).internal.getNumberOfPages();
+  const totalPages = doc.getNumberOfPages();
   for (let i = 1; i <= totalPages; i++) {
     doc.setPage(i);
     doc.setDrawColor("#e2e8f0");

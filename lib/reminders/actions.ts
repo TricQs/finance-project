@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createTransaction } from "@/lib/transactions/actions";
 import type { Reminder } from "@/types";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+type ActionResult<T = unknown> = { error: string } | { success: T };
 
 export async function getReminders(): Promise<Reminder[]> {
   const supabase = await createClient();

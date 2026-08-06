@@ -26,9 +26,10 @@ export async function resetAllUserData() {
     ]);
 
     return { success: true };
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error resetAllUserData:", err);
-    return { error: err?.message || "Gagal melakukan reset data" };
+    const message = err instanceof Error ? err.message : "Gagal melakukan reset data";
+    return { error: message };
   }
 }
 
@@ -66,9 +67,10 @@ export async function deleteUserAccount() {
     } catch (adminErr) {
       console.error("Admin deleteUser error:", adminErr);
     }
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Error deleteUserAccount:", err);
-    return { error: err?.message || "Gagal menghapus akun" };
+    const message = err instanceof Error ? err.message : "Gagal menghapus akun";
+    return { error: message };
   }
 
   redirect("/auth");

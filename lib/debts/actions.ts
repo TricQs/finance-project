@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import type { Debt } from "@/types";
 
-type ActionResult<T = any> = { error: string } | { success: T };
+type ActionResult<T = unknown> = { error: string } | { success: T };
 
 export async function getDebts(type?: "debt" | "receivable"): Promise<Debt[]> {
   const supabase = await createClient();
