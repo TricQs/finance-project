@@ -10,6 +10,7 @@
 
 <p align="center">
   <a href="#-fitur-utama">Fitur</a> •
+  <a href="#-fitur-terbaru--inovasi">Fitur Terbaru</a> •
   <a href="#-teknologi--stack">Tech Stack</a> •
   <a href="#-persiapan--instalasi">Instalasi</a> •
   <a href="#-konfigurasi-database-supabase">Database Setup</a> •
@@ -22,14 +23,33 @@
 
 **UangKu** adalah aplikasi manajemen keuangan pribadi *full-stack* modern yang dirancang untuk membantu pengguna mencatat, memantau, dan menganalisis arus kas keuangan (pemasukan, pengeluaran, transfer antar rekening, tabungan target, anggaran bulanan, hingga portofolio investasi) secara efisien dan intuitif.
 
-Dilengkapi dengan animasi mikro yang responsif, visualisasi grafik interaktif, otomatisasi pembaruan saldo berbasis *database triggers*, serta keamanan *Row Level Security* (RLS) bawaan Supabase.
+Dilengkapi dengan animasi mikro yang responsif, visualisasi grafik interaktif Recharts, otomatisasi pembaruan saldo berbasis *database triggers*, dukungan multi-bahasa real-time (Indonesia, English, Japanese), panduan tutorial *onboarding* interaktif untuk pengguna baru, serta keamanan *Row Level Security* (RLS) bawaan Supabase.
+
+---
+
+## 🔥 Fitur Terbaru & Inovasi
+
+- 🌐 **Dukungan Multi-Bahasa Real-Time (i18n)**  
+  Dukungan pengubahan bahasa langsung tanpa reload halaman: **Bahasa Indonesia 🇮🇩**, **English 🇺🇸**, dan **Jepang 🇯🇵**.
+- 📑 **Ekspor Laporan Keuangan ke PDF (PDF Report Statement)**  
+  Cetak laporan keuangan resmi berformat PDF berdesain bersih menggunakan `jspdf`, lengkap dengan ringkasan statistik (Pemasukan, Pengeluaran, Net Cashflow) dan tabel rincian transaksi berstruktur.
+- 🍩 **Grafik Analisis Pengeluaran per Kategori (Donut Chart Analysis)**  
+  Visualisasi Donut Chart Recharts interaktif yang menampilkan distribusi porsi pengeluaran per kategori, jumlah transaksi, serta indikator persentase.
+- ⏰ **Pengingat Tagihan Bulanan & Pelunasan Otomatis (Recurring Reminders)**  
+  Fitur pencatatan jadwal tagihan rutin (Bulanan, Mingguan, Tahunan) dengan fitur pelunasan 1-klik yang otomatis memotong saldo rekening terkait dan mencatat transaksi pengeluaran.
+- 🎯 **Panduan Tutorial Interaktif (User Onboarding Tour)**  
+  Popup tur panduan otomatis yang menyambut pengguna baru secara pintar berbasis `userId` Supabase untuk memandu fitur-fitur utama aplikasi.
+- 🔐 **Alur Verifikasi Email & Google OAuth Pintar**  
+  Deteksi otomatis status pendaftaran email, pengiriman email verifikasi bilingual (SMTP), halaman khusus konfirmasi verifikasi (`/verify-success`), serta autentikasi Google OAuth.
+- 📱 **Desain Responsif & Navigasi Mobile-First**  
+  Pengalaman pengguna yang dioptimalkan untuk semua ukuran layar (Desktop, Tablet, dan Mobile dengan Bar Navigasi Bawah).
 
 ---
 
 ## ✨ Fitur Utama
 
 - 📊 **Dashboard Keuangan Komprehensif**  
-  Ringkasan total kekayaan bersih (*net worth*), akumulasi pemasukan & pengeluaran, serta grafik tren arus kas bulanan.
+  Ringkasan kekayaan bersih (*net worth*), akumulasi pemasukan & pengeluaran, serta grafik tren arus kas tahunan (*Annual Expense Area Chart*).
 - 💳 **Manajemen Rekening & Dompet Multi-Akun**  
   Dukungan berbagai tipe akun (Bank, E-Wallet, Cash, dan Akun Investasi) dengan sinkronisasi saldo otomatis via Supabase Database Triggers.
 - 💸 **Pencatatan Transaksi Pemasukan & Pengeluaran**  
@@ -44,14 +64,12 @@ Dilengkapi dengan animasi mikro yang responsif, visualisasi grafik interaktif, o
   Pencatatan pinjaman dan piutang, pelacakan cicilan, serta tanggal jatuh tempo.
 - 📈 **Portofolio Investasi**  
   Pemantauan aset investasi, estimasi return, dan alokasi instrumen keuangan.
-- 💡 **Analisis & Insights**  
-  Grafik analisis pengeluaran berbasis Recharts untuk memahami pola konsumsi bulanan.
-- 🔔 **Pengingat Tagihan (Reminders)**  
-  Jadwal dan notifikasi pengingat untuk pembayaran tagihan rutin/langganan.
-- 📄 **Ekspor Laporan Keuangan**  
-  Fitur cetak dan unduh laporan ke format **PDF** dan **Excel (.xlsx)**.
+- 💡 **Analisis & Insights Keuangan**  
+  Skor kesehatan keuangan (*Financial Health Score*), analisis rasio tabungan, serta proyeksi dana harian (*Daily Burn Rate*).
+- 📄 **Ekspor Dokumen**  
+  Fitur cetak dan unduh laporan ke format **PDF** dan **CSV / Excel**.
 - 🔒 **Keamanan & Autentikasi Modern**  
-  Autentikasi aman berbasis Supabase Auth (Email & OAuth), dipadu *Rate Limiting* menggunakan Upstash Redis dan *Row Level Security* (RLS).
+  Autentikasi aman berbasis Supabase Auth (Email & Google OAuth), dipadu *Rate Limiting* menggunakan Upstash Redis dan *Row Level Security* (RLS).
 - 🌙 **Dark / Light Mode Interaktif**  
   Fitur pengubah tema visual dengan animasi melingkar (*expanding circle effect*) dan animasi maskot Rive Canvas.
 
@@ -71,7 +89,7 @@ Dilengkapi dengan animasi mikro yang responsif, visualisasi grafik interaktif, o
 - **Database & Auth**: [Supabase](https://supabase.com/) (PostgreSQL, Supabase Auth, Row Level Security, Triggers & PL/pgSQL Functions)
 - **SSR & Client**: `@supabase/ssr` & `@supabase/supabase-js`
 - **Rate Limiting & Caching**: [Upstash Redis](https://upstash.com/) (`@upstash/ratelimit`)
-- **Email Notification**: Nodemailer
+- **Email Notification**: Nodemailer (SMTP Email Verification)
 
 ### State Management & Utilities
 - **State Management**: [Zustand](https://zustand-demo.pmnd.rs/)
@@ -91,7 +109,7 @@ Pastikan perangkat Anda telah terinstall:
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/username-anda/finance-project.git
+git clone https://github.com/TricQs/finance-project.git
 cd finance-project
 ```
 
@@ -116,7 +134,7 @@ SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 UPSTASH_REDIS_REST_URL=https://your-upstash-instance.upstash.io
 UPSTASH_REDIS_REST_TOKEN=your-upstash-token
 
-# SMTP Config (Optional - Email Reminder & Auth)
+# SMTP Config (Optional - Email Reminder & Auth Verification)
 SMTP_HOST=smtp.gmail.com
 SMTP_PORT=465
 SMTP_USER=your-email@gmail.com
@@ -157,19 +175,24 @@ Buka [http://localhost:3000](http://localhost:3000) pada browser Anda.
 ```
 finance-project/
 ├── app/                        # Next.js App Router (Pages, API Routes, & Layouts)
-│   ├── (app)/                  # Private Dashboard Routes (accounts, budgets, debts, goals, etc.)
-│   ├── (public)/               # Public Routes (Auth login & register)
+│   ├── (app)/                  # Private Dashboard Routes (accounts, budgets, debts, goals, insights, reminders, etc.)
+│   ├── (public)/               # Public Routes (Auth login, register, verify-success)
 │   ├── api/                    # API Endpoints
 │   ├── globals.css             # Styling global & variabel tema
 │   └── layout.tsx              # Root Layout
 ├── components/                 # React Components
 │   ├── auth/                   # Komponen Autentikasi & Mascots
-│   ├── shared/                 # Komponen Reusable (Logo, ThemeToggle)
-│   └── ui/                     # Komponen UI Shadcn
+│   ├── budgets/                # Modal & Komponen Budget Tracker
+│   ├── dashboard/              # Annual Expense Area Chart & Dashboard Utilities
+│   ├── insights/               # Category Expense Donut Analysis Chart
+│   ├── layout/                 # Sidebar, Topbar, & Navigation Shell
+│   ├── shared/                 # Komponen Reusable (Logo, OnboardingTour)
+│   └── ui/                     # Komponen UI Shadcn & Charts
 ├── lib/                        # Utilities, Actions, & Clients
 │   ├── auth/                   # Server Actions autentikasi
+│   ├── export-pdf.ts           # PDF Statement Export Generator (jsPDF)
+│   ├── i18n/                   # Dictionary & Hook Multi-Bahasa (id, en, ja)
 │   ├── supabase/               # Client & Server Helper Supabase
-│   ├── motion.ts               # Preset animasi Framer Motion
 │   └── utils.ts                # Tailwind Class Merger
 ├── supabase_schema.sql         # Skema Database SQL & Triggers Supabase
 ├── types/                      # TypeScript Interfaces & Types

@@ -24,6 +24,7 @@ import { motion } from "framer-motion";
 
 import { useLanguage } from "@/lib/i18n/context";
 import { translateCategory } from "@/lib/i18n/dictionary";
+import { CategoryAnalysisChart } from "@/components/insights/category-analysis-chart";
 
 interface InsightsClientPageProps {
   initialData: FinancialInsightsData;
@@ -218,42 +219,11 @@ export function InsightsClientPage({ initialData }: InsightsClientPageProps) {
 
       {/* GRID KONTEN UTAMA: CATEGORY BREAKDOWN & PROJECTIONS */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* KATEGORI PENGELUARAN BREAKDOWN */}
-        <div className="p-6 rounded-3xl bg-background border border-border/50 shadow-xs space-y-5 flex flex-col">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <PieChartIcon className="size-5 text-indigo-500" />
-              <h3 className="text-base font-bold text-foreground">{t.insights.topExpenseCategory}</h3>
-            </div>
-            <span className="text-xs text-muted-foreground">{data.categoryBreakdown.length} {t.insights.categoryCount}</span>
-          </div>
-
-          {data.categoryBreakdown.length === 0 ? (
-            <div className="py-12 text-center text-muted-foreground text-sm flex flex-col items-center justify-center gap-2">
-              <PieChartIcon className="size-8 text-muted-foreground/40" />
-              <span>{t.dashboard.noTransactions}</span>
-            </div>
-          ) : (
-            <div className="space-y-4">
-              {data.categoryBreakdown.map((item) => (
-                <div key={item.category} className="space-y-1.5">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="font-semibold text-foreground flex items-center gap-2">
-                      <span className="size-3 rounded-full shrink-0" style={{ backgroundColor: item.color }} />
-                      {translateCategory(item.category, language)}
-                      <span className="text-[10px] text-muted-foreground font-normal">({item.count} {t.insights.transactionCount})</span>
-                    </span>
-                    <div className="flex items-center gap-2 font-bold tabular-nums">
-                      <span className="text-foreground">{formatCurrency(item.amount)}</span>
-                      <span className="text-muted-foreground w-8 text-right">{item.percentage}%</span>
-                    </div>
-                  </div>
-                  <Progress value={item.percentage} className="h-2 rounded-full" />
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* KATEGORI PENGELUARAN BREAKDOWN WITH DONUT CHART */}
+        <CategoryAnalysisChart
+          categories={data.categoryBreakdown}
+          totalExpense={data.totalExpense}
+        />
 
         {/* SMART FINANCIAL FORECAST & BURN RATE */}
         <div className="space-y-6">

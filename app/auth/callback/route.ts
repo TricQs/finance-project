@@ -43,7 +43,7 @@ export async function GET(request: Request) {
 
     // Email verification for signup
     if (type === "signup" || type === "email") {
-      return NextResponse.redirect(`${redirectBase}/auth?verified=true`);
+      return NextResponse.redirect(`${redirectBase}/verify-success`);
     }
 
     return NextResponse.redirect(`${redirectBase}/dashboard`);

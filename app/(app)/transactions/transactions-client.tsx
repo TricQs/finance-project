@@ -48,6 +48,7 @@ import {
 } from "@/lib/transactions/actions";
 import { toast } from "sonner";
 import type { Account } from "@/types";
+import { generateFinancialReportPDF } from "@/lib/export-pdf";
 
 const ALL_CATEGORIES = [
   "Makanan & Minuman",
@@ -204,6 +205,20 @@ export function TransactionsClientPage({
       toast.success("Transaksi massal berhasil dihapus.");
       refreshTransactions();
     }
+  }
+
+  // Ekspor transaksi ke PDF
+  function handleExportPDF() {
+    if (transactions.length === 0) {
+      toast.error("Tidak ada data transaksi untuk diekspor ke PDF");
+      return;
+    }
+    generateFinancialReportPDF({
+      transactions,
+      language,
+      dateRangeLabel: startDate && endDate ? `${startDate} - ${endDate}` : startDate ? `Dari ${startDate}` : endDate ? `Sampai ${endDate}` : "Semua Transaksi",
+    });
+    toast.success("Laporan PDF berhasil diunduh!");
   }
 
   // Ekspor transaksi ke CSV (Translates headers & values dynamically & formats clean YYYY-MM-DD for Excel)
@@ -377,10 +392,16 @@ export function TransactionsClientPage({
             </Button>
           </div>
 
-          <Button size="sm" variant="outline" onClick={handleExportCSV} className="rounded-2xl border-2 gap-2 cursor-pointer">
-            <Download className="size-4" />
-            <span>{t.transactions.exportCSV}</span>
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="outline" onClick={handleExportCSV} className="rounded-2xl border-2 gap-2 cursor-pointer">
+              <Download className="size-4" />
+              <span>{t.transactions.exportCSV}</span>
+            </Button>
+            <Button size="sm" variant="outline" onClick={handleExportPDF} className="rounded-2xl border-2 gap-2 cursor-pointer bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border-indigo-500/20 hover:bg-indigo-500/20">
+              <FileText className="size-4" />
+              <span>{language === "ja" ? "PDFレポート出力" : language === "en" ? "Export PDF" : "Cetak PDF"}</span>
+            </Button>
+          </div>
         </div>
       </div>
 

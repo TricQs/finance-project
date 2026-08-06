@@ -33,6 +33,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getReminders, createReminder, payReminder, deleteReminder } from "@/lib/reminders/actions";
 import { toast } from "sonner";
+import { IndonesianDatePicker } from "@/components/ui/indonesian-date-picker";
 import type { Account, Reminder } from "@/types";
 
 interface RemindersClientPageProps {
@@ -299,11 +300,10 @@ export function RemindersClientPage({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-1.5">
                 <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Jatuh Tempo</Label>
-                <Input
-                  type="date"
+                <IndonesianDatePicker
                   value={dueDate}
-                  onChange={(e) => setDueDate(e.target.value)}
-                  className="rounded-2xl border-2 border-border focus-visible:border-primary focus-visible:ring-0"
+                  onChange={setDueDate}
+                  placeholder="dd/mm/yyyy"
                 />
               </div>
 

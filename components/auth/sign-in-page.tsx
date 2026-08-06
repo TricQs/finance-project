@@ -189,8 +189,8 @@ export function SignInPage({ initialError, initialVerified }: { initialError?: s
     switch (code) {
       case "VERIFY_EMAIL":
         return isId
-          ? "Akun berhasil dibuat! Silakan cek email Anda untuk memverifikasi akun sebelum masuk."
-          : "Account created! Please check your email to verify your account before signing in.";
+          ? "Akun berhasil dibuat! Silakan cek kotak masuk (Inbox) atau folder Spam pada email Anda untuk verifikasi sebelum masuk."
+          : "Account created! Please check your email inbox or spam folder to verify your account before signing in.";
       case "EMAIL_VERIFIED":
         return isId
           ? "Email berhasil diverifikasi! Silakan masuk dengan akun Anda."
