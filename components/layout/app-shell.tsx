@@ -1,6 +1,5 @@
 "use client";
 
-import { useState, useEffect } from "react";
 import { AppSidebar } from "@/components/layout/app-sidebar";
 import { AppTopbar } from "@/components/layout/app-topbar";
 import { PageTransition } from "@/components/layout/page-transition";
@@ -21,25 +20,6 @@ export function AppShell({
   userEmail,
   avatarUrl,
 }: AppShellProps) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-    const saved = localStorage.getItem("uangku_sidebar_collapsed");
-    if (saved !== null) {
-      setIsCollapsed(saved === "true");
-    }
-  }, []);
-
-  const handleToggleSidebar = () => {
-    setIsCollapsed((prev) => {
-      const next = !prev;
-      localStorage.setItem("uangku_sidebar_collapsed", String(next));
-      return next;
-    });
-  };
-
   return (
     <div className="h-screen w-screen overflow-hidden flex bg-background font-sans">
       {/* Fixed Stationary Left Sidebar */}
@@ -47,8 +27,6 @@ export function AppShell({
         userName={userName}
         userEmail={userEmail}
         avatarUrl={avatarUrl}
-        isCollapsed={mounted ? isCollapsed : false}
-        onToggleSidebar={handleToggleSidebar}
       />
 
       {/* Right Independent Scrolling Container */}

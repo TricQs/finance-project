@@ -18,6 +18,7 @@ import {
   ArrowRightLeft,
   Wallet,
   PiggyBank,
+  BellRing,
   HelpCircle
 } from "lucide-react";
 
@@ -122,17 +123,23 @@ type AppSidebarProps = {
 
 import { useLanguage } from "@/lib/i18n/context";
 
+import { ActionSearchBar, Action } from "@/components/ui/action-search-bar";
+import { useTheme } from "next-themes";
+
 export function AppSidebar({
   userName = "Pengguna",
   userEmail = "",
   avatarUrl,
-  isCollapsed = false,
-  onToggleSidebar,
 }: AppSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
   const { t, language } = useLanguage();
-  const [logoHovered, setLogoHovered] = useState(false);
+  const { theme, setTheme } = useTheme();
+  const [isHovered, setIsHovered] = useState(false);
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
+
+  // Automatically expand sidebar when hovered or searching, collapse when idle
+  const isCollapsed = !isHovered && !isSearchFocused;
 
   const MENU_ITEMS: MenuItem[] = [
     { label: t.nav.dashboard, href: "/dashboard", icon: LayoutGrid },
@@ -142,88 +149,116 @@ export function AppSidebar({
     { label: t.nav.budgets, href: "/budgets", icon: PiggyBank },
   ];
 
+  const appSearchActions: Action[] = [
+    {
+      id: "nav-dashboard",
+      label: t.nav.dashboard,
+      icon: <LayoutGrid className="h-4 w-4 text-indigo-500" />,
+      description: language === "ja" ? "ダッシュボード" : language === "id" ? "Ringkasan Arus Kas" : "Cashflow Summary",
+      end: "Nav",
+      onSelect: () => router.push("/dashboard")
+    },
+    {
+      id: "nav-accounts",
+      label: t.nav.accounts,
+      icon: <Wallet className="h-4 w-4 text-emerald-500" />,
+      description: language === "ja" ? "口座・残高" : language === "id" ? "Kelola Saldo Dompet" : "Wallet Balances",
+      end: "Nav",
+      onSelect: () => router.push("/accounts")
+    },
+    {
+      id: "nav-transactions",
+      label: t.nav.transactions,
+      icon: <ArrowRightLeft className="h-4 w-4 text-blue-500" />,
+      description: language === "ja" ? "取引履歴" : language === "id" ? "Riwayat Transaksi" : "Transaction History",
+      end: "Nav",
+      onSelect: () => router.push("/transactions")
+    },
+    {
+      id: "nav-insights",
+      label: t.nav.insights,
+      icon: <SlidersHorizontal className="h-4 w-4 text-purple-500" />,
+      description: language === "ja" ? "財務分析" : language === "id" ? "Analisis Skor Keuangan" : "Financial Health Score",
+      end: "Nav",
+      onSelect: () => router.push("/insights")
+    },
+    {
+      id: "nav-budgets",
+      label: t.nav.budgets,
+      icon: <PiggyBank className="h-4 w-4 text-amber-500" />,
+      description: language === "ja" ? "予算管理" : language === "id" ? "Batas Anggaran Bulanan" : "Monthly Budget Limits",
+      end: "Nav",
+      onSelect: () => router.push("/budgets")
+    },
+    {
+      id: "nav-reminders",
+      label: language === "ja" ? "請求書リマインダー" : language === "id" ? "Pengingat Tagihan" : "Bill Reminders",
+      icon: <BellRing className="h-4 w-4 text-rose-500" />,
+      description: language === "id" ? "Jadwal Tagihan Rutin" : "Recurring Bills",
+      end: "Nav",
+      onSelect: () => router.push("/reminders")
+    },
+    {
+      id: "nav-settings",
+      label: t.nav.settings,
+      icon: <Settings className="h-4 w-4 text-slate-500" />,
+      description: language === "ja" ? "設定" : language === "id" ? "Profil & Pengaturan" : "Profile & Preferences",
+      end: "Nav",
+      onSelect: () => router.push("/settings")
+    },
+  ];
+
   return (
     <>
-      {/* DESKTOP SIDEBAR - 21st.dev UI Icons & Ultra 60FPS GPU Accelerated Smooth Pill Styling */}
+      {/* DESKTOP SIDEBAR - Stationary Left Icons & Inline Action Search Bar */}
       <aside
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={cn(
           "hidden md:flex h-screen shrink-0 flex-col justify-between border-r border-slate-200/60 dark:border-zinc-800 bg-white/95 dark:bg-zinc-950/95 backdrop-blur-md transform-gpu p-3.5 transition-[width] duration-300 cubic-bezier(0.22,1,0.36,1) select-none z-40 sticky top-0 left-0 font-sans",
-          isCollapsed ? "w-[76px]" : "w-64"
+          isCollapsed ? "w-[76px]" : "w-[280px]"
         )}
       >
         {/* Top Section */}
         <div className="flex flex-col gap-2 overflow-y-auto scrollbar-none flex-1 pr-0.5">
-          {/* Row 1: Logo & Close Button */}
-          <div className="flex items-center justify-between h-11 px-1">
-            {!isCollapsed ? (
-              <>
-                <div className="flex items-center gap-2 overflow-hidden">
-                  <Logo size="sm" />
-                </div>
-                {onToggleSidebar && (
-                  <button
-                    type="button"
-                    onClick={onToggleSidebar}
-                    title="Tutup Sidebar"
-                    className="p-1.5 rounded-xl text-slate-400 hover:text-slate-900 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer shrink-0"
-                  >
-                    <PanelLeftClose className="size-4.5" />
-                  </button>
-                )}
-              </>
-            ) : (
-              <div className="w-full flex justify-center">
-                <button
-                  type="button"
-                  onClick={onToggleSidebar}
-                  onMouseEnter={() => setLogoHovered(true)}
-                  onMouseLeave={() => setLogoHovered(false)}
-                  title="Klik untuk Buka Sidebar"
-                  className="relative group flex items-center justify-center p-1 rounded-full hover:scale-105 transition-all cursor-pointer"
-                >
-                  <div className="size-10 rounded-2xl flex items-center justify-center transition-all">
-                    {logoHovered ? (
-                      <PanelLeft className="size-5 text-emerald-500 animate-pulse" />
-                    ) : (
-                      <Logo size="sm" showText={false} />
-                    )}
-                  </div>
-                </button>
+          {/* Row 1: Logo (Image Fixed on Left, Text Fades In/Out) */}
+          <div className="flex items-center h-11 px-2 overflow-hidden">
+            <div className="flex items-center gap-3">
+              <div className="shrink-0">
+                <Logo size="sm" showText={false} />
               </div>
-            )}
+              <span
+                className={cn(
+                  "font-heading font-extrabold text-base text-foreground tracking-tight whitespace-nowrap transition-all duration-300 ease-in-out flex items-center gap-1",
+                  isCollapsed ? "max-w-0 opacity-0 pointer-events-none" : "w-auto opacity-100"
+                )}
+              >
+                Uangku
+                <span className="inline-block size-1.5 rounded-full bg-emerald-500" />
+              </span>
+            </div>
           </div>
 
-          {/* Row 2: Search Bar */}
-          <div className="h-10 flex items-center my-0.5">
-            {!isCollapsed ? (
-              <div className="w-full flex items-center justify-between gap-2 px-3 py-2 rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 text-xs font-medium text-slate-500 dark:text-zinc-400">
-                <div className="flex items-center gap-2">
-                  <Search className="size-3.5 text-slate-400" />
-                  <span>Search</span>
-                </div>
-                <span className="text-[10px] bg-slate-200 dark:bg-zinc-800 px-1.5 py-0.5 rounded-md font-mono text-slate-500">⌘K</span>
-              </div>
-            ) : (
-              <button
-                type="button"
-                onClick={onToggleSidebar}
-                title="Buka Sidebar / Search (⌘K)"
-                className="w-full h-10 flex items-center justify-center rounded-2xl border border-slate-200/80 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors cursor-pointer"
-              >
-                <Search className="size-4" />
-              </button>
-            )}
+          {/* Row 2: Search Bar (ActionSearchBar with Left Stationary Animated Icon & Smooth Expansion) */}
+          <div className="h-10 flex items-center my-0.5 px-0.5">
+            <ActionSearchBar
+              actions={appSearchActions}
+              isCollapsed={isCollapsed}
+              onFocusChange={setIsSearchFocused}
+              placeholder={language === "ja" ? "検索..." : language === "id" ? "Cari fitur..." : "Search..."}
+            />
           </div>
 
           {/* Row 3: Section Header "MENU" */}
-          <div className="h-6 flex items-center my-1 px-2">
-            {!isCollapsed ? (
-              <span className="text-[11px] font-semibold text-slate-400 dark:text-zinc-400 uppercase tracking-wider">
-                Menu
-              </span>
-            ) : (
-              <span className="w-10 border-t-2 border-slate-300 dark:border-zinc-700 mx-auto" />
-            )}
+          <div className="h-5 flex items-center my-1 px-3.5">
+            <span
+              className={cn(
+                "text-[11px] font-semibold text-slate-400 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap transition-all duration-300 ease-in-out",
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[220px]"
+              )}
+            >
+              Menu
+            </span>
           </div>
 
           {/* Row 4: MENU Nav Items */}
@@ -254,20 +289,26 @@ export function AppSidebar({
                   data-tour={label.toLowerCase()}
                   title={isCollapsed ? translatedLabel : undefined}
                   className={cn(
-                    "flex items-center justify-between rounded-2xl text-sm font-medium transition-all cursor-pointer",
-                    isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5",
+                    "group/navitem flex items-center justify-between px-3.5 pr-5 py-2.5 rounded-2xl text-sm font-medium transition-all cursor-pointer",
                     isActive
                       ? "bg-[#eef2ff] dark:bg-indigo-950/60 text-[#4f46e5] dark:text-indigo-400 font-semibold shadow-xs"
                       : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
                   <div className="flex items-center gap-3">
-                    <Icon className="size-4.5 shrink-0" />
-                    {!isCollapsed && <span className="truncate">{translatedLabel}</span>}
+                    <Icon className="size-4.5 shrink-0 transition-transform duration-200 group-hover/navitem:scale-110" />
+                    <span
+                      className={cn(
+                        "whitespace-nowrap text-sm font-medium transition-all duration-300 ease-in-out inline-block group-hover/navitem:translate-x-1.5 group-hover/navitem:text-indigo-600 dark:group-hover/navitem:text-indigo-400",
+                        isCollapsed ? "max-w-0 opacity-0 pointer-events-none overflow-hidden" : "max-w-[220px] opacity-100"
+                      )}
+                    >
+                      {translatedLabel}
+                    </span>
                   </div>
 
                   {!isCollapsed && badge && (
-                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200/60 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300">
+                    <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-slate-200/60 dark:bg-zinc-800 text-slate-600 dark:text-zinc-300 shrink-0 ml-2">
                       {badge}
                     </span>
                   )}
@@ -277,17 +318,18 @@ export function AppSidebar({
           </nav>
 
           {/* Row 5: Section Header "STORE" */}
-          <div className="h-8 flex items-center my-1 px-2 pt-3 border-t border-slate-200 dark:border-zinc-800">
-            {!isCollapsed ? (
-              <span className="text-[11px] font-semibold text-slate-400 dark:text-zinc-400 uppercase tracking-wider">
-                Store
-              </span>
-            ) : (
-              <span className="w-10 border-t-2 border-slate-300 dark:border-zinc-700 mx-auto" />
-            )}
+          <div className="h-6 flex items-center my-1 px-3.5 pt-2 border-t border-slate-200 dark:border-zinc-800">
+            <span
+              className={cn(
+                "text-[11px] font-semibold text-slate-400 dark:text-zinc-400 uppercase tracking-wider whitespace-nowrap transition-all duration-300 ease-in-out",
+                isCollapsed ? "opacity-0 max-w-0 pointer-events-none" : "opacity-100 max-w-[220px]"
+              )}
+            >
+              Store
+            </span>
           </div>
 
-          {/* Row 6: STORE Nav Items List (Amazon, Shopee, Walmart) */}
+          {/* Row 6: STORE Nav Items List */}
           <nav className="flex flex-col gap-1">
             {STORE_ITEMS.map(({ label, href, icon: Icon }) => {
               const isActive = pathname === href || pathname?.startsWith(`${href}/`);
@@ -298,15 +340,21 @@ export function AppSidebar({
                   href={href}
                   title={isCollapsed ? label : undefined}
                   className={cn(
-                    "flex items-center gap-3 rounded-2xl text-sm font-medium transition-all cursor-pointer",
-                    isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5",
+                    "group/navitem flex items-center gap-3 px-3.5 pr-5 py-2.5 rounded-2xl text-sm font-medium transition-all cursor-pointer",
                     isActive
                       ? "bg-[#eef2ff] dark:bg-indigo-950/60 text-[#4f46e5] dark:text-indigo-400 font-semibold shadow-xs"
                       : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
                   )}
                 >
-                  <Icon className="size-5 shrink-0" />
-                  {!isCollapsed && <span className="truncate">{label}</span>}
+                  <Icon className="size-5 shrink-0 transition-transform duration-200 group-hover/navitem:scale-110" />
+                  <span
+                    className={cn(
+                      "whitespace-nowrap text-sm font-medium transition-all duration-300 ease-in-out inline-block group-hover/navitem:translate-x-1.5 group-hover/navitem:text-indigo-600 dark:group-hover/navitem:text-indigo-400",
+                      isCollapsed ? "max-w-0 opacity-0 pointer-events-none overflow-hidden" : "max-w-[220px] opacity-100"
+                    )}
+                  >
+                    {label}
+                  </span>
                 </Link>
               );
             })}
@@ -320,22 +368,27 @@ export function AppSidebar({
             prefetch={true}
             title={isCollapsed ? t.nav.settings : undefined}
             className={cn(
-              "flex items-center gap-3 rounded-2xl text-sm font-medium transition-all cursor-pointer",
-              isCollapsed ? "justify-center px-0 py-2.5" : "px-3.5 py-2.5",
+              "group/navitem flex items-center gap-3 px-3.5 pr-5 py-2.5 rounded-2xl text-sm font-medium transition-all cursor-pointer",
               pathname?.startsWith("/settings")
                 ? "bg-[#eef2ff] dark:bg-indigo-950/60 text-[#4f46e5] dark:text-indigo-400 font-semibold shadow-xs"
                 : "text-slate-600 dark:text-zinc-400 hover:bg-slate-100/80 dark:hover:bg-zinc-900 hover:text-slate-900 dark:hover:text-white"
             )}
           >
-            <Settings className="size-4.5 shrink-0" />
-            {!isCollapsed && <span>{t.nav.settings}</span>}
+            <Settings className="size-4.5 shrink-0 transition-transform duration-200 group-hover/navitem:scale-110" />
+            <span
+              className={cn(
+                "whitespace-nowrap text-sm font-medium transition-all duration-300 ease-in-out inline-block group-hover/navitem:translate-x-1.5 group-hover/navitem:text-indigo-600 dark:group-hover/navitem:text-indigo-400",
+                isCollapsed ? "max-w-0 opacity-0 pointer-events-none overflow-hidden" : "max-w-[220px] opacity-100"
+              )}
+            >
+              {t.nav.settings}
+            </span>
           </Link>
 
           <DropdownMenu>
             <DropdownMenuTrigger
               className={cn(
-                "flex items-center rounded-2xl text-left outline-none transition-all cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-900",
-                isCollapsed ? "justify-center p-2" : "gap-3 px-3 py-2.5 border border-slate-200/60 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60"
+                "flex items-center rounded-2xl text-left outline-none transition-all cursor-pointer hover:bg-slate-100 dark:hover:bg-zinc-900 px-2.5 py-2 border border-slate-200/60 dark:border-zinc-800 bg-slate-50 dark:bg-zinc-900/60 overflow-hidden gap-3"
               )}
             >
               <Avatar size="sm" className="shrink-0 border border-slate-200 dark:border-zinc-700">
@@ -344,16 +397,19 @@ export function AppSidebar({
                   {userName.charAt(0).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
-              {!isCollapsed && (
-                <div className="flex min-w-0 flex-col overflow-hidden">
-                  <span className="truncate text-sm font-semibold text-slate-900 dark:text-white">
-                    {userName}
-                  </span>
-                  <span className="truncate text-xs text-slate-500 dark:text-zinc-400">
-                    {userEmail}
-                  </span>
-                </div>
-              )}
+              <div
+                className={cn(
+                  "flex min-w-0 flex-col overflow-hidden transition-all duration-300 ease-in-out",
+                  isCollapsed ? "max-w-0 opacity-0 pointer-events-none" : "max-w-[160px] opacity-100"
+                )}
+              >
+                <span className="truncate text-sm font-semibold text-slate-900 dark:text-white whitespace-nowrap">
+                  {userName}
+                </span>
+                <span className="truncate text-xs text-slate-500 dark:text-zinc-400 whitespace-nowrap">
+                  {userEmail}
+                </span>
+              </div>
             </DropdownMenuTrigger>
             <DropdownMenuContent align={isCollapsed ? "center" : "start"} side="top" className="w-56 rounded-2xl font-sans">
               <DropdownMenuItem
